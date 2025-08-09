@@ -1,0 +1,211 @@
+body {
+    margin: 0;
+    background: #f8f9fa;
+    color: #222;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+header {
+    background: #222;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+nav {
+    background: #444;
+    padding: 10px 0;
+    text-align: center;
+}
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+}
+nav a:hover {
+    text-decoration: underline;
+}
+main {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+section {
+    margin-bottom: 30px;
+}
+footer {
+    background: #222;
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+.chord-img {
+    width: 100px;
+    height: auto;
+    margin-right: 20px;
+    vertical-align: middle;
+}
+.accent-section {
+    border-left: 5px solid #0d6efd;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    animation: fadeIn 1.2s;
+}
+.highlight {
+    font-weight: bold;
+    color: #0d6efd;
+}
+.fade-in {
+    opacity: 0;
+    animation: fadeIn 1.2s forwards;
+}
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+.text-brown {
+    color: #8B4513 !important; /* SaddleBrown, or pick your favorite brown */
+}
+.text-orange {
+    color: #FF8800 !important; /* A vivid orange, or use #FFA500 for classic orange */
+}
+
+/* Circle Menu Styles */
+#circle-menu {
+    position: relative;
+    z-index: 10;
+}
+
+.circle-menu-item {
+    width: 100px;
+    height: 100px;
+    background: #e3e8f0;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+    cursor: pointer;
+    position: relative;
+    font-size: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    z-index: 2;
+}
+.circle-menu-item .circle-label {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    color: #222;
+    font-weight: 500;
+}
+.circle-menu-item .circle-categories {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    min-width: 120px;
+    color: #222;
+    white-space: nowrap;
+}
+.circle-menu-item:hover,
+.circle-menu-item.active {
+    width: 140px;
+    height: 140px;
+    font-size: 2.5rem;
+    background: #f8fafc;
+    z-index: 3;
+}
+.circle-menu-item:hover .circle-categories,
+.circle-menu-item.active .circle-categories {
+    display: block;
+}
+.circle-menu-item.docked {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scale(0.7);
+    opacity: 0.7;
+    z-index: 1;
+    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+}
+
+.circle-card {
+    width: 100%;
+    max-width: 600px;
+    min-height: 300px;
+    display: none;
+    z-index: 50;
+    position: relative;
+}
+.circle-card.active {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+/* Vertically stack docked circles and position left */
+#circle-menu.docked {
+    position: fixed;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: auto;
+    height: auto;
+    z-index: 20;
+}
+#circle-menu.docked .circle-menu-item.docked {
+    position: static;
+    left: auto;
+    top: auto;
+    transform: scale(0.7);
+    margin-bottom: 24px;
+    opacity: 0.7;
+}
+#circle-menu.docked .circle-menu-item.docked:last-child {
+    margin-bottom: 0;
+}
+#circle-menu.docked .circle-menu-item.active {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: scale(0.7);
+    opacity: 1;
+    z-index: 30;
+}
+#circle-menu.docked .circle-menu-item.docked:hover {
+    background: #f1f5fa;
+    opacity: 1;
+    transform: scale(0.8);
+    z-index: 2;
+}
+
+/* Only show dropdown when not docked and hovered */
+#circle-menu:not(.docked) .circle-menu-item:hover .circle-categories {
+    display: block;
+}
+
+/* Hide dropdown when docked, even on hover */
+#circle-menu.docked .circle-menu-item .circle-categories {
+    display: none !important;
+}
+
+.music-bg {
+    background-image: url('../static/music_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
