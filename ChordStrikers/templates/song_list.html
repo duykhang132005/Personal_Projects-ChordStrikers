@@ -1,0 +1,62 @@
+{% extends "index.html" %}
+
+{% block title %}Song List | ChordStrikers{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-white">
+  <h1 class="mb-4 text-center">Song Library</h1>
+  <p class="fs-5 text-center">Browse all available songs in the collection. Click any title to view its chord sheet.</p>
+
+  <!-- 🔍 Optional Filter/Search -->
+  <form method="GET" action="{{ url_for('song_list') }}" class="my-4">
+    <div class="input-group">
+      <input
+        type="text"
+        name="query"
+        class="form-control"
+        placeholder="Search by title or artist"
+        value="{{ query or '' }}"
+        aria-label="Search by title or artist"
+      >
+      <button class="btn btn-outline-light" type="submit">
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+  </form>
+
+  <!-- 📜 Song Table -->
+  {% if songs %}
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Artist</th>
+          <th scope="col">Key</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for song in songs %}
+        <tr>
+          <td>{{ song.title }}</td>
+          <td>{{ song.artist }}</td>
+          <td>{{ song.song_key or '—' }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('view_sheet', sheet_id=song.id) }}" class="btn btn-sm btn-outline-light">
+              View
+            </a>
+            <a href="{{ url_for('edit_sheet', sheet_id=song.id) }}" class="btn btn-sm btn-outline-warning">
+              Edit
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-center fs-5 mt-5">No songs found. Try adjusting your search or check back later!</p>
+  {% endif %}
+</div>
+{% endblock %}

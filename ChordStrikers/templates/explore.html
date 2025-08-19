@@ -1,0 +1,57 @@
+{% extends "index.html" %}
+
+{% block title %}Explore | ChordStrikers{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-white">
+    <p class="fs-5 text-center">Browse community-created chord sheets by song, artist, or key.</p>
+    
+    <!-- 🔍 Search Bar -->
+    <form method="GET" action="{{ url_for('explore') }}" class="my-4">
+        <div class="input-group">
+            <input
+                type="text"
+                name="query"
+                class="form-control"
+                placeholder="Search by song or artist"
+                value="{{ query or '' }}"
+                aria-label="Search by song or artist"
+            >
+            <input
+                type="text"
+                name="key"
+                class="form-control"
+                placeholder="Key (e.g., C, F#m)"
+                value="{{ selected_key or '' }}"
+                aria-label="Filter by key"
+                style="max-width: 160px"
+            >
+            <button class="btn btn-outline-light" type="submit" aria-label="Search">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+
+    <!-- 📚 Results Section -->
+    <div class="row mt-5">
+        {% if chord_sheets %}
+            {% for sheet in chord_sheets %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card bg-dark text-white h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ sheet.title }}</h5>
+                            <p class="card-text"><strong>Artist:</strong> {{ sheet.artist }}</p>
+                            <p class="card-text"><strong>Key:</strong> {{ sheet.song_key or '—' }}</p>
+                            <a href="{{ url_for('view_sheet', sheet_id=sheet.id) }}" class="btn btn-outline-light mt-2">View Sheet</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <p class="fs-5">No chord sheets found. Try a different search or check back later!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
