@@ -8,23 +8,20 @@
   <p class="mb-1"><strong>Artist:</strong> {{ song.artist }}</p>
   <p class="mb-4"><strong>Key:</strong> {{ song.song_key or '—' }}</p>
 
-  {% if song.data_path %}
-    <div class="mb-3">
-     <a href="{{ url_for('edit_song', sheet_id=song.id) }}" class="btn btn-primary">Edit</a>
-    </div>
+  <div class="mb-3">
+    <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="btn btn-primary">Edit</a>
+  </div>
 
-    {% if sheet_content %}
-      <h4 class="mt-4">Preview</h4>
-      <pre class="bg-light text-black p-3 rounded"
-           style="white-space: pre-wrap; font-family: monospace;">
-{{ sheet_content }}
-      </pre>
-    {% else %}
-      <p class="text-warning">No preview available — file could not be read.</p>
-    {% endif %}
-
+  {% if lines %}
+    <h4 class="mt-4">Chords and Lyrics</h4>
+      <div class="song-content">
+        {% for chord_line, lyric_line in lines %}
+          <pre class="chord-line">{{ chord_line }}</pre>
+          <pre class="lyric-line">{{ lyric_line }}</pre>
+        {% endfor %}
+      </div>
   {% else %}
-    <p class="text-warning">No data file attached for this song yet.</p>
+    <p class="text-warning">No preview available — file could not be read.</p>
   {% endif %}
 </div>
 {% endblock %}

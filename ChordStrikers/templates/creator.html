@@ -10,8 +10,8 @@
   </p>
 
   <div class="mt-5">
-    <form method="POST" action="{% block form_action %}{{ url_for('create') }}{% endblock %}"
-          enctype="multipart/form-data" class="text-start">
+    <form method="POST" action="{{ form_action_url }}"
+          enctype="multipart/form-data" class="text-start" id="edit-form">
 
       <!-- Title -->
       <div class="mb-3">
@@ -42,15 +42,13 @@
         <label for="sheet_content" class="form-label">Chord Sheet Text</label>
         <textarea class="form-control" id="sheet_content" name="sheet_content"
                   rows="8">{% block value_content %}{% endblock %}</textarea>
-        <div class="form-text text-light">
-          If provided, this will be saved into a new .txt in /static/data/.
-        </div>
       </div>
-
-      {% block form_button %}
+        {% block form_button %}
         <button type="submit" class="btn btn-success">Create</button>
-      {% endblock %}
+        {% endblock %}
     </form>
+      {% block form_button_2 %}
+      {% endblock %}
   </div>
 </div>
 {% endblock %}

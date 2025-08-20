@@ -12,9 +12,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="music-bg">
-    {% if request.endpoint != 'home' %}
+    {% if request.endpoint != 'main.home' %}
     <div class="text-center p-4 fade-in">
-        <a href="{{ url_for('home') }}" class="text-decoration-none">
+        <a href="{{ url_for('main.home') }}" class="text-decoration-none">
             <h1 class="m-0">
                 <span class="highlight text-orange">ChordStrikers</span>
             </h1>
