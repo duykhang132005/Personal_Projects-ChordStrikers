@@ -10,16 +10,17 @@
 
   <div class="mb-3">
     <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="btn btn-primary">Edit</a>
+    <a href="{{ url_for('main.explore') }}" class="btn btn-danger">Return</a>
   </div>
 
   {% if lines %}
     <h4 class="mt-4">Chords and Lyrics</h4>
-      <div class="song-content">
-        {% for chord_line, lyric_line in lines %}
-          <pre class="chord-line">{{ chord_line }}</pre>
-          <pre class="lyric-line">{{ lyric_line }}</pre>
-        {% endfor %}
-      </div>
+    <div class="song-content">
+      {% for chord_line, lyric_line in lines %}
+        <pre class="chord-line">{{ chord_line }}</pre>
+        <pre class="lyric-line">{{ lyric_line }}</pre>
+      {% endfor %}
+    </div>
   {% else %}
     <p class="text-warning">No preview available — file could not be read.</p>
   {% endif %}
