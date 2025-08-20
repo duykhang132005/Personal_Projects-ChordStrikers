@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..models import Song
-from ..utils import normalise_spacing
+from ..utils import normalise_spacing, process_song_text
 from .. import db
 
 creator_bp = Blueprint('creator', __name__)
@@ -53,10 +53,16 @@ def edit_song(song_id):
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
+            lines = process_song_text(content)
     except FileNotFoundError:
         content = ""
+        lines = []
 
-    return render_template("edit_sheet.html", song=song, content=content, form_action_url=url_for('creator.edit_song', song_id=song.id))
+    return render_template("edit_sheet.html",
+                        song=song,
+                        content=content,
+                        lines=lines,
+                        form_action_url=url_for('creator.edit_song', song_id=song.id))
 
 @creator_bp.route('/delete_song/<int:song_id>', methods=['POST'])
 def delete_song(song_id):

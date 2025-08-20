@@ -1,7 +1,8 @@
 import os
-from flask import Blueprint, render_template, request, current_app
+from flask import Blueprint, render_template, request, current_app, jsonify
 from ..models import Song
 from ..utils import process_song_text
+from app.parsing import transpose_chord
 
 main_bp = Blueprint('main', __name__)
 
@@ -52,3 +53,17 @@ def view_sheet(song_id):
         processed_lines = "[Chord sheet not found. Tried reading at " + filepath
 
     return render_template('view_sheet.html', song=song, lines=processed_lines)
+
+@main_bp.route('/transpose_chord', methods=['POST'])
+def transpose_chord_route():
+    data = request.get_json()
+    chord = data.get('chord')
+    steps = int(data.get('steps', 0))
+    key = data.get('key', None)
+
+    try:
+        result = transpose_chord(chord, steps, key)
+        return jsonify({'transposed': result})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
