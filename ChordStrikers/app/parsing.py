@@ -1,33 +1,40 @@
 import re
-from .transposition import transpose_pitch
-from .utils import get_key_preference
+from .utils import BRACKETED_CHORD_REGEX
 
-def parse_chord(chord: str) -> dict:
+# Matches: root note, optional quality/extensions, optional alterations, optional bass note
+CHORD_BODY_REGEX = re.compile(
+    r'^'                       # start
+    r'([A-G][b#]?)'            # root (A–G with optional accidental)
+    r'((?:m|min|maj|sus|dim|aug)?)'  # basic quality
+    r'(\d*(?:add\d+)?'         # extension/add intervals (e.g., 7, 9, add9)
+    r'(?:b\d+|#\d+)*)?'        # alterations (e.g., b5, #11)
+    r'(?:/([A-G][b#]?\d*))?'   # optional bass note, may include octave
+    r'$'                       # end
+)
+
+def strip_brackets(chord_text: str) -> str:
     """
-    Parses a chord string into components:
-    - root: main pitch
-    - quality: suffix like 'm7', 'maj7', 'dim'
-    - bass: optional slash bass note
+    Remove square brackets from a chord token, if present.
     """
-    match = re.match(r'^([A-G][b#]?)([^/]*)/?([A-G][b#]?)?$', chord)
-    if not match:
-        raise ValueError(f"Invalid chord format: {chord}")
-    root, quality, bass = match.groups()
-    return {
-        'root': root,
-        'quality': quality or '',
-        'bass': bass
-    }
+    chord_text = chord_text.strip()
+    return chord_text[1:-1] if chord_text.startswith('[') and chord_text.endswith(']') else chord_text
 
-def transpose_chord(chord: str, steps: int, key: str = None) -> str:
-    """Transpose full chord string by steps, respecting key signature."""
-    key_pref = get_key_preference(key) if key else 'sharp'
-    parts = parse_chord(chord)
+def parse_chord(chord_text: str) -> tuple[str, str, str]:
+    """
+    Parse a chord string into (root, quality, bass).
+    Returns ('', '', '') if parsing fails.
+    """
+    raw = strip_brackets(chord_text)
+    m = CHORD_BODY_REGEX.match(raw)
+    if not m:
+        return '', '', ''
+    root = m.group(1) or ''
+    quality = (m.group(2) or '') + (m.group(3) or '')
+    bass = m.group(4) or ''
+    return root, quality, bass
 
-    new_root = transpose_pitch(parts['root'], steps, key_pref)
-    new_bass = transpose_pitch(parts['bass'], steps, key_pref) if parts['bass'] else None
-
-    transposed = new_root + parts['quality']
-    if new_bass:
-        transposed += f"/{new_bass}"
-    return transposed
+def extract_bracketed_chords(text: str):
+    """
+    Return a list of all bracketed chord strings found in the given text.
+    """
+    return [m.group(1) for m in BRACKETED_CHORD_REGEX.finditer(text)]
