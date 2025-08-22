@@ -13,16 +13,84 @@
     <a href="{{ url_for('main.explore') }}" class="btn btn-danger">Return</a>
   </div>
 
+  {# Optional transposition controls #}
+  <form method="get" class="mb-4 form-inline">
+    <div class="form-group mr-2">
+      <label for="steps" class="mr-1">Transpose by:</label>
+      <input type="number" id="steps" name="steps" class="form-control"
+             value="{{ transposition_steps or 0 }}" step="1">
+    </div>
+    <div class="form-group mr-2">
+      <label for="prefer" class="mr-1">Prefer:</label>
+      <select id="prefer" name="prefer" class="form-control">
+        <option value="" {% if not prefer %}selected{% endif %}>Auto</option>
+        <option value="sharp" {% if prefer == 'sharp' %}selected{% endif %}>Sharps</option>
+        <option value="flat" {% if prefer == 'flat' %}selected{% endif %}>Flats</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-success">Apply</button>
+  </form>
+
   {% if lines %}
-    <h4 class="mt-4">Chords and Lyrics</h4>
+    <h4 class="mt-4">
+      Chords and Lyrics
+      {% if transposition_steps %}
+        <small class="text-info">(Transposed {{ transposition_steps }} semitone{% if transposition_steps|abs != 1 %}s{% endif %}{% if prefer %}, {{ prefer }}{% endif %})</small>
+      {% endif %}
+    </h4>
     <div class="song-content">
-      {% for chord_line, lyric_line in lines %}
-        <pre class="chord-line">{{ chord_line }}</pre>
-        <pre class="lyric-line">{{ lyric_line }}</pre>
+      {% for line in lines %}
+        {% if line.lyric == '' %}
+          <div class="section-header">{{ line.chord|safe }}</div>
+        {% else %}
+          <div class="line-block">
+            <div class="chord-line">{{ line.chord|safe }}</div>
+            <div class="lyric-line">{{ line.lyric|safe }}</div>
+          </div>
+        {% endif %}
       {% endfor %}
     </div>
   {% else %}
     <p class="text-warning">No preview available — file could not be read.</p>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateColumnCount() {
+  const container = document.querySelector('.song-content');
+  if (!container) return;
+
+  const lines = [...container.querySelectorAll('.chord-line, .section-header')];
+  if (!lines.length) return;
+
+  const longestLineLength = Math.max(...lines.map(l => l.textContent.length));
+
+  // measure monospace char width
+  const testSpan = document.createElement('span');
+  testSpan.textContent = 'M';
+  testSpan.style.visibility = 'hidden';
+  container.appendChild(testSpan);
+  const charWidth = testSpan.getBoundingClientRect().width;
+  container.removeChild(testSpan);
+
+  const containerWidth = container.getBoundingClientRect().width;
+  const desiredColWidth = longestLineLength * charWidth;
+
+  const MAX_COLS = 3; // or whatever feels right visually
+  let colCount = Math.max(1, Math.min(MAX_COLS, Math.floor(containerWidth / desiredColWidth)));
+
+  const contentHeight = container.scrollHeight;
+  const visibleHeight = window.innerHeight;
+  if (contentHeight <= visibleHeight) {
+    colCount = 1;
+  }
+  container.style.columnCount = colCount;
+}
+
+// run on load + resize
+window.addEventListener('load', updateColumnCount);
+window.addEventListener('resize', updateColumnCount);
+</script>
 {% endblock %}
