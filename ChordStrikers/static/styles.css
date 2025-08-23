@@ -143,6 +143,11 @@ footer {
   word-break: normal;      /* avoid breaking inside words unless needed */
 }
 
+.line-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
 /* ────────────────────────────────────────────────────────────────
    Circle Menu Layout
 ──────────────────────────────────────────────────────────────── */
@@ -380,4 +385,64 @@ footer {
   color: #fff;
   margin: 0 2px;
   cursor: pointer;
+}
+
+.transpose-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.steps-input {
+  width: 3rem;
+  padding: 0.25rem 0.4rem;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.transpose-btn,
+.transpose-reset {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.transpose-btn:hover,
+.transpose-reset:hover {
+  background: #381c92;
+}
+
+.prefer-toggle input[type="radio"] {
+  display: none;
+}
+
+.prefer-toggle label {
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  background-color: white;
+  color: #333;
+  font-weight: 500;
+  border-left: 1px solid #ccc;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.prefer-toggle label:first-of-type {
+  border-left: none;
+}
+
+/* Bright orange for selected */
+#prefAuto:checked + label,
+#prefSharp:checked + label,
+#prefFlat:checked + label {
+  background-color: #ff9800; /* bright orange */
+  color: white;
+  font-weight: 600;
+}
+
+/* Soft orange on hover */
+.prefer-toggle label:hover {
+  background-color: #ffe0b2;
 }
