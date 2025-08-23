@@ -13,22 +13,49 @@
     <a href="{{ url_for('main.explore') }}" class="btn btn-danger">Return</a>
   </div>
 
-  {# Optional transposition controls #}
-  <form method="get" class="mb-4 form-inline">
-    <div class="form-group mr-2">
-      <label for="steps" class="mr-1">Transpose by:</label>
-      <input type="number" id="steps" name="steps" class="form-control"
-             value="{{ transposition_steps or 0 }}" step="1">
+  <!-- Compact transpose controls -->
+  <form id="transpose-form"
+        method="get"
+        action="{{ url_for('main.view_sheet', song_id=song.id) }}"
+        class="transpose-form mb-4">
+    <div class="transpose-controls">
+      <button type="button"
+              class="transpose-btn minus"
+              aria-label="Transpose down one semitone"
+              data-step="-1">←</button>
+
+      <input id="steps"
+             name="steps"
+             type="text"
+             inputmode="numeric"
+             pattern="^-?\d{1,2}$"
+             value="{{ transposition_steps or 0 }}"
+             class="steps-input"
+             aria-label="Semitone steps (−11 to +11)">
+
+      <button type="button"
+              class="transpose-btn plus"
+              aria-label="Transpose up one semitone"
+              data-step="1">→</button>
+
+      <div class="prefer-toggle">
+        <input type="radio" id="prefAuto" name="prefer" value=""
+               {% if not prefer %}checked{% endif %}>
+        <label for="prefAuto" title="Automatic accidentals">A</label>
+
+        <input type="radio" id="prefSharp" name="prefer" value="sharp"
+               {% if prefer == 'sharp' %}checked{% endif %}>
+        <label for="prefSharp" title="Prefer sharps">♯</label>
+
+        <input type="radio" id="prefFlat" name="prefer" value="flat"
+               {% if prefer == 'flat' %}checked{% endif %}>
+        <label for="prefFlat" title="Prefer flats">♭</label>
+      </div>
+
+      <button type="button"
+              class="transpose-reset"
+              aria-label="Reset transposition to 0">Reset</button>
     </div>
-    <div class="form-group mr-2">
-      <label for="prefer" class="mr-1">Prefer:</label>
-      <select id="prefer" name="prefer" class="form-control">
-        <option value="" {% if not prefer %}selected{% endif %}>Auto</option>
-        <option value="sharp" {% if prefer == 'sharp' %}selected{% endif %}>Sharps</option>
-        <option value="flat" {% if prefer == 'flat' %}selected{% endif %}>Flats</option>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-success">Apply</button>
   </form>
 
   {% if lines %}
@@ -62,12 +89,15 @@ function updateColumnCount() {
   const container = document.querySelector('.song-content');
   if (!container) return;
 
-  const lines = [...container.querySelectorAll('.chord-line, .section-header')];
+  const lines = [...container.querySelectorAll('.line-block, .section-header')];
   if (!lines.length) return;
 
-  const longestLineLength = Math.max(...lines.map(l => l.textContent.length));
+  const longestLineLength = Math.max(...lines.map(l => {
+    const chord = l.querySelector('.chord-line')?.textContent.length || 0;
+    const lyric = l.querySelector('.lyric-line')?.textContent.length || 0;
+    return Math.max(chord + 5, lyric + 5);
+  }));
 
-  // measure monospace char width
   const testSpan = document.createElement('span');
   testSpan.textContent = 'M';
   testSpan.style.visibility = 'hidden';
@@ -78,7 +108,7 @@ function updateColumnCount() {
   const containerWidth = container.getBoundingClientRect().width;
   const desiredColWidth = longestLineLength * charWidth;
 
-  const MAX_COLS = 3; // or whatever feels right visually
+  const MAX_COLS = 3;
   let colCount = Math.max(1, Math.min(MAX_COLS, Math.floor(containerWidth / desiredColWidth)));
 
   const contentHeight = container.scrollHeight;
@@ -89,8 +119,48 @@ function updateColumnCount() {
   container.style.columnCount = colCount;
 }
 
-// run on load + resize
 window.addEventListener('load', updateColumnCount);
 window.addEventListener('resize', updateColumnCount);
 </script>
+
+<script>
+(function () {
+  const form  = document.getElementById('transpose-form');
+  const steps = document.getElementById('steps');
+  const clamp = v => Math.max(-11, Math.min(11, v));
+
+  document.querySelectorAll('.transpose-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.step, 10);
+      const current = parseInt(steps.value.trim(), 10) || 0;
+      const next = clamp(current + delta);
+      steps.value = next;
+      form.submit();
+    });
+  });
+
+  document.querySelectorAll('.prefer-toggle input').forEach(r => {
+    r.addEventListener('change', () => form.submit());
+  });
+
+  steps.addEventListener('change', () => {
+    const raw = steps.value.trim();
+    const parsed = parseInt(raw, 10);
+    if (!isNaN(parsed)) {
+      steps.value = clamp(parsed);
+    } else {
+      steps.value = 0;
+    }
+    form.submit();
+  });
+
+  document.querySelector('.transpose-reset').addEventListener('click', () => {
+    steps.value = 0;
+    form.submit();
+  });
+})();
+</script>
+
+<style>
+</style>
 {% endblock %}
