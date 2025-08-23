@@ -2,13 +2,15 @@ import re
 
 # Central regex for bracketed chords, used by both highlighting and parsing
 BRACKETED_CHORD_REGEX = re.compile(
-    r'(\['                       # opening bracket
-    r'[A-G][#b]?'                 # root note (A–G, optional sharp/flat)
-    r'(?:m|min|maj|sus|dim|aug)?' # optional quality
-    r'\d*'                        # optional extension (7, 9, 13, etc.)
-    r'(?:/[A-G][#b]?\d*)?'        # optional slash bass note
-    r'\])'                        # closing bracket
+    r'(\['                                # opening bracket
+    r'[A-G][#b]?'                         # root note (A–G, optional sharp/flat)
+    r'(?:m|min|maj|sus|dim|aug|m7b5)?'    # optional chord quality
+    r'(?:\d+|add\d+)?'                    # optional extension (7, 9, 13, add9, etc.)
+    r'(?:[#b]\d+)*'                       # optional alterations (b5, #11, etc.)
+    r'(?:/[A-G][#b]?)?'                   # optional slash bass note
+    r'\])'                                # closing bracket
 )
+
 
 SECTION_KEYWORDS = [
     'Intro', 'Verse', 'Melody', 'Prechorus', 'Pre-chorus', 'Pre Chorus',
