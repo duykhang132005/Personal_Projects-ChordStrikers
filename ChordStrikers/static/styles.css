@@ -108,9 +108,26 @@ footer {
   padding: 1rem;
   border-radius: 0.375rem;
   font-family: monospace;
-  column-count: 1;        
-  column-gap: 2rem;           
+  column-gap: 2rem;
   column-rule: 1px solid orangered;
+
+  /* Default: full width for multi-column */
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+}
+
+/* Adaptive centering for single-column */
+
+.song-content.single-column {
+  max-width: 100ch;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.song-content.multi-column {
+  width: 100%;
 }
 
 .song-content pre {
@@ -356,6 +373,7 @@ footer {
    Sheet Viewing (view_sheet.html)
 ──────────────────────────────────────────────────────────────── */
 
+/* Chord display */
 .chord {
   position: relative;
   display: inline-block;
@@ -363,6 +381,7 @@ footer {
   cursor: pointer;
 }
 
+/* Tooltip above chord */
 .transpose-popup {
   display: none;
   position: absolute;
@@ -387,12 +406,14 @@ footer {
   cursor: pointer;
 }
 
+/* Control container */
 .transpose-controls {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
+/* Number input */
 .steps-input {
   width: 3rem;
   padding: 0.25rem 0.4rem;
@@ -401,20 +422,41 @@ footer {
   border-radius: 6px;
 }
 
-.transpose-btn,
-.transpose-reset {
+/* ─── Unified Control Button Style ─── */
+.control-btn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid white;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #444;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.control-box {
   padding: 0.25rem 0.5rem;
   border: 1px solid #ccc;
   background: #fff;
   border-radius: 6px;
   cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+  width: fit-content;
 }
 
-.transpose-btn:hover,
-.transpose-reset:hover {
-  background: #381c92;
+.control-btn:hover {
+  background: #ffe0b2;
 }
 
+/* Use for larger buttons like "Single Column View" */
+.control-btn.wide {
+  min-width: 130px;
+  text-align: center;
+}
+
+/* Accidentals toggle */
 .prefer-toggle input[type="radio"] {
   display: none;
 }
@@ -433,16 +475,62 @@ footer {
   border-left: none;
 }
 
-/* Bright orange for selected */
+/* Selected state */
 #prefAuto:checked + label,
 #prefSharp:checked + label,
 #prefFlat:checked + label {
-  background-color: #ff9800; /* bright orange */
+  background-color: #ff9800;
   color: white;
   font-weight: 600;
 }
 
-/* Soft orange on hover */
+/* Hover state */
 .prefer-toggle label:hover {
+  background-color: #ffe0b2;
+}
+
+/* Single column mode adjustments */
+.song-content.vertical-mode {
+  column-count: 1 !important;
+  max-width: 100ch;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: calc(var(--longest-line-ch) * 1ch);
+}
+
+.scroll-status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  color: #444;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.control-pill {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 999px;
+  border: none;
+  cursor: default;
+  user-select: none;
+  text-align: center;
+  min-width: 2.5rem;
+}
+
+.control-pill.interactive {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.control-pill.interactive:hover {
   background-color: #ffe0b2;
 }
