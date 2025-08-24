@@ -32,10 +32,18 @@ def normalise_spacing(text: str) -> str:
             cleaned.append(stripped)
     return "\n".join(cleaned)
 
-def highlight_chords(text: str) -> str:
+def highlight_chords(text: str, add_data_attr: bool = False) -> str:
     """
     Wraps bracketed chords in a span for styling/click handling.
+
+    If add_data_attr is True, also adds a `data-chord` attribute
+    storing the original chord text for client‑side toggling.
     """
+    if add_data_attr:
+        return BRACKETED_CHORD_REGEX.sub(
+            lambda m: f'<span class="chord" data-chord="{m.group(1)}">{m.group(1)}</span>',
+            text
+        )
     return BRACKETED_CHORD_REGEX.sub(r'<span class="chord">\1</span>', text)
 
 def split_chord_lyric_line(line: str) -> tuple[str, str]:
@@ -50,7 +58,7 @@ def split_chord_lyric_line(line: str) -> tuple[str, str]:
 
     # Section headers: highlight whole line
     if first_word.lower() in [kw.lower() for kw in SECTION_KEYWORDS]:
-        return highlight_chords(line.rstrip()), ''
+        return line.rstrip(), ''
 
     chord_parts: list[str] = []
     lyric_parts: list[str] = []
@@ -97,7 +105,7 @@ def split_chord_lyric_line(line: str) -> tuple[str, str]:
     lyric_str = ''.join(lyric_parts).rstrip()
     return chord_str, lyric_str
 
-def process_song_text(text: str) -> list[tuple[str, str]]:
+def process_song_text(text: str, add_data_attr: bool = False) -> list[tuple[str, str]]:
     """
     Splits lines into chord/lyric pairs, highlights chords.
     """
@@ -108,16 +116,16 @@ def process_song_text(text: str) -> list[tuple[str, str]]:
             chord_line, lyric_line = split_chord_lyric_line(line)
             # avoid double-highlighting for section headers
             if not chord_line.strip().startswith('<span'):
-                chord_line = highlight_chords(chord_line)
+                chord_line = highlight_chords(chord_line, add_data_attr=add_data_attr)
             processed.append((chord_line, lyric_line))
     return processed
 
-def prepare_song(text: str) -> list[tuple[str, str]]:
+def prepare_song(text: str, add_data_attr: bool = False) -> list[tuple[str, str]]:
     """
     Cleans and processes song text for rendering.
     """
     cleaned = normalise_spacing(text)
-    return process_song_text(cleaned)
+    return process_song_text(cleaned, add_data_attr=add_data_attr)
 
 def get_key_preference(key: str) -> str:
     """

@@ -2,7 +2,6 @@ import os
 from flask import Blueprint, render_template, request, current_app, abort
 from ..models import Song
 from ..utils import prepare_song
-from ..transposition import transpose_song_text
 
 main_bp = Blueprint('main', __name__)
 
@@ -37,10 +36,6 @@ def explore():
 
 @main_bp.route('/view_sheet/<int:song_id>')
 def view_sheet(song_id):
-    # Optional transposition query params
-    steps = request.args.get('steps', type=int, default=0)
-    prefer = request.args.get('prefer', type=str)  # 'sharp', 'flat', or None
-
     song = Song.query.get_or_404(song_id)
 
     data_dir = current_app.config.get(
@@ -55,11 +50,8 @@ def view_sheet(song_id):
     with open(filepath, 'r', encoding='utf-8') as f:
         raw_text = f.read()
 
-    # Optionally transpose the raw text before processing
-    if steps:
-        raw_text = transpose_song_text(raw_text, steps, prefer)
-
-    tuple_lines = prepare_song(raw_text)
+    # No server-side transposition — just prep the base lines
+    tuple_lines = prepare_song(raw_text, add_data_attr=True)
     processed_lines = [
         {"chord": chord, "lyric": lyric}
         for chord, lyric in tuple_lines
@@ -68,7 +60,5 @@ def view_sheet(song_id):
     return render_template(
         'view_sheet.html',
         song=song,
-        lines=processed_lines,
-        transposition_steps=steps,
-        prefer=prefer
+        lines=processed_lines
     )
