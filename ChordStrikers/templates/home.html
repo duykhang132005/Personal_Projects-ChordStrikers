@@ -1,0 +1,156 @@
+{% extends "index.html" %}
+
+{% block title %}Home | ChordStrikers{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<div class="text-center p-4 rounded fade-in" style="color: white;">
+    <h1>Welcome to <span class="highlight text-orange">ChordStrikers</span>!</h1>
+    <p class="fs-5" style="color: white;">
+        Your one-stop solution for learning and mastering musical chords. <br>
+        Explore our resources, tutorials, and personal projects to your own desire.
+    </p>
+</div>
+
+<!-- Circle Menu -->
+<div id="circle-menu" class="d-flex justify-content-center align-items-center my-5">
+    <div class="circle-menu-item mx-3" data-target="about-card">
+        <i class="bi bi-person-circle"></i>
+        <span class="circle-label">About</span>
+        <div class="circle-categories">
+            <div>Who am I?</div>
+            <div>Background</div>
+            <div>Musical Journey</div>
+        </div>
+    </div>
+    <div class="circle-menu-item mx-3" data-target="contact-card">
+        <i class="bi bi-envelope"></i>
+        <span class="circle-label">Contact</span>
+        <div class="circle-categories">
+            <div>Email</div>
+            <div>Social Media</div>
+        </div>
+    </div>
+    <div class="circle-menu-item mx-3" data-target="project-card">
+        <i class="bi bi-info-circle"></i>
+        <span class="circle-label">Project</span>
+        <div class="circle-categories">
+            <div>Inspiration</div>
+            <div>Technologies Used</div>
+            <div>Future Plans</div>
+        </div>
+    </div>
+    <div class="circle-menu-item mx-3" data-target="library-card">
+        <i class="bi bi-book"></i>
+        <span class="circle-label">Library</span>
+        <div class="circle-categories">
+            <div>Your Items</div>
+            <div>Explore</div>
+        </div>
+    </div>
+</div>
+
+<!-- Circle Cards -->
+<div id="circle-cards" class="d-flex justify-content-center align-items-center">
+    <!-- About Card -->
+    <div id="about-card" class="circle-card card shadow-sm accent-section fade-in d-none">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-person-circle"></i> About the Creator</h2>
+            <h3 id="about-name" class="card-title mt-4"><i class="bi bi-person"></i> Who am I?</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    Hey y'all, my name is <span class="highlight text-orange">Khang</span>. I'm currently a rising junior studying 
+                    <span class="highlight text-warning">Computer Science</span> and 
+                    <span class="highlight text-success">Earth Planetary Science</span> at Harvard University.
+                </p>
+            </div>
+            <h3 id="about-background" class="card-title mt-4"><i class="bi bi-music-note-list"></i> Background</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    In my free time, I love to be involved with all kinds of performing arts, particularly with music.
+                    I play <span class="fw-bold text-primary">piano</span>, <span class="fw-bold text-success">ukulele</span>, 
+                    <span class="fw-bold text-brown">guitar</span>, and also sing!
+                </p>
+            </div>
+            <h3 id="about-journey" class="card-title mt-4"><i class="bi bi-people"></i> Musical Journey</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    I mostly participated in <span class="fw-bold text-info">choirs</span> growing up, and fell in love with the storytelling and community building aspect of art.
+                    Especially after the initial outbreak of <span class="fw-bold text-danger">COVID-19</span> in 2020, I found it increasingly important for people to be able to connect with one another and inspire regardless of distance and immediate contact.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Card -->
+    <div id="contact-card" class="circle-card card shadow-sm accent-section fade-in d-none">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-envelope"></i> Contact</h2>
+            <h3 id="contact-email" class="mt-4"><i class="bi bi-envelope-at"></i> Email</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    You can reach me at <span class="fw-bold text-orange">khangnd01@gmail.com</span> for any suggestions and questions regarding the software.
+                </p>
+            </div>
+            <h3 id="contact-social" class="mt-4"><i class="bi bi-instagram"></i> Social Media <i class="bi bi-facebook"></i></h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    Find me on Instagram under <span class="fw-bold text-danger">khangnd01</span> and Facebook as <span class="fw-bold text-primary">Nguyễn Duy Khang</span>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Card -->
+    <div id="project-card" class="circle-card card shadow-sm accent-section fade-in d-none">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-info-circle"></i> Project Info</h2>
+            <h3 id="project-inspiration" class="mt-4"><i class="bi bi-lightbulb"></i> Inspiration</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    This project is a homemade application meant to assist in transcribing music and also chord-reading for quick self-accompaniment.
+                    The inspiration comes from a wide range of existing software like <span class="fw-bold text-success">MuseScore</span> and 
+                    <span class="fw-bold text-warning">Chordify</span> that highlights what chords to play, but aims to improve such an experience with more interactive features without a pay wall.
+                </p>
+            </div>
+            <h3 id="project-tech" class="mt-4"><i class="bi bi-cpu"></i> Technologies Used</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    Will add as we go, but generally, basic front-end and backend like 
+                    <span class="fw-bold text-primary">JS</span>, <span class="fw-bold text-warning">HTML</span> and 
+                    <span class="fw-bold text-info">CSS</span>. Will look into more UI/UX designs for mobile and other interfaces soon. To be updated.
+                </p>
+            </div>
+            <h3 id="project-future" class="mt-4"><i class="bi bi-rocket"></i> Future Plans</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    Keep making this more accessible. This starts out as a personal tool, but I hope it may transform into something beneficial for more people as time goes on.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Library Card -->
+    <div id="library-card" class="circle-card card shadow-sm accent-section fade-in d-none">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-book"></i> Library</h2>
+            <h3 id="library-create" class="mt-4"><i class="fas fa-book"></i> Creator Hub</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    This is where you can access or create your chord sheets. See what kind of accompaniment you can contribute using our tools.
+                    You can create your own chord sheets using the Creator interface, or view existing ones in the Library below.<br>
+               </p>
+                <a href="{{ url_for('creator.create') }}" class="btn btn-primary mx-2">Create</a>
+            </div>
+            <h3 id="library-explore" class="mt-4"><i class="fas fa-search"></i> Explore</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text">
+                    This is where you can explore other chord sheets and projects created by the community.
+                    You can search for specific songs, genres, or artists to find chord sheets that interest you. <br>
+                </p>
+                <a href="{{ url_for('main.explore') }}" class="btn btn-primary mx-2">Explore</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
