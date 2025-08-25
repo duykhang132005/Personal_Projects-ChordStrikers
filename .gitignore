@@ -1,0 +1,14 @@
+# Bytecode and cache
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.flaskenv
+
+# Local database
+instance/
+*.db
+
+# Virtual environments
+venv/

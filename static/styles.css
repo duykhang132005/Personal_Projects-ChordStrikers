@@ -1,0 +1,536 @@
+/* ────────────────────────────────────────────────────────────────
+   Base Layout & Typography
+──────────────────────────────────────────────────────────────── */
+body {
+    margin: 0;
+    background: #f8f9fa;
+    color: #222;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+header {
+    background: #222;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+nav {
+    background: #444;
+    padding: 10px 0;
+    text-align: center;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+footer {
+    background: #222;
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Image Styling
+──────────────────────────────────────────────────────────────── */
+.chord-img {
+    width: 100px;
+    height: auto;
+    margin-right: 20px;
+    vertical-align: middle;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Accent Sections & Highlights
+──────────────────────────────────────────────────────────────── */
+.accent-section {
+    border-left: 5px solid #0d6efd;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    animation: fadeIn 1.2s;
+}
+
+.highlight {
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+.fade-in {
+    opacity: 0;
+    animation: fadeIn 1.2s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Text Color Utilities
+──────────────────────────────────────────────────────────────── */
+.text-brown {
+    color: #8B4513 !important; /* SaddleBrown */
+}
+
+.text-orange {
+    color: #FF8800 !important; /* Vivid orange */
+}
+
+.song-content {
+  background-color: #f8f9fa;
+  color: #000;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  font-family: monospace;
+  column-gap: 2rem;
+  column-rule: 1px solid orangered;
+
+  /* Default: full width for multi-column */
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+}
+
+/* Adaptive centering for single-column */
+
+.song-content.single-column {
+  max-width: 100ch;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.song-content.multi-column {
+  width: 100%;
+}
+
+.song-content pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: hidden;
+  margin: 0;
+}
+
+.song-line {
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chord-line, .section-header {
+  font-family: monospace;
+  color: red;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
+  white-space: pre;        /* preserve spaces exactly, no wrapping inside chord line */
+}
+
+.lyric-line {
+  font-family: monospace;
+  line-height: 1.6;
+  margin-top: 0;
+  white-space: pre-wrap;   /* preserve spaces and allow wrapping for long lyrics */
+  word-break: normal;      /* avoid breaking inside words unless needed */
+}
+
+.line-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Circle Menu Layout
+──────────────────────────────────────────────────────────────── */
+#circle-menu {
+    position: relative;
+    z-index: 10;
+}
+
+.circle-menu-item {
+    width: 100px;
+    height: 100px;
+    background: #e3e8f0;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+    cursor: pointer;
+    position: relative;
+    font-size: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    z-index: 2;
+}
+
+.circle-menu-item .circle-label {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    color: #222;
+    font-weight: 500;
+}
+
+.circle-menu-item .circle-categories {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    min-width: 120px;
+    color: #222;
+    white-space: nowrap;
+}
+
+.circle-menu-item:hover,
+.circle-menu-item.active {
+    width: 140px;
+    height: 140px;
+    font-size: 2.5rem;
+    background: #f8fafc;
+    z-index: 3;
+}
+
+.circle-menu-item:hover .circle-categories,
+.circle-menu-item.active .circle-categories {
+    display: block;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Docked Circle Menu Behavior
+──────────────────────────────────────────────────────────────── */
+.circle-menu-item.docked {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scale(0.7);
+    opacity: 0.7;
+    z-index: 1;
+    transition: all 0.3s cubic-bezier(.4,2,.6,1);
+}
+
+.circle-card {
+    width: 100%;
+    max-width: 600px;
+    min-height: 300px;
+    display: none;
+    z-index: 50;
+    position: relative;
+}
+
+.circle-card.active {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+#circle-menu.docked {
+    position: fixed;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: auto;
+    height: auto;
+    z-index: 20;
+}
+
+#circle-menu.docked .circle-menu-item.docked {
+    position: static;
+    left: auto;
+    top: auto;
+    transform: scale(0.7);
+    margin-bottom: 24px;
+    opacity: 0.7;
+}
+
+#circle-menu.docked .circle-menu-item.docked:last-child {
+    margin-bottom: 0;
+}
+
+#circle-menu.docked .circle-menu-item.active {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: scale(0.7);
+    opacity: 1;
+    z-index: 30;
+}
+
+#circle-menu.docked .circle-menu-item.docked:hover {
+    background: #f1f5fa;
+    opacity: 1;
+    transform: scale(0.8);
+    z-index: 2;
+}
+
+#circle-menu:not(.docked) .circle-menu-item:hover .circle-categories {
+    display: block;
+}
+
+#circle-menu.docked .circle-menu-item .circle-categories {
+    display: none !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Background Styling
+──────────────────────────────────────────────────────────────── */
+.music-bg {
+    background-image: url('../static/music_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Sheet Editor (edit_sheet.html)
+──────────────────────────────────────────────────────────────── */
+.sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.sheet-table th,
+.sheet-table td {
+    padding: 0.6em;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.chord-input,
+.lyric-input {
+    width: 100%;
+    padding: 0.5em;
+    font-family: monospace;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.chord-input:focus,
+.lyric-input:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+}
+
+.sheet-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.sheet-buttons button {
+    padding: 0.6em 1.2em;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    background: #0d6efd;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.sheet-buttons button:hover {
+    background: #0b5ed7;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Sheet Viewing (view_sheet.html)
+──────────────────────────────────────────────────────────────── */
+
+/* Chord display */
+.chord {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+/* Tooltip above chord */
+.transpose-popup {
+  display: none;
+  position: absolute;
+  top: -30px;
+  left: 0;
+  background: #222;
+  border: 1px solid #555;
+  padding: 2px 4px;
+  z-index: 10;
+  font-size: 0.8em;
+}
+
+.chord:hover .transpose-popup {
+  display: inline-block;
+}
+
+.transpose-popup button {
+  background: none;
+  border: none;
+  color: #fff;
+  margin: 0 2px;
+  cursor: pointer;
+}
+
+/* Control container */
+.transpose-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Number input */
+.steps-input {
+  width: 3rem;
+  padding: 0.25rem 0.4rem;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* ─── Unified Control Button Style ─── */
+.control-btn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid white;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #444;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.control-box {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+  width: fit-content;
+}
+
+.control-btn:hover {
+  background: #ffe0b2;
+}
+
+/* Use for larger buttons like "Single Column View" */
+.control-btn.wide {
+  min-width: 130px;
+  text-align: center;
+}
+
+/* Accidentals toggle */
+.prefer-toggle input[type="radio"] {
+  display: none;
+}
+
+.prefer-toggle label {
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  background-color: white;
+  color: #333;
+  font-weight: 500;
+  border-left: 1px solid #ccc;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.prefer-toggle label:first-of-type {
+  border-left: none;
+}
+
+/* Selected state */
+#prefAuto:checked + label,
+#prefSharp:checked + label,
+#prefFlat:checked + label {
+  background-color: #ff9800;
+  color: white;
+  font-weight: 600;
+}
+
+/* Hover state */
+.prefer-toggle label:hover {
+  background-color: #ffe0b2;
+}
+
+/* Single column mode adjustments */
+.song-content.vertical-mode {
+  column-count: 1 !important;
+  max-width: 100ch;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: calc(var(--longest-line-ch) * 1ch);
+}
+
+.scroll-status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  color: #444;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.control-pill {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 999px;
+  border: none;
+  cursor: default;
+  user-select: none;
+  text-align: center;
+  min-width: 2.5rem;
+}
+
+.control-pill.interactive {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.control-pill.interactive:hover {
+  background-color: #ffe0b2;
+}

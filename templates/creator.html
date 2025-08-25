@@ -1,0 +1,54 @@
+{% extends "index.html" %}
+{% block title %}{% block page_title %}Creator{% endblock %} | ChordStrikers{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-white">
+  <p class="fs-5 text-center">
+    {% block page_intro %}
+      Build your own chord sheets from scratch. Customize, save, and share your musical ideas!
+    {% endblock %}
+  </p>
+
+  <div class="mt-5">
+    <form method="POST" action="{{ form_action_url }}"
+          enctype="multipart/form-data" class="text-start" id="edit-form">
+
+      <!-- Title -->
+      <div class="mb-3">
+        <label for="title" class="form-label">Song Title</label>
+        <input type="text" class="form-control" id="title" name="title"
+               value="{% block value_title %}{% endblock %}"
+               placeholder="Enter song title" required>
+      </div>
+
+      <!-- Artist -->
+      <div class="mb-3">
+        <label for="artist" class="form-label">Artist</label>
+        <input type="text" class="form-control" id="artist" name="artist"
+               value="{% block value_artist %}{% endblock %}"
+               placeholder="Enter artist name" required>
+      </div>
+
+      <!-- Song Key -->
+      <div class="mb-3">
+        <label for="song_key" class="form-label">Song Key</label>
+        <input type="text" class="form-control" id="song_key" name="song_key"
+               value="{% block value_key %}{% endblock %}"
+               placeholder="e.g., C, G, F#m">
+      </div>
+
+      <!-- Direct text content -->
+      <div class="mb-3">
+        <label for="sheet_content" class="form-label">Chord Sheet Text</label>
+        <textarea class="form-control" id="sheet_content" name="sheet_content"
+                  rows="8">{% block value_content %}{% endblock %}</textarea>
+      </div>
+        {% block form_button %}
+        <button type="submit" class="btn btn-success">Create</button>
+        {% endblock %}
+    </form>
+      {% block form_button_2 %}
+      {% endblock %}
+  </div>
+</div>
+{% endblock %}
