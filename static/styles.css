@@ -534,3 +534,142 @@ footer {
 .control-pill.interactive:hover {
   background-color: #ffe0b2;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   Creator Page Styles (add to styles.css)
+──────────────────────────────────────────────────────────────── */
+
+.creator-page {
+    animation: fadeIn 0.8s;
+}
+
+.page-heading {
+    text-align: center;
+    color: orange;
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.page-intro {
+    text-align: center;
+    font-size: 1.125rem;
+    color: #555;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1.75rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #222;
+    font-size: 1rem;
+}
+
+.form-input,
+.form-textarea {
+    display: block;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #222;
+    background-color: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #FF8800;
+    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.1);
+}
+
+.form-textarea {
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+    min-height: 400px;
+    line-height: 1.6;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-block;
+    padding: 0.875rem 2rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.btn-primary {
+    background: #FF8800;
+    color: white;
+    flex: 1;
+}
+
+.btn-primary:hover {
+    background: #e67700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 136, 0, 0.3);
+}
+
+.btn-secondary {
+    background: #8B4513;
+    color: white;
+    flex: 0 0 auto;
+}
+
+.btn-secondary:hover {
+    background: #6d3410;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    .page-heading {
+        font-size: 2rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-secondary {
+        flex: 1;
+    }
+}
