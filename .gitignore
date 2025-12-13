@@ -1,10 +1,29 @@
 # Bytecode and cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.cache/
 
 # Environment files
 .env
 .flaskenv
 
 # Virtual environments
-venv/*
+venv/
+venv_old_*/
+
+# Database files
+instance/*.db
+instance/*.sqlite
+instance/*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

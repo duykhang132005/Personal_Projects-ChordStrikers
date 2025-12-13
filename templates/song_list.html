@@ -24,39 +24,58 @@
     </div>
   </form>
 
-  <!-- Song Table -->
+  <!-- Song Cards -->
   {% if songs %}
-  <div class="table-responsive">
-    <table class="table table-dark table-hover align-middle">
-      <thead>
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Artist</th>
-          <th scope="col">Key</th>
-          <th scope="col" class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for song in songs %}
-        <tr>
-          <td>{{ song.title }}</td>
-          <td>{{ song.artist or '—' }}</td>
-          <td>{{ song.song_key or '—' }}</td>
-          <td class="text-end">
-            <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="btn btn-sm btn-outline-light">
-              View
-            </a>
-            <a href="{{ url_for('creator.edit_sheet', song_id=song.id) }}" class="btn btn-sm btn-outline-warning">
-              Edit
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="row mt-4">
+    {% for song in songs %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="text-decoration-none" style="display: block;">
+        <div class="card bg-dark text-white h-100 shadow-sm song-card-clickable" style="position: relative; overflow: hidden; min-height: 250px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;">
+          {% if song.image_url %}
+          <img src="{{ song.image_url }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" 
+               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+          {% endif %}
+          <div class="card-body" style="position: relative; z-index: 1; padding: 1.5rem; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h5 class="card-title" style="{% if song.image_url %}text-shadow: 2px 2px 4px rgba(0,0,0,0.8);{% endif %}">{{ song.title }}</h5>
+              {% if song.artist %}
+              <p class="card-text mb-1" style="{% if song.image_url %}text-shadow: 1px 1px 3px rgba(0,0,0,0.8);{% endif %}"><strong>Artist:</strong> {{ song.artist }}</p>
+              {% endif %}
+              <p class="card-text mb-0" style="{% if song.image_url %}text-shadow: 1px 1px 3px rgba(0,0,0,0.8);{% endif %}"><strong>Key:</strong> {{ song.song_key or '—' }}</p>
+            </div>
+            <div class="song-card-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2;">
+              <div class="text-center">
+                <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="btn btn-lg btn-light mb-2" onclick="event.stopPropagation();">
+                  <i class="fas fa-music"></i> View Sheet
+                </a>
+                <br>
+                <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation();">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
   </div>
   {% else %}
     <p class="text-center fs-5 mt-5">No songs found. Try adjusting your search or check back later!</p>
   {% endif %}
+
+  <style>
+    .song-card-clickable:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+    .song-card-clickable:hover .song-card-overlay {
+      opacity: 1;
+    }
+    .song-card-clickable:hover .card-body > div:first-child {
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+  </style>
 </div>
 {% endblock %}
