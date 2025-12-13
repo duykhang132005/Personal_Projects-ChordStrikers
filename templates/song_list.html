@@ -7,7 +7,7 @@
   <h1 class="mb-4 text-center">Song Library</h1>
   <p class="fs-5 text-center">Browse all available songs in the collection. Click any title to view its chord sheet.</p>
 
-  <!-- 🔍 Optional Filter/Search -->
+  <!-- Filter/Search -->
   <form method="GET" action="{{ url_for('song_list') }}" class="my-4">
     <div class="input-group">
       <input
@@ -24,7 +24,7 @@
     </div>
   </form>
 
-  <!-- 📜 Song Table -->
+  <!-- Song Table -->
   {% if songs %}
   <div class="table-responsive">
     <table class="table table-dark table-hover align-middle">
@@ -40,7 +40,7 @@
         {% for song in songs %}
         <tr>
           <td>{{ song.title }}</td>
-          <td>{{ song.artist }}</td>
+          <td>{{ song.artist or '—' }}</td>
           <td>{{ song.song_key or '—' }}</td>
           <td class="text-end">
             <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="btn btn-sm btn-outline-light">

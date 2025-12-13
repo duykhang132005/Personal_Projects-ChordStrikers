@@ -5,7 +5,9 @@
 {% block content %}
 <div class="container py-5 text-white">
   <h1 class="mb-3">{{ song.title }}</h1>
+  {% if song.artist %}
   <p class="mb-1"><strong>Artist:</strong> {{ song.artist }}</p>
+  {% endif %}
   <p class="mb-4"><strong>Key:</strong> {{ song.song_key or '—' }}</p>
 
   <div class="mb-3">

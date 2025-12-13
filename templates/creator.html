@@ -19,31 +19,49 @@
       <div class="form-group">
         <label for="title" class="form-label">Song Title *</label>
         <input type="text" class="form-input" id="title" name="title"
-               value="{% block value_title %}{% endblock %}"
+               value="{% block value_title %}{% if song %}{{ song.title }}{% endif %}{% endblock %}"
                placeholder="Enter song title" required>
       </div>
 
       <!-- Artist -->
       <div class="form-group">
-        <label for="artist" class="form-label">Artist *</label>
+        <label for="artist" class="form-label">Artist (optional)</label>
         <input type="text" class="form-input" id="artist" name="artist"
-               value="{% block value_artist %}{% endblock %}"
-               placeholder="Enter artist name" required>
+               value="{% block value_artist %}{% if song %}{{ song.artist or '' }}{% endif %}{% endblock %}"
+               placeholder="Enter artist name (leave blank for folk songs/melodies)">
+        <small class="form-hint">Leave blank for traditional songs, folk melodies, or songs without a specific artist.</small>
       </div>
 
       <!-- Song Key -->
       <div class="form-group">
         <label for="song_key" class="form-label">Song Key</label>
         <input type="text" class="form-input" id="song_key" name="song_key"
-               value="{% block value_key %}{% endblock %}"
+               value="{% block value_key %}{% if song %}{{ song.song_key or '' }}{% endif %}{% endblock %}"
                placeholder="e.g., C, G, F#m">
+      </div>
+
+      <!-- Cover Image URL -->
+      <div class="form-group">
+        <label for="image_url" class="form-label">Cover Image URL (optional)</label>
+        <input type="url" class="form-input" id="image_url" name="image_url"
+               value="{% block value_image_url %}{% if song %}{{ song.image_url or '' }}{% endif %}{% endblock %}"
+               placeholder="https://example.com/image.jpg">
+        <div style="margin-top: 0.5rem;">
+          <label style="display: inline-flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="clear_image" name="clear_image" value="1" style="margin-right: 0.5rem;">
+            <span>Clear image (no cover photo)</span>
+          </label>
+        </div>
+        <small class="form-hint">
+          Enter a direct image URL. If left blank, we'll automatically search Spotify for an image. Check "Clear image" to explicitly remove the cover photo.
+        </small>
       </div>
 
       <!-- Direct text content -->
       <div class="form-group">
         <label for="sheet_content" class="form-label">Chord Sheet Text *</label>
         <textarea class="form-textarea" id="sheet_content" name="sheet_content"
-                  rows="20">{% block value_content %}{% endblock %}</textarea>
+                  rows="20">{% block value_content %}{% if content %}{{ content }}{% endif %}{% endblock %}</textarea>
         <small class="form-hint">
           Format: Use [C], [Am], [G] etc. for chords. Place them inline with lyrics.
         </small>
@@ -51,10 +69,10 @@
 
       <div class="form-actions">
         {% block form_button %}
-        <button type="submit" class="btn-primary">💾 Create Song</button>
+        <button type="submit" class="btn-primary"> Create Song</button>
         {% endblock %}
         {% block form_button_2 %}
-        <a href="{{ url_for('main.explore') }}" class="btn-secondary">✖ Cancel</a>
+        <a href="{{ url_for('main.explore') }}" class="btn-secondary"> Cancel</a>
         {% endblock %}
       </div>
     </form>

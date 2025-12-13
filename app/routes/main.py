@@ -41,8 +41,10 @@ def song_matches_filters(song, query_normalized, key_normalized):
     # Check query filter
     if query_normalized:
         title_norm = normalize_text(song.title)
-        artist_norm = normalize_text(song.artist)
-        return query_normalized in title_norm or query_normalized in artist_norm
+        if song.artist:
+            artist_norm = normalize_text(song.artist)
+            return query_normalized in title_norm or query_normalized in artist_norm
+        return query_normalized in title_norm
     
     return True
 
