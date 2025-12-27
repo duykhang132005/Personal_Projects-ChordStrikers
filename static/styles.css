@@ -655,6 +655,154 @@ footer {
     box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
 }
 
+/* ────────────────────────────────────────────────────────────────
+   Song Cards (Explore & Song List Pages)
+──────────────────────────────────────────────────────────────── */
+
+/* Base Song Card Styles - shared by explore and song_list */
+.song-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 350px;
+}
+
+.song-card img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter 0.3s ease;
+}
+
+.song-card-body {
+    position: relative;
+    z-index: 1;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.song-card-body.with-image {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.song-card-title,
+.song-card-text {
+    margin-bottom: 0.5rem;
+}
+
+/* Text shadows only when image is present */
+.song-card-body.with-image .song-card-title,
+.song-card-clickable.has-image .song-card-title {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.song-card-body.with-image .song-card-text,
+.song-card-clickable.has-image .song-card-text {
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Explore Page - Static Cards */
+.explore-song-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 350px;
+}
+
+/* Song List Page - Interactive Cards with Overlay */
+.song-card-wrapper {
+    transition: transform 0.3s ease;
+}
+
+.song-card-clickable {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    transform: scale(1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.song-card-clickable img {
+    transition: filter 0.3s ease;
+}
+
+.song-card-content {
+    position: relative;
+    z-index: 1;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: opacity 0.3s ease;
+}
+
+/* Song card content text shadows are handled by :has() selector above */
+
+/* Full-card View Sheet overlay button */
+.song-card-view-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease;
+    z-index: 2;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.song-card-view-overlay .text-center {
+    text-align: center;
+    color: white;
+}
+
+.song-card-view-overlay i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.song-card-view-overlay h4 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Hover Effects for Song List Cards */
+.song-card-clickable:hover {
+    transform: scale(1.05) translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4) !important;
+    z-index: 10;
+}
+
+.song-card-clickable:hover .song-card-view-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.song-card-clickable:hover .song-card-content {
+    opacity: 0.2;
+}
+
+.song-card-clickable:hover img {
+    filter: brightness(0.7);
+}
+
+/* Edit button positioning */
+.song-card-edit-btn {
+    position: relative;
+    z-index: 3;
+    align-self: flex-start;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .form-container {
@@ -671,5 +819,9 @@ footer {
     
     .btn-secondary {
         flex: 1;
+    }
+    
+    .song-card-clickable:hover {
+        transform: scale(1.03) translateY(-4px);
     }
 }
