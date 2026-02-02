@@ -197,6 +197,7 @@ def get_song_image_url(sp_client, song_title, artist_name=None):
     """
     Searches Spotify for a song and returns the URL of the album/track image.
     Falls back to artist image if song not found.
+    Parallelizes tracking and artist search for better performance.
     
     Args:
         sp_client: The initialized Spotipy client object.
@@ -213,49 +214,59 @@ def get_song_image_url(sp_client, song_title, artist_name=None):
             return get_artist_image_url(sp_client, artist_name)
         return None
     
-    try:
-        # First, try to find the song/track
-        # Construct search query: combine song title and artist name together
-        if artist_name:
-            # Try multiple search strategies for better results
-            # Strategy 1: Combined query (most accurate)
-            search_query = f"{song_title} {artist_name}"
-        else:
-            search_query = song_title
-        
-        results = sp_client.search(q=search_query, type='track', limit=1)
-        
-        # Check if any tracks were found
-        if results and results['tracks']['items']:
-            track_data = results['tracks']['items'][0]
-            
-            # Try to get album image first (usually better quality)
-            if 'album' in track_data and track_data['album']['images']:
-                image_url = track_data['album']['images'][0]['url']
-                return image_url
-            
-            # Fallback: try artist image from track
-            if 'artists' in track_data and track_data['artists']:
-                artist_id = track_data['artists'][0]['id']
-                artist_data = sp_client.artist(artist_id)
-                if artist_data.get('images'):
-                    return artist_data['images'][0]['url']
-        
-        # If song not found, fallback to artist search
-        if artist_name:
-            return get_artist_image_url(sp_client, artist_name)
-            
-    except Exception as e:
-        # Log error if we have access to Flask app context
-        try:
-            from flask import current_app
-            current_app.logger.error(f"Error fetching Spotify image for song '{song_title}': {e}")
-        except RuntimeError:
-            # Not in Flask app context, just pass silently
-            pass
-        
-        # On error, try artist fallback
-        if artist_name:
-            return get_artist_image_url(sp_client, artist_name)
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     
-    return None
+    def search_track():
+        try:
+            # First, try to find the song/track
+            # Construct search query: combine song title and artist name together
+            if artist_name:
+                # Strategy 1: Combined query (most accurate)
+                search_query = f"{song_title} {artist_name}"
+            else:
+                search_query = song_title
+            
+            results = sp_client.search(q=search_query, type='track', limit=1)
+            
+            # Check if any tracks were found
+            if results and results['tracks']['items']:
+                track_data = results['tracks']['items'][0]
+                
+                # Try to get album image first (usually better quality)
+                if 'album' in track_data and track_data['album']['images']:
+                    image_url = track_data['album']['images'][0]['url']
+                    return image_url
+                
+                # Fallback: try artist image from track
+                if 'artists' in track_data and track_data['artists']:
+                    artist_id = track_data['artists'][0]['id']
+                    artist_data = sp_client.artist(artist_id)
+                    if artist_data.get('images'):
+                        return artist_data['images'][0]['url']
+            return None
+        except Exception as e:
+            # Log error if we have access to Flask app context
+            try:
+                from flask import current_app
+                current_app.logger.error(f"Error fetching Spotify image for song '{song_title}': {e}")
+            except RuntimeError:
+                pass
+            return None
+
+    def search_artist_fallback():
+        if artist_name:
+            return get_artist_image_url(sp_client, artist_name)
+        return None
+
+    # Execute searches in parallel
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        future_track = executor.submit(search_track)
+        future_artist = executor.submit(search_artist_fallback)
+        
+        # Wait for track result first
+        track_image = future_track.result()
+        if track_image:
+            return track_image
+            
+        # If track not found or failed, return artist result
+        return future_artist.result()
