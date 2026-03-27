@@ -27,3 +27,6 @@ instance/*.sqlite3
 # OS
 .DS_Store
 Thumbs.db
+
+# Git signing
+.gitallowed_signers
