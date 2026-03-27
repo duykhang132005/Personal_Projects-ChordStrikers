@@ -8,7 +8,7 @@ import spotipy
 from .config import Config
 
 db = SQLAlchemy()
-migrate = Migrate() # 2. Initialize Migrate object globally
+migrate = Migrate()  # Initialize Migrate object globally
 
 def create_app():
     # Explicitly set template and static folders at the root level
@@ -20,6 +20,9 @@ def create_app():
         static_folder=os.path.join(root_dir, 'static')
     )
 
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-dev-key')
+
+    # Load additional config
     app.config.from_object(Config)
     
     # Initialize Extensions
