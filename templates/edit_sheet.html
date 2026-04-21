@@ -14,18 +14,15 @@
 {% endblock %}
 
 {% block form_button %}
-  <div class="d-flex justify-content-between mt-4">
-    <button type="submit" class="btn btn-primary" form="edit-form">Save Changes</button>
+  <button type="submit" class="btn-primary" form="edit-form">Save Changes</button>
 {% endblock %}
 
 {% block form_button_2 %}
-    <form method="POST" action="{{ url_for('creator.delete_song', song_id=song.id) }}">
-      <button type="submit" class="btn btn-danger"
-              onclick="return confirm('Are you sure you want to delete this song? This action cannot be undone.')">
-        Delete Song
-      </button>
-    </form>
-  </div>
+  <button type="submit" class="btn-secondary" style="background-color: #dc3545;" form="delete-form"
+          onclick="return confirm('Are you sure you want to delete this song? This action cannot be undone.')">
+    Delete Song
+  </button>
+  <form method="POST" action="{{ url_for('creator.delete_song', song_id=song.id) }}" id="delete-form" class="d-none"></form>
 {% endblock %}
 
 {% block content %}

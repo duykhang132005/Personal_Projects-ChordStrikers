@@ -66,16 +66,16 @@
           Format: Use [C], [Am], [G] etc. for chords. Place them inline with lyrics.
         </small>
       </div>
-
-      <div class="form-actions">
-        {% block form_button %}
-        <button type="submit" class="btn-primary"> Create Song</button>
-        {% endblock %}
-        {% block form_button_2 %}
-        <a href="{{ url_for('main.explore') }}" class="btn-secondary"> Cancel</a>
-        {% endblock %}
-      </div>
     </form>
+
+    <div class="form-actions">
+      {% block form_button %}
+      <button type="submit" form="edit-form" class="btn-primary"> Create Song</button>
+      {% endblock %}
+      {% block form_button_2 %}
+      <a href="{{ url_for('main.explore') }}" class="btn-secondary"> Cancel</a>
+      {% endblock %}
+    </div>
   </div>
 </main>
 {% endblock %}
