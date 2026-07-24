@@ -218,3 +218,83 @@ document.getElementById('toggle-vertical').addEventListener('click', () => {
 
   updateDisplay();
 })();
+
+// --- Print & Export Handlers ---
+document.getElementById('btn-print-sheet')?.addEventListener('click', () => {
+  window.print();
+});
+
+document.getElementById('btn-download-txt')?.addEventListener('click', () => {
+  const container = document.querySelector('.song-content');
+  if (!container) return;
+
+  const title = document.querySelector('h1')?.textContent.trim() || 'song_sheet';
+  const textLines = [];
+  container.querySelectorAll('.line-block, .section-header').forEach(block => {
+    if (block.classList.contains('section-header')) {
+      textLines.push(block.textContent.trim());
+    } else {
+      const chord = block.querySelector('.chord-line')?.textContent.trim();
+      const lyric = block.querySelector('.lyric-line')?.textContent.trim();
+      if (chord) textLines.push(chord);
+      if (lyric) textLines.push(lyric);
+    }
+  });
+
+  const blob = new Blob([textLines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${title.replace(/\s+/g, '_')}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// --- Interactive Chord Fingering Tooltips ---
+(function() {
+  const GUITAR_CHORD_DB = {
+    'C': 'x32010', 'Cm': 'x35543', 'C7': 'x32310', 'Cmaj7': 'x32000',
+    'D': 'xx0231', 'Dm': 'xx0231', 'D7': 'xx0212', 'Dmaj7': 'xx0222',
+    'E': '022100', 'Em': '022000', 'E7': '020100', 'Emaj7': '021100',
+    'F': '133211', 'Fm': '133111', 'F7': '131211', 'Fmaj7': 'xx3210',
+    'G': '320003', 'Gm': '355333', 'G7': '320001', 'Gmaj7': '320002',
+    'A': 'x02220', 'Am': 'x02210', 'A7': 'x02020', 'Amaj7': 'x02120',
+    'B': 'x24442', 'Bm': 'x24432', 'B7': 'x21202', 'Bmaj7': 'x24342',
+    'Bb': 'x13331', 'Bbm': 'x13321', 'F#': '244322', 'F#m': '244222'
+  };
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'chord-tooltip d-none';
+  document.body.appendChild(tooltip);
+
+  function getCleanChordName(rawChord) {
+    return rawChord.replace(/[\[\]]/g, '').trim().split('/')[0];
+  }
+
+  document.addEventListener('mouseover', (e) => {
+    const chordSpan = e.target.closest('.chord');
+    if (!chordSpan) {
+      tooltip.classList.add('d-none');
+      return;
+    }
+
+    const cleanChord = getCleanChordName(chordSpan.textContent);
+    const tabs = GUITAR_CHORD_DB[cleanChord] || 'Fingering available';
+
+    tooltip.innerHTML = `<strong>${cleanChord}</strong><br><small style="letter-spacing: 2px;">Frets: ${tabs}</small>`;
+    
+    const rect = chordSpan.getBoundingClientRect();
+    tooltip.style.left = `${rect.left + window.scrollX}px`;
+    tooltip.style.top = `${rect.top + window.scrollY - 45}px`;
+    tooltip.classList.remove('d-none');
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    if (e.target.closest('.chord')) {
+      tooltip.classList.add('d-none');
+    }
+  });
+})();
+

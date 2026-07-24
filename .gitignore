@@ -28,5 +28,10 @@ instance/*.sqlite3
 .DS_Store
 Thumbs.db
 
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Git signing
 .gitallowed_signers

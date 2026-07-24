@@ -834,3 +834,52 @@ footer {
         transform: scale(1.03) translateY(-4px);
     }
 }
+
+/* ────────────────────────────────────────────────────────────────
+   Chord Tooltip & Print Styles
+──────────────────────────────────────────────────────────────── */
+.chord-tooltip {
+    position: absolute;
+    z-index: 1050;
+    background: #1e1e2f;
+    color: #00e676;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    border: 1px solid #00e676;
+    text-align: center;
+}
+
+.chord {
+    cursor: pointer;
+    transition: color 0.15s ease-in-out;
+}
+
+.chord:hover {
+    color: #ff9800 !important;
+    text-decoration: underline;
+}
+
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    header, nav, footer, .unified-controls, .btn, #circle-menu {
+        display: none !important;
+    }
+    .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .song-content {
+        color: #000000 !important;
+    }
+    .chord {
+        color: #000000 !important;
+        font-weight: bold;
+    }
+}
