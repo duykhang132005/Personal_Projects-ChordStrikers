@@ -11,22 +11,32 @@
   <p class="mb-4"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}&mdash;{% endif %}</p>
 
   <div class="d-flex align-items-center flex-wrap gap-2 mb-4 unified-controls" role="toolbar" aria-label="Sheet controls">
-    <div class="control-box" role="group" aria-label="Sheet actions">
-      <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="control-btn control-btn-primary">
-        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
-      </a>
-      <a href="{{ url_for('main.explore') }}" class="control-btn">
-        <i class="bi bi-arrow-left" aria-hidden="true"></i> Return
-      </a>
-      <button type="button" id="btn-print-sheet" class="control-btn">
-        <i class="bi bi-printer" aria-hidden="true"></i> Print / Export PDF
-      </button>
-      <button type="button" id="btn-download-txt" class="control-btn">
-        <i class="bi bi-download" aria-hidden="true"></i> Plain Text
-      </button>
-      <a id="btn-yt-search" href="https://www.youtube.com/results?search_query={{ (song.title ~ ' ' ~ (song.artist or '') ~ ' chords backing track')|urlencode }}" target="_blank" rel="noopener noreferrer" class="control-btn">
-        <i class="bi bi-youtube" aria-hidden="true"></i> Backing Track
-      </a>
+    <div class="d-flex align-items-center flex-wrap gap-2" role="group" aria-label="Sheet actions">
+      <div class="control-box">
+        <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="control-btn control-btn-primary">
+          <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+        </a>
+      </div>
+      <div class="control-box">
+        <a href="{{ url_for('main.explore') }}" class="control-btn">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i> Return
+        </a>
+      </div>
+      <div class="control-box">
+        <button type="button" id="btn-print-sheet" class="control-btn">
+          <i class="bi bi-printer" aria-hidden="true"></i> Print / Export PDF
+        </button>
+      </div>
+      <div class="control-box">
+        <button type="button" id="btn-download-txt" class="control-btn">
+          <i class="bi bi-download" aria-hidden="true"></i> Plain Text
+        </button>
+      </div>
+      <div class="control-box">
+        <a id="btn-yt-search" href="https://www.youtube.com/results?search_query={{ (song.title ~ ' ' ~ (song.artist or '') ~ ' chords backing track')|urlencode }}" target="_blank" rel="noopener noreferrer" class="control-btn">
+          <i class="bi bi-youtube" aria-hidden="true"></i> Backing Track
+        </a>
+      </div>
     </div>
 
     <div id="transpose-controls" class="d-flex align-items-center gap-2">
