@@ -1,12 +1,10 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 from .config import Config
 
 db = SQLAlchemy()
-migrate = Migrate()  # Initialize Migrate object globally
 
 def create_app(test_config=None):
     # Explicitly set template and static folders at the root level
@@ -29,7 +27,6 @@ def create_app(test_config=None):
 
     # Initialize Extensions
     db.init_app(app)
-    migrate.init_app(app, db) # 3. Initialize Migrate with app and db
 
     # Import and register blueprints
     from .routes.main import main_bp
@@ -37,11 +34,41 @@ def create_app(test_config=None):
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
+    _register_error_handlers(app)
 
-    # Ensure SQLite schema exists even when Alembic is stamped at head
-    # on a DB that never applied the initial create (idempotent; no wipe).
+    # Create missing SQLite tables, then keep songs.id in sync with
+    # SONG_DATA_DIR/{id}.txt (orphan files and orphan rows). Idempotent.
     with app.app_context():
-        from . import models  # noqa: F401
+        from .models import Song  # noqa: F401
+        from .storage import purge_unsynced_songs_and_sheets
+
         db.create_all()
+        purge_unsynced_songs_and_sheets()
 
     return app
+
+
+def _register_error_handlers(app):
+    @app.errorhandler(404)
+    def not_found(_error):
+        return render_template(
+            'errors/error.html',
+            code=404,
+            title='Page not found',
+            message=(
+                "That isn\u2019t supposed to happen\u2026 we can\u2019t find "
+                "that page. Sorry about that."
+            ),
+        ), 404
+
+    @app.errorhandler(500)
+    def server_error(_error):
+        return render_template(
+            'errors/error.html',
+            code=500,
+            title='Something went wrong',
+            message=(
+                "That isn\u2019t supposed to happen\u2026 we\u2019ve hit an "
+                "error. Sorry about that."
+            ),
+        ), 500

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ChordStrikers">
+  <rect width="32" height="32" rx="7" fill="#1a120c"/>
+  <rect x="1.25" y="1.25" width="29.5" height="29.5" rx="6" fill="none" stroke="#e07a1f" stroke-width="1.5"/>
+  <g fill="#e07a1f">
+    <ellipse cx="11.2" cy="22.6" rx="5.4" ry="3.9" transform="rotate(-22 11.2 22.6)"/>
+    <rect x="15.35" y="7.2" width="2.35" height="15.6" rx="0.4"/>
+    <path d="M17.7 7.2 C24.8 8.4 27.2 14.2 23.4 18.1 C21.6 15.2 19.6 13.4 17.7 12.6 Z"/>
+  </g>
+</svg>

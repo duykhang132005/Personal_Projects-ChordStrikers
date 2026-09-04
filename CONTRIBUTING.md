@@ -27,6 +27,8 @@ Thank you for your interest in contributing to **ChordStrikers**! We welcome all
 5. **Set up Environment Variables**:
    Copy `.env.example` to `.env` and set a `SECRET_KEY`. Cover-art auto-fetch uses the public iTunes Search API and does not need extra API keys.
 
+6. **Database**: SQLite tables are created automatically on startup via SQLAlchemy `create_all`. You do not need Alembic or `flask db upgrade`.
+
 ---
 
 ## 🧪 Running Tests

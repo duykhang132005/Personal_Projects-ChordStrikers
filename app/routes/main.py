@@ -84,9 +84,8 @@ def view_sheet(song_id):
     song = Song.query.get_or_404(song_id)
     filepath = get_song_filepath(song_id)
     
-    # Verify file exists
     if not os.path.isfile(filepath):
-        abort(404, description=f"Chord sheet not found for '{song.title}'")
+        abort(404)
     
     # Load and process the chord sheet
     with open(filepath, 'r', encoding='utf-8') as f:

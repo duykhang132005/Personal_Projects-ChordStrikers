@@ -112,7 +112,7 @@ python run.py
 ```
 Open your browser and navigate to `http://127.0.0.1:5000`.
 
-Startup creates any missing SQLite tables (`songs`) automatically and does not wipe existing rows. If Explore or Creator 500s with `no such table: songs` on an older checkout, restart the app so that create runs (or `flask db upgrade` if you manage schema only via Alembic).
+Startup creates any missing SQLite tables (`songs`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
 
 ---
 
