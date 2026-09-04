@@ -33,7 +33,6 @@ def test_highlight_chords_escapes_html():
     highlighted = highlight_chords(text, add_data_attr=True)
     assert '<script>' not in highlighted
     assert '<img' not in highlighted
-    assert 'onerror' not in highlighted
     assert '&lt;script&gt;' in highlighted
     assert '&lt;img' in highlighted
     assert '<span class="chord" data-chord="[C]">[C]</span>' in highlighted
@@ -78,7 +77,6 @@ def test_process_song_text_escapes_lyrics():
     lines = process_song_text("[G]Don't <img src=x onerror=alert(1)>")
     _, lyric_line = lines[0]
     assert '<img' not in lyric_line
-    assert 'onerror' not in lyric_line
     assert '&lt;img' in lyric_line
 
 

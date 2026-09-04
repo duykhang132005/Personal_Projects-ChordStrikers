@@ -45,12 +45,16 @@ def test_view_sheet_uses_storage_and_escapes_html(client, app):
 
     response = client.get(f'/view_sheet/{song_id}')
     assert response.status_code == 200
-    assert b'<script>' not in response.data
-    assert b'onerror' not in response.data
-    assert b'&lt;script&gt;' in response.data
-    assert b'&lt;img' in response.data
-    assert b'class="chord"' in response.data
-    assert b'data-chord="[C]"' in response.data
+    html = response.data.decode()
+    sheet_start = html.find('<div class="song-content">')
+    assert sheet_start != -1
+    sheet_html = html[sheet_start:html.find('<!-- Scripts -->', sheet_start)]
+    assert '<div class="lyric-line">Hello &lt;img src=x onerror=alert(1)&gt;</div>' in sheet_html
+    assert '<div class="lyric-line">&lt;script&gt;alert(1)&lt;/script&gt;</div>' in sheet_html
+    assert '<div class="lyric-line"><script>' not in sheet_html
+    assert '<div class="lyric-line"><img' not in sheet_html
+    assert 'class="chord"' in sheet_html
+    assert 'data-chord="[C]"' in sheet_html
 
 
 def test_create_song_uses_storage_and_accepts_allowed_image_url(client, app):
@@ -102,5 +106,5 @@ def test_delete_song_removes_storage_file(client, app):
     assert response.status_code == 200
 
     with app.app_context():
-        assert Song.query.get(song_id) is None
+        assert db.session.get(Song, song_id) is None
         assert not os.path.isfile(filepath)
