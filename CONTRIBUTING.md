@@ -25,7 +25,7 @@ Thank you for your interest in contributing to **ChordStrikers**! We welcome all
    pip install -r requirements-dev.txt
    ```
 5. **Set up Environment Variables**:
-   Copy `.env.example` to `.env` and fill in any API keys if testing Spotify integration.
+   Copy `.env.example` to `.env` and set a `SECRET_KEY`. Cover-art auto-fetch uses the public iTunes Search API and does not need extra API keys.
 
 ---
 

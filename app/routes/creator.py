@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..models import Song
 from ..utils import normalise_spacing, process_song_text, get_song_image_url, sanitize_image_url
 from ..storage import save_song_content, load_song_content, delete_song_file
@@ -53,7 +53,7 @@ def create():
         # Check if user wants to clear the image
         clear_image = request.form.get('clear_image') == '1'
         
-        # Handle image URL: prioritize clear_image, then custom URL, then Spotify search
+        # Handle image URL: prioritize clear_image, then custom URL, then iTunes search
         if clear_image:
             # User explicitly wants no image
             new_song.image_url = None
@@ -66,13 +66,8 @@ def create():
                 )
             if sanitized_custom:
                 new_song.image_url = sanitized_custom
-            elif hasattr(current_app, 'sp_client') and current_app.sp_client:
-                # Auto-search Spotify if no custom URL and not clearing
-                image_url = get_song_image_url(
-                    current_app.sp_client,
-                    title,
-                    artist if artist else None
-                )
+            else:
+                image_url = get_song_image_url(title, artist if artist else None)
                 if image_url:
                     new_song.image_url = image_url
 
@@ -123,21 +118,15 @@ def edit_song(song_id):
                     "Cover image URL was not allowed. Use an https URL from a permitted image host.",
                     "error",
                 )
-        elif hasattr(current_app, 'sp_client') and current_app.sp_client:
-            # Auto-search if title/artist changed or no image exists
+        else:
+            # Auto-search iTunes if title/artist changed or no image exists
             title_changed = song.title != original_title
             artist_changed = song.artist != original_artist
             if title_changed or artist_changed or not original_image_url:
-                image_url = get_song_image_url(
-                    current_app.sp_client, 
-                    song.title, 
+                song.image_url = get_song_image_url(
+                    song.title,
                     song.artist if song.artist else None
                 )
-                song.image_url = image_url  # Can be None if not found
-        else:
-            # No custom URL and no Spotify client, keep existing image or set to None
-            if not original_image_url:
-                song.image_url = None
         
         # Validate required fields (artist is now optional)
         if not song.title:

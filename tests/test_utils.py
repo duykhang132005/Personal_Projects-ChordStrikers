@@ -10,7 +10,13 @@ from app.utils import (
     sanitize_image_url,
     get_artist_image_url,
     get_song_image_url,
+    _upscale_itunes_artwork_url,
 )
+
+ITUNES_ARTWORK_100 = (
+    'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/aa/bb/cc/source/100x100bb.jpg'
+)
+ITUNES_ARTWORK_600 = ITUNES_ARTWORK_100.replace('100x100bb', '600x600bb')
 
 def test_normalise_spacing():
     raw_text = "Line 1   \n\n\nLine 2\n"
@@ -80,7 +86,11 @@ def test_process_song_text_escapes_lyrics():
     assert '&lt;img' in lyric_line
 
 
-def test_sanitize_image_url_allows_spotify_hosts():
+def test_sanitize_image_url_allows_itunes_and_spotify_hosts():
+    assert sanitize_image_url(ITUNES_ARTWORK_600) == ITUNES_ARTWORK_600
+    assert sanitize_image_url(
+        'https://is5-ssl.mzstatic.com/image/thumb/Music/source/600x600bb.jpg'
+    ) == 'https://is5-ssl.mzstatic.com/image/thumb/Music/source/600x600bb.jpg'
     assert sanitize_image_url(
         'https://i.scdn.co/image/ab67616d0000b273abc'
     ) == 'https://i.scdn.co/image/ab67616d0000b273abc'
@@ -91,14 +101,15 @@ def test_sanitize_image_url_allows_spotify_hosts():
 
 
 def test_sanitize_image_url_denies_unsafe():
+    assert sanitize_image_url('http://is1-ssl.mzstatic.com/image/thumb/x.jpg') is None
     assert sanitize_image_url('http://i.scdn.co/image') is None
     assert sanitize_image_url('https://evil.com/x.png') is None
-    assert sanitize_image_url('https://user:pass@i.scdn.co/x') is None
-    assert sanitize_image_url('https://i.scdn.co:8443/x') is None
+    assert sanitize_image_url('https://user:pass@is1-ssl.mzstatic.com/x') is None
+    assert sanitize_image_url('https://is1-ssl.mzstatic.com:8443/x') is None
     assert sanitize_image_url('javascript:alert(1)') is None
-    assert sanitize_image_url('https://i.scdn.co.evil.com/x') is None
-    assert sanitize_image_url('//i.scdn.co/x') is None
-    assert sanitize_image_url('https://i.scdn.co/x\nhttps://evil.com') is None
+    assert sanitize_image_url('https://is1-ssl.mzstatic.com.evil.com/x') is None
+    assert sanitize_image_url('//is1-ssl.mzstatic.com/x') is None
+    assert sanitize_image_url('https://is1-ssl.mzstatic.com/x\nhttps://evil.com') is None
     assert sanitize_image_url('') is None
     assert sanitize_image_url(None) is None
 
@@ -106,44 +117,60 @@ def test_sanitize_image_url_denies_unsafe():
 def test_sanitize_image_url_respects_custom_allowlist():
     url = 'https://cdn.example.com/a.png'
     assert sanitize_image_url(url, allowed_hosts=['cdn.example.com']) == url
-    assert sanitize_image_url(url, allowed_hosts=['i.scdn.co']) is None
+    assert sanitize_image_url(url, allowed_hosts=['*.mzstatic.com']) is None
 
 
-def test_get_artist_image_url_sanitizes_spotify_result():
-    class FakeSp:
-        def search(self, q, type, limit):
-            return {
-                'artists': {
-                    'items': [{'images': [{'url': 'https://evil.com/hack.png'}]}]
-                }
-            }
-
-    assert get_artist_image_url(FakeSp(), 'Test') is None
+def test_upscale_itunes_artwork_url():
+    assert _upscale_itunes_artwork_url(ITUNES_ARTWORK_100) == ITUNES_ARTWORK_600
+    sixty = ITUNES_ARTWORK_100.replace('100x100bb', '60x60bb')
+    assert _upscale_itunes_artwork_url(sixty) == ITUNES_ARTWORK_600
+    unchanged = 'https://is1-ssl.mzstatic.com/image/thumb/Music/source/cover.jpg'
+    assert _upscale_itunes_artwork_url(unchanged) == unchanged
 
 
-def test_get_artist_image_url_keeps_allowed_spotify_cdn():
-    allowed = 'https://i.scdn.co/image/ab123'
-
-    class FakeSp:
-        def search(self, q, type, limit):
-            return {
-                'artists': {
-                    'items': [{'images': [{'url': allowed}]}]
-                }
-            }
-
-    assert get_artist_image_url(FakeSp(), 'Test') == allowed
+def test_get_song_image_url_uses_itunes_and_upscales(monkeypatch):
+    monkeypatch.setattr(
+        'app.utils._itunes_search',
+        lambda term, entity, limit=1: [{'artworkUrl100': ITUNES_ARTWORK_100}],
+    )
+    assert get_song_image_url('Hey Jude', 'The Beatles') == ITUNES_ARTWORK_600
 
 
-def test_get_song_image_url_sanitizes_album_result():
-    class FakeSp:
-        def search(self, q, type, limit):
-            return {
-                'tracks': {
-                    'items': [{
-                        'album': {'images': [{'url': 'javascript:alert(1)'}]}
-                    }]
-                }
-            }
+def test_get_song_image_url_rejects_disallowed_host(monkeypatch):
+    monkeypatch.setattr(
+        'app.utils._itunes_search',
+        lambda term, entity, limit=1: [{'artworkUrl100': 'https://evil.com/hack.png'}],
+    )
+    assert get_song_image_url('Song', 'Artist') is None
 
-    assert get_song_image_url(FakeSp(), 'Song', 'Artist') is None
+
+def test_get_song_image_url_returns_none_on_network_error(monkeypatch):
+    import urllib.error
+
+    def boom(*args, **kwargs):
+        raise urllib.error.URLError('network down')
+
+    monkeypatch.setattr('app.utils.urllib.request.urlopen', boom)
+    assert get_song_image_url('Song', 'Artist') is None
+
+
+def test_get_artist_image_url_searches_albums(monkeypatch):
+    calls = []
+
+    def fake_search(term, entity, limit=1):
+        calls.append((term, entity))
+        return [{'artworkUrl100': ITUNES_ARTWORK_100}]
+
+    monkeypatch.setattr('app.utils._itunes_search', fake_search)
+    assert get_artist_image_url('The Beatles') == ITUNES_ARTWORK_600
+    assert calls == [('The Beatles', 'album')]
+
+
+def test_get_song_image_url_falls_back_to_artist(monkeypatch):
+    def fake_search(term, entity, limit=1):
+        if entity == 'album':
+            return [{'artworkUrl100': ITUNES_ARTWORK_100}]
+        return []
+
+    monkeypatch.setattr('app.utils._itunes_search', fake_search)
+    assert get_song_image_url('Unknown Track', 'The Beatles') == ITUNES_ARTWORK_600

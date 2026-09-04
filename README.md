@@ -26,8 +26,8 @@
 - **Auto-Scrolling**  
   Adjustable hands-free scrolling for practice sessions.
 
-- **Spotify Artwork Search**  
-  Fetches high-resolution album or artist artwork via Spotipy.
+- **iTunes Artwork Search**  
+  Fetches album cover art via the public iTunes Search API (no API key required).
 
 - **Print & Plain Text Export**  
   One-click printable PDF styling and raw text downloads.
@@ -43,9 +43,9 @@
 ChordStrikers/
 ├── app/                    # Flask application package
 │   ├── routes/             # Blueprint routes (main.py, creator.py)
-│   ├── models.py           # SQLAlchemy models (Song)
+│   ├── storage.py          # Shared song text file I/O
 │   ├── parsing.py          # Legacy text parser helpers
-│   ├── utils.py            # Chord splitting, transposition, Spotipy logic
+│   ├── utils.py            # Chord splitting, transposition, iTunes cover fetch
 │   └── config.py           # App configuration
 ├── docs/                   # Developer documentation
 │   └── chord_format_guide.md
@@ -104,7 +104,7 @@ Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
-*(Optional)* Add your Spotify Client ID & Secret to enable automatic artist and album cover fetching.
+Cover art is fetched automatically from iTunes when you leave the image URL blank. No API keys are required.
 
 ### 5. Initialize Database & Run
 ```bash

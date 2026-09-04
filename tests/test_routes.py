@@ -1,8 +1,16 @@
 import os
 
+import pytest
+
 from app.models import Song
 from app.storage import load_song_content, get_song_filepath, save_song_content
 from app import db
+
+
+@pytest.fixture(autouse=True)
+def disable_itunes_network(monkeypatch):
+    """Keep create/edit tests off the live iTunes Search API."""
+    monkeypatch.setattr('app.utils._itunes_search', lambda *args, **kwargs: [])
 
 
 def test_home_route(client):
@@ -58,7 +66,7 @@ def test_view_sheet_uses_storage_and_escapes_html(client, app):
 
 
 def test_create_song_uses_storage_and_accepts_allowed_image_url(client, app):
-    image_url = 'https://i.scdn.co/image/ab67616d0000b273abc'
+    image_url = 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/aa/source/600x600bb.jpg'
     response = client.post('/create', data={
         'title': 'Safe Cover',
         'artist': 'Someone',
@@ -73,6 +81,32 @@ def test_create_song_uses_storage_and_accepts_allowed_image_url(client, app):
         assert song is not None
         assert song.image_url == image_url
         assert load_song_content(song.id) == '[C]Hi there'
+
+
+def test_create_song_auto_fetches_itunes_cover_without_spotify(client, app, monkeypatch):
+    artwork_100 = (
+        'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/aa/bb/cc/source/100x100bb.jpg'
+    )
+    artwork_600 = artwork_100.replace('100x100bb', '600x600bb')
+    monkeypatch.setattr(
+        'app.utils._itunes_search',
+        lambda term, entity, limit=1: [{'artworkUrl100': artwork_100}],
+    )
+    assert not hasattr(app, 'sp_client')
+    assert 'SPOTIPY_CLIENT_ID' not in app.config
+
+    response = client.post('/create', data={
+        'title': 'Auto Cover',
+        'artist': 'The Beatles',
+        'song_key': 'F',
+        'sheet_content': '[F]Hey',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+
+    with app.app_context():
+        song = Song.query.filter_by(title='Auto Cover').first()
+        assert song is not None
+        assert song.image_url == artwork_600
 
 
 def test_create_song_rejects_unsafe_image_url(client, app):
