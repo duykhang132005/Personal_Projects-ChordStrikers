@@ -12,8 +12,7 @@ def app():
     db_fd, db_path = tempfile.mkstemp()
     song_dir = tempfile.mkdtemp()
     
-    app = create_app()
-    app.config.update({
+    app = create_app({
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
         'SECRET_KEY': 'test-secret-key',

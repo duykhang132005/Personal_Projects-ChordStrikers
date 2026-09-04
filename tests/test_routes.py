@@ -1,10 +1,11 @@
 import os
+import sqlite3
 
 import pytest
 
 from app.models import Song
 from app.storage import load_song_content, get_song_filepath, save_song_content
-from app import db
+from app import create_app, db
 
 
 @pytest.fixture(autouse=True)
@@ -39,6 +40,46 @@ def test_creator_route(client):
     response = client.get('/creator')
     assert response.status_code == 200
     assert b"Create New Song" in response.data
+
+
+def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
+    """Alembic stamped at head with no songs table must not 500 Explore/Creator."""
+    db_path = tmp_path / 'songs.db'
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        'CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)'
+    )
+    conn.execute(
+        "INSERT INTO alembic_version (version_num) VALUES ('14637d76aaff')"
+    )
+    conn.commit()
+    conn.close()
+
+    app = create_app({
+        'TESTING': True,
+        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
+        'SECRET_KEY': 'test-secret-key',
+        'WTF_CSRF_ENABLED': False,
+        'SONG_DATA_DIR': str(tmp_path / 'sheets'),
+    })
+    client = app.test_client()
+
+    assert client.get('/').status_code == 200
+    explore = client.get('/explore')
+    assert explore.status_code == 200
+    assert client.get('/creator').status_code == 200
+
+    conn = sqlite3.connect(db_path)
+    tables = {
+        row[0]
+        for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )
+    }
+    assert 'songs' in tables
+    assert 'alembic_version' in tables
+    assert conn.execute('SELECT COUNT(*) FROM songs').fetchone()[0] == 0
+    conn.close()
 
 
 def test_view_sheet_uses_storage_and_escapes_html(client, app):

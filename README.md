@@ -112,6 +112,8 @@ python run.py
 ```
 Open your browser and navigate to `http://127.0.0.1:5000`.
 
+Startup creates any missing SQLite tables (`songs`) automatically and does not wipe existing rows. If Explore or Creator 500s with `no such table: songs` on an older checkout, restart the app so that create runs (or `flask db upgrade` if you manage schema only via Alembic).
+
 ---
 
 ## 🧪 Running Automated Tests

@@ -8,7 +8,7 @@ from .config import Config
 db = SQLAlchemy()
 migrate = Migrate()  # Initialize Migrate object globally
 
-def create_app():
+def create_app(test_config=None):
     # Explicitly set template and static folders at the root level
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     app = Flask(
@@ -22,7 +22,11 @@ def create_app():
 
     # Load additional config
     app.config.from_object(Config)
-    
+    if test_config is not None:
+        app.config.update(test_config)
+
+    os.makedirs(app.instance_path, exist_ok=True)
+
     # Initialize Extensions
     db.init_app(app)
     migrate.init_app(app, db) # 3. Initialize Migrate with app and db
@@ -33,5 +37,11 @@ def create_app():
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
+
+    # Ensure SQLite schema exists even when Alembic is stamped at head
+    # on a DB that never applied the initial create (idempotent; no wipe).
+    with app.app_context():
+        from . import models  # noqa: F401
+        db.create_all()
 
     return app
