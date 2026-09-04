@@ -1,8 +1,9 @@
 import os
 import unicodedata
-from flask import Blueprint, render_template, request, current_app, abort
+from flask import Blueprint, render_template, request, abort
 from ..models import Song
 from ..utils import prepare_song
+from ..storage import get_song_filepath
 
 main_bp = Blueprint('main', __name__)
 
@@ -16,15 +17,6 @@ def normalize_text(text):
         char for char in unicodedata.normalize('NFD', text)
         if unicodedata.category(char) != 'Mn'
     ).lower()
-
-
-def get_song_filepath(song_id):
-    """Get the absolute filepath for a song's text file."""
-    data_dir = current_app.config.get(
-        'SONG_DATA_DIR',
-        os.path.join(current_app.root_path, '..', 'static', 'data')
-    )
-    return os.path.abspath(os.path.join(data_dir, f'{song_id}.txt'))
 
 
 def song_matches_filters(song, query_normalized, key_normalized):

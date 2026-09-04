@@ -2,15 +2,13 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from spotipy.oauth2 import SpotifyClientCredentials
-import spotipy
 
 from .config import Config
 
 db = SQLAlchemy()
 migrate = Migrate()  # Initialize Migrate object globally
 
-def create_app():
+def create_app(test_config=None):
     # Explicitly set template and static folders at the root level
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     app = Flask(
@@ -24,30 +22,14 @@ def create_app():
 
     # Load additional config
     app.config.from_object(Config)
-    
+    if test_config is not None:
+        app.config.update(test_config)
+
+    os.makedirs(app.instance_path, exist_ok=True)
+
     # Initialize Extensions
     db.init_app(app)
     migrate.init_app(app, db) # 3. Initialize Migrate with app and db
-
-    # --- SPOTIPY CLIENT INITIALIZATION ---
-    client_id = app.config.get('SPOTIPY_CLIENT_ID')
-    client_secret = app.config.get('SPOTIPY_CLIENT_SECRET')
-    
-    app.sp_client = None # Default to None
-    
-    if client_id and client_secret:
-        try:
-            auth_manager = SpotifyClientCredentials(
-                client_id=client_id,
-                client_secret=client_secret
-            )
-            # Initialize Spotipy and store it on the app instance
-            app.sp_client = spotipy.Spotify(auth_manager=auth_manager)
-            app.logger.info("Spotipy client initialized successfully.")
-        except Exception:
-            app.logger.error("Spotipy initialization failed. Images will not be fetched.")
-    else:
-        app.logger.warning("SPOTIPY_CLIENT_ID or SECRET not found. Artist images disabled.")
 
     # Import and register blueprints
     from .routes.main import main_bp
@@ -55,5 +37,11 @@ def create_app():
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
+
+    # Ensure SQLite schema exists even when Alembic is stamped at head
+    # on a DB that never applied the initial create (idempotent; no wipe).
+    with app.app_context():
+        from . import models  # noqa: F401
+        db.create_all()
 
     return app
