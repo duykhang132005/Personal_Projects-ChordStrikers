@@ -62,24 +62,29 @@ def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
         'WTF_CSRF_ENABLED': False,
         'SONG_DATA_DIR': str(tmp_path / 'sheets'),
     })
-    client = app.test_client()
+    try:
+        client = app.test_client()
 
-    assert client.get('/').status_code == 200
-    explore = client.get('/explore')
-    assert explore.status_code == 200
-    assert client.get('/creator').status_code == 200
+        assert client.get('/').status_code == 200
+        explore = client.get('/explore')
+        assert explore.status_code == 200
+        assert client.get('/creator').status_code == 200
 
-    conn = sqlite3.connect(db_path)
-    tables = {
-        row[0]
-        for row in conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        )
-    }
-    assert 'songs' in tables
-    assert 'alembic_version' in tables
-    assert conn.execute('SELECT COUNT(*) FROM songs').fetchone()[0] == 0
-    conn.close()
+        conn = sqlite3.connect(db_path)
+        tables = {
+            row[0]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }
+        assert 'songs' in tables
+        assert 'alembic_version' in tables
+        assert conn.execute('SELECT COUNT(*) FROM songs').fetchone()[0] == 0
+        conn.close()
+    finally:
+        with app.app_context():
+            db.session.remove()
+            db.engine.dispose()
 
 
 def test_view_sheet_uses_storage_and_escapes_html(client, app):
