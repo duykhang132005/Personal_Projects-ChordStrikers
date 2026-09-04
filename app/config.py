@@ -11,3 +11,11 @@ class Config:
     # Keep the credentials as configuration attributes
     SPOTIPY_CLIENT_ID = os.environ.get('SPOTIPY_CLIENT_ID')
     SPOTIPY_CLIENT_SECRET = os.environ.get('SPOTIPY_CLIENT_SECRET')
+
+    # Hosts allowed for song cover <img src> URLs. Entries may be exact
+    # hostnames or a single leading wildcard (e.g. *.scdn.co).
+    IMAGE_URL_ALLOWED_HOSTS = (
+        'i.scdn.co',
+        '*.scdn.co',
+        '*.spotifycdn.com',
+    )

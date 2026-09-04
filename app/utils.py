@@ -1,4 +1,7 @@
 import re
+from urllib.parse import urlparse
+
+from markupsafe import Markup, escape
 
 # Central regex for bracketed chords, used by both highlighting and parsing
 BRACKETED_CHORD_REGEX = re.compile(
@@ -39,19 +42,33 @@ def normalise_spacing(text: str) -> str:
     return "\n".join(cleaned)
 
 
-def highlight_chords(text: str, add_data_attr: bool = False) -> str:
+def _wrap_chord_span(chord: str, add_data_attr: bool) -> Markup:
+    """Return a safe <span class="chord"> wrapper around an escaped token."""
+    escaped_chord = escape(chord)
+    if add_data_attr:
+        return Markup('<span class="chord" data-chord="{}">{}</span>').format(
+            escaped_chord, escaped_chord
+        )
+    return Markup('<span class="chord">{}</span>').format(escaped_chord)
+
+
+def highlight_chords(text: str, add_data_attr: bool = False) -> Markup:
     """
     Wraps bracketed chords in a span for styling/click handling.
-    
-    If add_data_attr is True, also adds a `data-chord` attribute
-    storing the original chord text for client-side toggling.
+
+    HTML-escapes both chord tokens and surrounding text so the result is
+    safe to mark as trusted HTML. If add_data_attr is True, also adds a
+    `data-chord` attribute storing the original chord text for client-side
+    toggling.
     """
-    if add_data_attr:
-        return BRACKETED_CHORD_REGEX.sub(
-            lambda m: f'<span class="chord" data-chord="{m.group(1)}">{m.group(1)}</span>',
-            text
-        )
-    return BRACKETED_CHORD_REGEX.sub(r'<span class="chord">\1</span>', text)
+    pieces = []
+    pos = 0
+    for match in BRACKETED_CHORD_REGEX.finditer(text):
+        pieces.append(escape(text[pos:match.start()]))
+        pieces.append(_wrap_chord_span(match.group(1), add_data_attr))
+        pos = match.end()
+    pieces.append(escape(text[pos:]))
+    return Markup('').join(pieces)
 
 
 def split_chord_lyric_line(line: str) -> tuple[str, str]:
@@ -127,7 +144,7 @@ def process_song_text(text: str, add_data_attr: bool = False) -> list[tuple[str,
             # Avoid double-highlighting for section headers
             if not chord_line.strip().startswith('<span'):
                 chord_line = highlight_chords(chord_line, add_data_attr=add_data_attr)
-            processed.append((chord_line, lyric_line))
+            processed.append((chord_line, escape(lyric_line)))
     
     return processed
 
@@ -151,7 +168,83 @@ def get_key_preference(key: str) -> str:
         return 'flat'
     else:
         return 'sharp'  # default to sharp for unknown keys
-    
+
+
+DEFAULT_IMAGE_URL_ALLOWED_HOSTS = (
+    'i.scdn.co',
+    '*.scdn.co',
+    '*.spotifycdn.com',
+)
+
+
+def _get_allowed_image_hosts(allowed_hosts=None):
+    """Resolve the cover-image host allowlist from argument, app config, or defaults."""
+    if allowed_hosts is not None:
+        return allowed_hosts
+    try:
+        from flask import current_app, has_app_context
+        if has_app_context():
+            configured = current_app.config.get('IMAGE_URL_ALLOWED_HOSTS')
+            if configured:
+                return configured
+    except Exception:
+        pass
+    return DEFAULT_IMAGE_URL_ALLOWED_HOSTS
+
+
+def _hostname_allowed(hostname: str, allowed_hosts) -> bool:
+    """Return True if hostname matches an exact or *.suffix allowlist entry."""
+    host = hostname.lower().rstrip('.')
+    if not host:
+        return False
+    for raw in allowed_hosts:
+        if not raw:
+            continue
+        pattern = str(raw).lower().strip().rstrip('.')
+        if pattern.startswith('*.'):
+            suffix = pattern[2:].lstrip('.')
+            if suffix and (host == suffix or host.endswith('.' + suffix)):
+                return True
+        elif host == pattern:
+            return True
+    return False
+
+
+def sanitize_image_url(url, allowed_hosts=None):
+    """
+    Return url if it is a safe https image URL on an allowed host, else None.
+
+    Rejects non-https schemes, credentials/userinfo, explicit ports, and
+    hosts outside IMAGE_URL_ALLOWED_HOSTS (or allowed_hosts if provided).
+    """
+    if not url or not isinstance(url, str):
+        return None
+
+    candidate = url.strip()
+    if not candidate or any(ch.isspace() for ch in candidate):
+        return None
+    if len(candidate) > 512:
+        return None
+
+    try:
+        parsed = urlparse(candidate)
+    except ValueError:
+        return None
+
+    if parsed.scheme != 'https':
+        return None
+    if parsed.username is not None or parsed.password is not None:
+        return None
+    if parsed.port is not None:
+        return None
+    if not parsed.hostname:
+        return None
+    if not _hostname_allowed(parsed.hostname, _get_allowed_image_hosts(allowed_hosts)):
+        return None
+
+    return candidate
+
+
 def get_artist_image_url(sp_client, artist_name):
     """
     Searches Spotify for an artist and returns the URL of their largest image.
@@ -179,7 +272,7 @@ def get_artist_image_url(sp_client, artist_name):
             if artist_data['images']:
                 # Grab the URL of the largest image.
                 image_url = artist_data['images'][0]['url']
-                return image_url
+                return sanitize_image_url(image_url)
             
     except Exception as e:
         # Log error if we have access to Flask app context
@@ -235,14 +328,14 @@ def get_song_image_url(sp_client, song_title, artist_name=None):
                 # Try to get album image first (usually better quality)
                 if 'album' in track_data and track_data['album']['images']:
                     image_url = track_data['album']['images'][0]['url']
-                    return image_url
+                    return sanitize_image_url(image_url)
                 
                 # Fallback: try artist image from track
                 if 'artists' in track_data and track_data['artists']:
                     artist_id = track_data['artists'][0]['id']
                     artist_data = sp_client.artist(artist_id)
                     if artist_data.get('images'):
-                        return artist_data['images'][0]['url']
+                        return sanitize_image_url(artist_data['images'][0]['url'])
             return None
         except Exception as e:
             # Log error if we have access to Flask app context
@@ -266,7 +359,7 @@ def get_song_image_url(sp_client, song_title, artist_name=None):
         # Wait for track result first
         track_image = future_track.result()
         if track_image:
-            return track_image
-            
+            return sanitize_image_url(track_image)
+
         # If track not found or failed, return artist result
-        return future_artist.result()
+        return sanitize_image_url(future_artist.result())
