@@ -431,6 +431,10 @@ footer {
 }
 
 /* ─── Unified Control Button Style ─── */
+.unified-controls {
+    row-gap: 0.5rem;
+}
+
 .control-btn {
     padding: 0.25rem 0.5rem;
     border: 1px solid white;
@@ -441,21 +445,55 @@ footer {
     font-weight: 500;
     cursor: pointer;
     line-height: 1.2;
+    font-family: inherit;
+}
+
+a.control-btn {
+    display: inline-block;
+    text-decoration: none;
+    color: #444;
 }
 
 .control-box {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
     padding: 0.25rem 0.5rem;
     border: 1px solid #ccc;
     background: #fff;
     border-radius: 6px;
-    cursor: pointer;
     font: inherit;
     line-height: 1.2;
     width: fit-content;
 }
 
-.control-btn:hover {
+.control-btn:hover,
+a.control-btn:hover {
     background: #ffe0b2;
+    color: #444;
+}
+
+.control-btn:focus-visible,
+a.control-btn:focus-visible {
+    outline: 2px solid #ff9800;
+    outline-offset: 1px;
+}
+
+.control-btn-primary {
+    background: #fff8f0;
+    border-color: #ffcc80;
+    color: #c45c00;
+}
+
+a.control-btn-primary {
+    color: #c45c00;
+}
+
+.control-btn-primary:hover,
+a.control-btn-primary:hover {
+    background: #ffe0b2;
+    color: #c45c00;
 }
 
 /* Use for larger buttons like "Single Column View" */
@@ -860,6 +898,67 @@ footer {
 .chord:hover {
     color: #ff9800 !important;
     text-decoration: underline;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Friendly error pages (404 / 500)
+──────────────────────────────────────────────────────────────── */
+.error-page {
+    max-width: 36rem;
+    margin: 3rem auto 0;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    color: #fff;
+    background: rgba(20, 16, 12, 0.72);
+    border: 1px solid rgba(224, 122, 31, 0.45);
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.error-page .error-code {
+    margin: 0;
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #e07a1f;
+    letter-spacing: 0.04em;
+}
+
+.error-page .error-title {
+    margin: 0.75rem 0 1rem;
+    font-size: 1.75rem;
+    color: #fff;
+}
+
+.error-page .error-message {
+    margin: 0 auto;
+    max-width: 28rem;
+    font-size: 1.1rem;
+    line-height: 1.55;
+    color: #f3e6d8;
+}
+
+.error-home-btn {
+    display: inline-block;
+    margin-top: 1.75rem;
+    padding: 0.75rem 1.75rem;
+    background: #e07a1f;
+    color: #fff !important;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.error-home-btn:hover {
+    background: #c45c00;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+.error-home-btn:focus-visible {
+    outline: 2px solid #ffcc80;
+    outline-offset: 3px;
 }
 
 @media print {

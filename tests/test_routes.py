@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 import pytest
+from flask import abort
 
 from app.models import Song
 from app.storage import load_song_content, get_song_filepath, save_song_content
@@ -18,6 +19,13 @@ def test_home_route(client):
     response = client.get('/')
     assert response.status_code == 200
     assert b"ChordStrikers" in response.data
+
+
+def test_home_links_favicon(client):
+    response = client.get('/')
+    html = response.data.decode()
+    assert 'img/favicon.svg' in html
+    assert 'favicon.ico' in html
 
 
 def test_explore_route(client):
@@ -43,7 +51,7 @@ def test_creator_route(client):
 
 
 def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
-    """Alembic stamped at head with no songs table must not 500 Explore/Creator."""
+    """Older DBs that only have alembic_version still boot via create_all."""
     db_path = tmp_path / 'songs.db'
     conn = sqlite3.connect(db_path)
     conn.execute(
@@ -85,6 +93,72 @@ def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
         with app.app_context():
             db.session.remove()
             db.engine.dispose()
+
+
+def test_create_app_reconciles_orphan_files_and_song_rows(tmp_path):
+    db_path = tmp_path / 'songs.db'
+    sheets = tmp_path / 'sheets'
+    sheets.mkdir()
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        '''CREATE TABLE songs (
+            id INTEGER PRIMARY KEY,
+            title VARCHAR(100) NOT NULL,
+            artist VARCHAR(100),
+            song_key VARCHAR(100) NOT NULL,
+            image_url VARCHAR(512)
+        )'''
+    )
+    conn.execute(
+        "INSERT INTO songs (id, title, artist, song_key) VALUES (1, 'Keep', 'A', 'C')"
+    )
+    conn.execute(
+        "INSERT INTO songs (id, title, artist, song_key) "
+        "VALUES (15, 'Leftover', 'B', 'G')"
+    )
+    conn.commit()
+    conn.close()
+    (sheets / '1.txt').write_text('[C]Keep', encoding='utf-8')
+    (sheets / '99.txt').write_text('[G]Orphan file', encoding='utf-8')
+    (sheets / 'notes.txt').write_text('ignore', encoding='utf-8')
+
+    app = create_app({
+        'TESTING': True,
+        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
+        'SECRET_KEY': 'test-secret-key',
+        'WTF_CSRF_ENABLED': False,
+        'SONG_DATA_DIR': str(sheets),
+    })
+    try:
+        with app.app_context():
+            ids = {song.id for song in Song.query.all()}
+            assert ids == {1}
+            assert os.path.isfile(os.path.join(sheets, '1.txt'))
+            assert not os.path.isfile(os.path.join(sheets, '99.txt'))
+            assert os.path.isfile(os.path.join(sheets, 'notes.txt'))
+    finally:
+        with app.app_context():
+            db.session.remove()
+            db.engine.dispose()
+
+
+def test_view_sheet_toolbar_uses_unified_controls(client, app):
+    with app.app_context():
+        song = Song.query.filter_by(title='Test Song').first()
+        song_id = song.id
+
+    response = client.get(f'/view_sheet/{song_id}')
+    assert response.status_code == 200
+    html = response.data.decode()
+    assert 'unified-controls' in html
+    assert 'id="btn-print-sheet"' in html
+    assert 'id="btn-download-txt"' in html
+    assert 'id="btn-yt-search"' in html
+    assert 'control-btn' in html
+    assert 'btn btn-primary' not in html
+    assert 'btn btn-secondary' not in html
+    assert 'btn-outline-light' not in html
+    assert 'btn-outline-warning' not in html
 
 
 def test_view_sheet_uses_storage_and_escapes_html(client, app):
@@ -188,3 +262,49 @@ def test_delete_song_removes_storage_file(client, app):
     with app.app_context():
         assert db.session.get(Song, song_id) is None
         assert not os.path.isfile(filepath)
+
+
+def test_unknown_route_shows_friendly_404(client):
+    response = client.get('/this-page-does-not-exist')
+    assert response.status_code == 404
+    html = response.data.decode()
+    assert 'Page not found' in html
+    assert 'Sorry about that' in html
+    assert 'isn\u2019t supposed to happen' in html
+    assert 'error-home-btn' in html
+    assert 'href="/"' in html
+    assert 'Traceback' not in html
+
+
+def test_view_sheet_missing_file_shows_friendly_404(client, app):
+    with app.app_context():
+        song = Song(title='Ghost Sheet', artist='X', song_key='C')
+        db.session.add(song)
+        db.session.commit()
+        song_id = song.id
+        assert not os.path.isfile(get_song_filepath(song_id))
+
+    response = client.get(f'/view_sheet/{song_id}')
+    assert response.status_code == 404
+    html = response.data.decode()
+    assert 'Page not found' in html
+    assert 'Sorry about that' in html
+    assert 'error-home-btn' in html
+    assert 'Traceback' not in html
+
+
+def test_500_error_page(app):
+    @app.route('/__test_abort_500__')
+    def _boom():
+        abort(500)
+
+    client = app.test_client()
+    response = client.get('/__test_abort_500__')
+    assert response.status_code == 500
+    html = response.data.decode()
+    assert 'Something went wrong' in html
+    assert 'Sorry about that' in html
+    assert 'we\u2019ve hit an error' in html
+    assert 'error-home-btn' in html
+    assert 'href="/"' in html
+    assert 'Traceback' not in html

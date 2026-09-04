@@ -8,57 +8,71 @@
   {% if song.artist %}
   <p class="mb-1"><strong>Artist:</strong> {{ song.artist }}</p>
   {% endif %}
-  <p class="mb-4"><strong>Key:</strong> {{ song.song_key or '—' }}</p>
+  <p class="mb-4"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}&mdash;{% endif %}</p>
 
-  <div class="mb-3 d-flex flex-wrap gap-2">
-    <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> Edit</a>
-    <a href="{{ url_for('main.explore') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Return</a>
-    <button type="button" id="btn-print-sheet" class="btn btn-outline-light"><i class="bi bi-printer"></i> Print / Export PDF</button>
-    <button type="button" id="btn-download-txt" class="btn btn-outline-light"><i class="bi bi-download"></i> Plain Text</button>
-    <a id="btn-yt-search" href="https://www.youtube.com/results?search_query={{ (song.title ~ ' ' ~ (song.artist or '') ~ ' chords backing track')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-warning"><i class="bi bi-youtube"></i> Backing Track</a>
-  </div>
-  
-<div class="d-flex align-items-center flex-wrap gap-2 mb-4 unified-controls">
-  <!-- Transpose controls -->
-  <div id="transpose-controls" class="d-flex align-items-center gap-2">
-    <!-- transpose down -->
-    <div class = "control-box">
-    <button type="button" class="transpose-btn control-btn" aria-label="Transpose down one semitone" data-step="-1">←</button>
-
-    <input id="steps" type="text" inputmode="numeric" pattern="^-?\d{1,2}$"
-           value="0" class="steps-input" aria-label="Semitone steps (−11 to +11)">
-
-    <!-- transpose up -->
-    <button type="button" class="transpose-btn control-btn" aria-label="Transpose up one semitone" data-step="1">→</button>
+  <div class="d-flex align-items-center flex-wrap gap-2 mb-4 unified-controls" role="toolbar" aria-label="Sheet controls">
+    <div class="d-flex align-items-center flex-wrap gap-2" role="group" aria-label="Sheet actions">
+      <div class="control-box">
+        <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="control-btn control-btn-primary">
+          <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+        </a>
+      </div>
+      <div class="control-box">
+        <a href="{{ url_for('main.explore') }}" class="control-btn">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i> Return
+        </a>
+      </div>
+      <div class="control-box">
+        <button type="button" id="btn-print-sheet" class="control-btn">
+          <i class="bi bi-printer" aria-hidden="true"></i> Print / Export PDF
+        </button>
+      </div>
+      <div class="control-box">
+        <button type="button" id="btn-download-txt" class="control-btn">
+          <i class="bi bi-download" aria-hidden="true"></i> Plain Text
+        </button>
+      </div>
+      <div class="control-box">
+        <a id="btn-yt-search" href="https://www.youtube.com/results?search_query={{ (song.title ~ ' ' ~ (song.artist or '') ~ ' chords backing track')|urlencode }}" target="_blank" rel="noopener noreferrer" class="control-btn">
+          <i class="bi bi-youtube" aria-hidden="true"></i> Backing Track
+        </a>
+      </div>
     </div>
 
-    <!-- accidentals toggle -->
-    <div class="prefer-toggle control-box">
-      <input type="radio" id="prefAuto" name="prefer" value="" checked>
-      <label for="prefAuto" title="Automatic accidentals">A</label>
+    <div id="transpose-controls" class="d-flex align-items-center gap-2">
+      <div class="control-box" role="group" aria-label="Transpose">
+        <button type="button" class="transpose-btn control-btn" aria-label="Transpose down one semitone" data-step="-1">&larr;</button>
 
-      <input type="radio" id="prefSharp" name="prefer" value="sharp">
-      <label for="prefSharp" title="Prefer sharps">♯</label>
+        <input id="steps" type="text" inputmode="numeric" pattern="^-?\d{1,2}$"
+               value="0" class="steps-input" aria-label="Semitone steps (&minus;11 to +11)">
 
-      <input type="radio" id="prefFlat" name="prefer" value="flat">
-      <label for="prefFlat" title="Prefer flats">♭</label>
+        <button type="button" class="transpose-btn control-btn" aria-label="Transpose up one semitone" data-step="1">&rarr;</button>
+      </div>
+
+      <div class="prefer-toggle control-box" role="group" aria-label="Accidental preference">
+        <input type="radio" id="prefAuto" name="prefer" value="" checked>
+        <label for="prefAuto" title="Automatic accidentals">A</label>
+
+        <input type="radio" id="prefSharp" name="prefer" value="sharp">
+        <label for="prefSharp" title="Prefer sharps">&#9839;</label>
+
+        <input type="radio" id="prefFlat" name="prefer" value="flat">
+        <label for="prefFlat" title="Prefer flats">&#9837;</label>
+      </div>
+
+      <div class="control-box">
+        <button type="button" class="transpose-reset control-btn" aria-label="Reset transposition to 0">Reset</button>
+      </div>
     </div>
-    
-    <div class = "control-box">
-    <button type="button" class="transpose-reset control-btn" aria-label="Reset transposition to 0">Reset</button>
+
+    <div class="control-box">
+      <button type="button" class="control-btn" id="toggle-vertical">Switch to Single Column View</button>
+    </div>
+
+    <div class="control-box">
+      <div id="auto-scroll-toggle" class="scroll-status">Scroll Speed</div>
     </div>
   </div>
-
-  <!-- layout toggle -->
-  <div class = "control-box">
-  <button type="button" class="control-btn" id="toggle-vertical">Switch to Single Column View</button>
-  </div>
-
-  <!-- scroll speed (info only) -->
-  <div class = "control-box">
-    <div id="auto-scroll-toggle" class="scroll-status">Scroll Speed</div>
-  </div>
-</div>
 
   {% if lines %}
     <h4 class="mt-4">Chords and Lyrics</h4>
@@ -75,7 +89,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-warning">No preview available — file could not be read.</p>
+    <p class="text-warning">No preview available &mdash; file could not be read.</p>
   {% endif %}
 </div>
 {% endblock %}
