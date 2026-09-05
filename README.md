@@ -73,7 +73,7 @@ ChordStrikers/
 
 ---
 
-## 🚀 Quickstart & Setup
+## Quickstart & Setup
 
 ### 1. Prerequisites
 - **Python 3.10+**
@@ -116,7 +116,7 @@ Startup creates any missing SQLite tables (`songs`) automatically via SQLAlchemy
 
 ---
 
-## 🧪 Running Automated Tests
+## Running Automated Tests
 
 Run the full pytest suite:
 
@@ -126,7 +126,7 @@ pytest
 
 ---
 
-## 📘 Chord Sheet Notation Guide
+## Chord Sheet Notation Guide
 
 Chords should be wrapped in square brackets (`[...]`) directly before or inside lyrics:
 
@@ -140,7 +140,7 @@ For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/k
 
 ---
 
-## 🗺 Roadmap
+## Roadmap
 
 - [x] Transposition & auto-scroll hands-free reading.
 - [x] Multi-column dynamic screen layout.
@@ -152,12 +152,12 @@ For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/k
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please check out [CONTRIBUTING.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/CONTRIBUTING.md) for details on submitting pull requests and running tests.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/LICENSE).
