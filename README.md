@@ -146,9 +146,6 @@ For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/k
 - [x] Multi-column dynamic screen layout.
 - [x] Interactive chord fingering tooltips.
 - [x] Print / PDF and Plain Text export.
-- [ ] Ukulele & Mandolin alternate chord diagram modes.
-- [ ] User accounts and personal playlist / favorite collections.
-- [ ] Offline PWA support for live musical performances.
 
 ---
 
