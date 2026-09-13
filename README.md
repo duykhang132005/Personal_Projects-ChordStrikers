@@ -7,6 +7,10 @@
 
 **ChordStrikers** is an interactive, open-source web application for transcribing, reading, transposing, and practicing musical chord sheets without paywalls or ad clutter.
 
+**Demo (read-only):** [https://duykhang132005.github.io/Personal_Projects-ChordStrikers/](https://duykhang132005.github.io/Personal_Projects-ChordStrikers/)
+
+The GitHub Pages site is a static browse/view demo (search, transpose, auto-scroll, print/download). Creating and editing songs still requires the local Flask app (`python run.py`).
+
 ---
 
 ## Key Features
@@ -47,26 +51,25 @@ ChordStrikers/
 │   ├── parsing.py          # Legacy text parser helpers
 │   ├── utils.py            # Chord splitting, transposition, iTunes cover fetch
 │   └── config.py           # App configuration
+├── demo/                   # Static GitHub Pages demo source
+│   ├── catalog.json        # Fallback song metadata when songs.db is absent
+│   ├── index.html
+│   ├── css/demo.css
+│   └── js/
 ├── docs/                   # Developer documentation
 │   └── chord_format_guide.md
+├── scripts/                # Demo export + static site build
+│   ├── export_demo.py
+│   └── build_demo.py
 ├── static/                 # CSS, JS, images, sample chord files
-│   ├── css/styles.css
+│   ├── styles.css
 │   ├── js/view_sheet.js
 │   └── data/
-├── templates/              # Jinja2 templates
-│   ├── home.html
-│   ├── explore.html
-│   ├── view_sheet.html
-│   ├── creator.html
-│   └── edit_sheet.html
+├── templates/              # Jinja2 templates (local Flask app)
 ├── tests/                  # Pytest suite
-│   ├── conftest.py
-│   ├── test_utils.py
-│   └── test_routes.py
-├── .env.example
-├── .github/                # CI workflows and issue templates
+├── .github/                # CI + Pages deploy workflows
+├── package.json            # npm run build → static site/
 ├── requirements.txt
-├── requirements-dev.txt
 ├── run.py
 └── LICENSE
 ```
@@ -81,8 +84,8 @@ ChordStrikers/
 
 ### 2. Clone Repository & Setup Virtual Environment
 ```bash
-git clone https://github.com/duykhang132005/ChordStrikers.git
-cd ChordStrikers
+git clone https://github.com/duykhang132005/Personal_Projects-ChordStrikers.git
+cd Personal_Projects-ChordStrikers
 
 # Create virtual environment
 python -m venv venv
@@ -114,6 +117,35 @@ Open your browser and navigate to `http://127.0.0.1:5000`.
 
 Startup creates any missing SQLite tables (`songs`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
 
+The local Flask app is unchanged: create, edit, and your `instance/songs.db` workflow stay here. The Pages demo does not replace it.
+
+---
+
+## GitHub Pages demo
+
+The public site is generated from `instance/songs.db` (when present) plus matching `static/data/{id}.txt` files. If the database is missing — as it is on GitHub, because `instance/*.db` is gitignored — the build uses `demo/catalog.json` and still skips any id without a sheet file.
+
+```bash
+# Requires the Python dependencies from requirements.txt
+npm run build
+# or: python scripts/build_demo.py --base-path /Personal_Projects-ChordStrikers/
+```
+
+This writes a static site to `site/` (gitignored). Preview locally:
+
+```bash
+python scripts/build_demo.py --base-path /
+python -m http.server --directory site 8080
+```
+
+Then open `http://127.0.0.1:8080`.
+
+Pushes to `main` build and deploy via [`.github/workflows/pages.yml`](.github/workflows/pages.yml) (`actions/upload-pages-artifact` + `actions/deploy-pages`), using the project base path `/Personal_Projects-ChordStrikers/`. `index.html` is copied to `404.html` so deep links into the SPA still load.
+
+**Enable Pages once:** GitHub repo → **Settings** → **Pages** → **Source** = **GitHub Actions**.
+
+The demo is read-only: Explore (client-side filter by title/artist/key) and View sheet (transpose, sharp/flat prefer, auto-scroll, columns, chord tooltips, print/download). There is no create/edit UI on Pages.
+
 ---
 
 ## Running Automated Tests
@@ -136,7 +168,7 @@ Verse 1:
 You make me [F]happy when skies are [C]grey
 ```
 
-For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/docs/chord_format_guide.md).
+For complete syntax details, see [docs/chord_format_guide.md](docs/chord_format_guide.md).
 
 ---
 
@@ -151,10 +183,10 @@ For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/k
 
 ## Contributing
 
-Contributions are welcome! Please check out [CONTRIBUTING.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/CONTRIBUTING.md) for details on submitting pull requests and running tests.
+Contributions are welcome! Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for details on submitting pull requests and running tests.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/LICENSE).
+This project is licensed under the [MIT License](LICENSE).

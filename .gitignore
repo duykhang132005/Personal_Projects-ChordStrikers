@@ -35,3 +35,7 @@ htmlcov/
 
 # Git signing
 .gitallowed_signers
+
+# Generated GitHub Pages demo
+site/
+demo-dist/

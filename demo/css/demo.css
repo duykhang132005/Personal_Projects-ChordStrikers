@@ -1,0 +1,47 @@
+/* Static-demo extras on top of static/styles.css */
+
+.demo-banner {
+    background: rgba(224, 122, 31, 0.94);
+    color: #fff;
+    text-align: center;
+    padding: 0.7rem 1.25rem;
+    font-size: 0.98rem;
+    line-height: 1.45;
+}
+
+.demo-banner a {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.demo-banner a:hover,
+.demo-banner a:focus-visible {
+    color: #fff8e7;
+}
+
+.demo-readonly-note {
+    background: rgba(20, 16, 12, 0.62);
+    border: 1px solid rgba(224, 122, 31, 0.45);
+    border-radius: 10px;
+    color: #fff;
+    max-width: 46rem;
+    margin: 0 auto 1.5rem;
+    padding: 1rem 1.25rem;
+}
+
+.demo-readonly-note code {
+    color: #ffe0b2;
+}
+
+.brand-header a:focus-visible {
+    outline: 2px solid #ffcc80;
+    outline-offset: 3px;
+}
+
+@media print {
+    .demo-banner,
+    .brand-header {
+        display: none !important;
+    }
+}

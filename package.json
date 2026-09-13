@@ -1,0 +1,10 @@
+{
+  "name": "chordstrikers-pages-demo",
+  "private": true,
+  "description": "Build the static GitHub Pages demo for ChordStrikers",
+  "scripts": {
+    "export": "python3 scripts/export_demo.py",
+    "build": "python3 scripts/build_demo.py",
+    "preview": "python3 scripts/build_demo.py --base-path / && python3 -m http.server --directory site 8080"
+  }
+}
