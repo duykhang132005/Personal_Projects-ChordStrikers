@@ -131,8 +131,8 @@ def test_edit_delete_forbidden_for_other_owner(client, app):
         assert db.session.get(Song, song_id) is not None
 
 
-def test_legacy_song_without_owner_editable_when_logged_in(client, app):
-    """Songs with user_id NULL remain editable by any logged-in user."""
+def test_legacy_song_without_owner_not_editable_by_regular_user(client, app):
+    """Songs with user_id NULL are not editable by non-admin users."""
     with app.app_context():
         song = Song.query.filter_by(title='Test Song').one()
         assert song.user_id is None
@@ -140,7 +140,33 @@ def test_legacy_song_without_owner_editable_when_logged_in(client, app):
 
     register(client, username='editor', password='pw12345')
     response = client.get(f'/edit_song/{song_id}')
-    assert response.status_code == 200
+    assert response.status_code == 403
+
+
+def test_explore_author_filter_and_view_hides_edit(client, app):
+    register(client, username='author1', password='pw12345')
+    client.post('/create', data={
+        'title': 'AuthorFilterSong',
+        'artist': 'Band',
+        'song_key': 'C',
+        'sheet_content': '[C]Hi',
+    })
+    client.post('/logout')
+    register(client, username='viewer1', password='pw12345')
+
+    explore = client.get('/explore?author=author1')
+    assert explore.status_code == 200
+    assert b'AuthorFilterSong' in explore.data
+    assert b'authored by' in explore.data.lower() or b'Authored by' in explore.data
+
+    with app.app_context():
+        song_id = Song.query.filter_by(title='AuthorFilterSong').one().id
+    view = client.get(f'/view_sheet/{song_id}')
+    assert view.status_code == 200
+    assert b'Authored by:' in view.data
+    assert b'author1' in view.data
+    # Edit button should be hidden for non-owner
+    assert b'> Edit' not in view.data and b'>Edit' not in view.data
 
 def test_admin_can_edit_other_owner(client, app):
     register(client, username='owner2', password='pw12345')

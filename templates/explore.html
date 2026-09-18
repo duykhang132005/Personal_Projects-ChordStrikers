@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container py-5 text-white">
-    <p class="fs-5 text-center">Browse community-created chord sheets by song, artist, or key.</p>
+    <p class="fs-5 text-center">Browse community-created chord sheets by song, artist, author, or key.</p>
     
     <!-- Search Bar -->
     <form method="GET" action="{{ url_for('main.explore') }}" class="my-4">
@@ -16,6 +16,15 @@
                 placeholder="Search by song or artist"
                 value="{{ query or '' }}"
                 aria-label="Search by song or artist"
+            >
+            <input
+                type="text"
+                name="author"
+                class="form-control"
+                placeholder="Author username"
+                value="{{ author or '' }}"
+                aria-label="Search by author"
+                style="max-width: 180px"
             >
             <input
                 type="text"
@@ -45,6 +54,7 @@
                 <div class="song-card-body">
                 {% endif %}
                 <h5 class="card-title song-card-title">{{ song.title }}</h5>
+                <p class="card-text song-card-text"><strong>Authored by:</strong> {% if song.creator %}{{ song.creator.username }}{% else %}Community{% endif %}</p>
                 {% if song.artist %}
                 <p class="card-text song-card-text"><strong>Artist:</strong> {{ song.artist }}</p>
                 {% endif %}

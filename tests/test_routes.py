@@ -252,7 +252,9 @@ def test_create_song_rejects_unsafe_image_url(auth_client, app):
 def test_delete_song_removes_storage_file(auth_client, app):
     client = auth_client
     with app.app_context():
-        song = Song(title='To Delete', artist='X', song_key='C')
+        from app.models import User
+        owner = User.query.filter_by(username='tester').one()
+        song = Song(title='To Delete', artist='X', song_key='C', user_id=owner.id)
         db.session.add(song)
         db.session.commit()
         save_song_content(song.id, '[G]Bye')

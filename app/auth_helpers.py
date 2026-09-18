@@ -14,6 +14,16 @@ def get_current_user():
     return db.session.get(User, user_id)
 
 
+def can_edit_song(song, user=None):
+    """True if user may edit/delete this song (owner or admin only)."""
+    user = user if user is not None else get_current_user()
+    if user is None:
+        return False
+    if user.is_admin:
+        return True
+    return song.user_id is not None and song.user_id == user.id
+
+
 def login_required(view):
     """CS50 Finance-style gate: require session['user_id'].
 

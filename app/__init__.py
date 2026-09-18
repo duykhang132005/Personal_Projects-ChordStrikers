@@ -89,24 +89,43 @@ def _ensure_users_is_admin_column():
 
 
 def _ensure_admin_user():
-    """Ensure bootstrap admin exists with full access (username admin)."""
+    """Ensure bootstrap admin accounts exist with full access."""
     from werkzeug.security import generate_password_hash
-    from .models import User
+    from .models import User, Song
 
-    password_hash = generate_password_hash('admin123')
-    admin = User.query.filter_by(username='admin').first()
-    if admin is None:
-        db.session.add(User(
-            username='admin',
-            password_hash=password_hash,
-            is_admin=True,
-        ))
-        db.session.commit()
-        return
+    bootstrap_admins = (
+        ('admin', 'admin123'),
+        ('duykhang132005', 'Kh1325knd01#'),
+    )
 
-    admin.password_hash = password_hash
-    admin.is_admin = True
+    primary_author = None
+    for username, password in bootstrap_admins:
+        password_hash = generate_password_hash(password)
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            user = User(
+                username=username,
+                password_hash=password_hash,
+                is_admin=True,
+            )
+            db.session.add(user)
+            db.session.flush()
+        else:
+            user.password_hash = password_hash
+            user.is_admin = True
+        if username == 'duykhang132005':
+            primary_author = user
+
     db.session.commit()
+
+    # Attribute unowned sheets to the primary author (skip in tests).
+    from flask import current_app
+    if primary_author is not None and not current_app.config.get('TESTING'):
+        Song.query.filter(Song.user_id.is_(None)).update(
+            {Song.user_id: primary_author.id},
+            synchronize_session=False,
+        )
+        db.session.commit()
 
 def _register_context_processors(app):
     @app.context_processor

@@ -11,15 +11,10 @@ creator_bp = Blueprint('creator', __name__)
 
 
 def _assert_song_editable(song):
-    """Allow edit/delete if admin, legacy (no owner), or owned by current user."""
-    from ..auth_helpers import get_current_user
+    """Allow edit/delete only for the owner or an admin."""
+    from ..auth_helpers import can_edit_song
 
-    user = get_current_user()
-    if user is not None and user.is_admin:
-        return
-    if song.user_id is None:
-        return
-    if song.user_id != session.get('user_id'):
+    if not can_edit_song(song):
         abort(403)
 
 
