@@ -88,44 +88,72 @@ def _ensure_users_is_admin_column():
         pass
 
 
+def _parse_bootstrap_admins():
+    """Parse BOOTSTRAP_ADMINS=user:pass,user2:pass2 from the environment.
+
+    Passwords are only used when creating a missing account. Existing users
+    keep their stored password_hash forever (deploys must not reset them).
+    """
+    raw = (os.environ.get('BOOTSTRAP_ADMINS') or '').strip()
+    if not raw:
+        return []
+
+    accounts = []
+    for part in raw.split(','):
+        part = part.strip()
+        if not part or ':' not in part:
+            continue
+        username, password = part.split(':', 1)
+        username = username.strip()
+        password = password.strip()
+        if username and password:
+            accounts.append((username, password))
+    return accounts
+
+
 def _ensure_admin_user():
-    """Ensure bootstrap admin accounts exist with full access."""
+    """Create missing bootstrap admins only; never overwrite existing passwords."""
     from werkzeug.security import generate_password_hash
+    from flask import current_app
     from .models import User, Song
 
-    bootstrap_admins = (
-        ('admin', 'admin123'),
-        ('duykhang132005', 'Kh1325knd01#'),
+    bootstrap_admins = _parse_bootstrap_admins()
+    primary_name = (
+        os.environ.get('PRIMARY_AUTHOR')
+        or (bootstrap_admins[0][0] if bootstrap_admins else None)
     )
-
     primary_author = None
+
     for username, password in bootstrap_admins:
-        password_hash = generate_password_hash(password)
         user = User.query.filter_by(username=username).first()
         if user is None:
             user = User(
                 username=username,
-                password_hash=password_hash,
+                password_hash=generate_password_hash(password),
                 is_admin=True,
             )
             db.session.add(user)
             db.session.flush()
         else:
-            user.password_hash = password_hash
-            user.is_admin = True
-        if username == 'duykhang132005':
+            # Keep existing hash. Still ensure admin flag for named bootstraps.
+            if not user.is_admin:
+                user.is_admin = True
+        if primary_name and username == primary_name:
             primary_author = user
+
+    if primary_author is None and primary_name:
+        primary_author = User.query.filter_by(username=primary_name).first()
 
     db.session.commit()
 
     # Attribute unowned sheets to the primary author (skip in tests).
-    from flask import current_app
     if primary_author is not None and not current_app.config.get('TESTING'):
         Song.query.filter(Song.user_id.is_(None)).update(
             {Song.user_id: primary_author.id},
             synchronize_session=False,
         )
         db.session.commit()
+
 
 def _register_context_processors(app):
     @app.context_processor

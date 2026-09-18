@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from .. import db
 from ..models import User
+from ..auth_helpers import login_required, get_current_user
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -88,3 +89,38 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('main.home'))
+
+@auth_bp.route('/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Update the logged-in user's password (never via bootstrap overwrite)."""
+    user = get_current_user()
+    if user is None:
+        flash('Please log in to continue.', 'error')
+        return redirect(url_for('main.home', signin=1))
+
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('new_password', '')
+    confirmation = request.form.get('confirmation', '')
+
+    if not current_password or not new_password:
+        flash('Current and new passwords are required.', 'error')
+        return redirect(url_for('main.home', account=1))
+    if new_password != confirmation:
+        flash('New passwords do not match.', 'error')
+        return redirect(url_for('main.home', account=1))
+    if len(new_password) < 8:
+        flash('New password must be at least 8 characters.', 'error')
+        return redirect(url_for('main.home', account=1))
+    if not check_password_hash(user.password_hash, current_password):
+        flash('Current password is incorrect.', 'error')
+        return redirect(url_for('main.home', account=1))
+    if check_password_hash(user.password_hash, new_password):
+        flash('New password must be different from the current password.', 'error')
+        return redirect(url_for('main.home', account=1))
+
+    user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    flash('Password updated.', 'success')
+    return redirect(url_for('main.home', account=1))
+

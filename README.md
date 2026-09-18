@@ -1,160 +1,184 @@
-# ChordStrikers
-
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![Framework](https://img.shields.io/badge/framework-Flask-green.svg)
-![License](https://img.shields.io/badge/license-MIT-orange.svg)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
-
-**ChordStrikers** is an interactive, open-source web application for transcribing, reading, transposing, and practicing musical chord sheets without paywalls or ad clutter.
-
----
-
-## Key Features
-
-- **Smart Bracketed Chord Parser**  
-  Parses inline chords like `[C]`, `[Am7]`, `[F#/A#]` into aligned chord/lyric layers.
-
-- **Real-time Transposition**  
-  Shift any song by semitones (`-11` to `+11`) with automatic sharp/flat preference handling.
-
-- **Adaptive Multi-Column Layout**  
-  Dynamically measures monospace font widths and screen boundaries to fit sheets into single or multi-column layouts.
-
-- **Interactive Chord Tooltips**  
-  Hover or tap to view guitar fingering diagrams.
-
-- **Auto-Scrolling**  
-  Adjustable hands-free scrolling for practice sessions.
-
-- **iTunes Artwork Search**  
-  Fetches album cover art via the public iTunes Search API (no API key required).
-
-- **Print & Plain Text Export**  
-  One-click printable PDF styling and raw text downloads.
-
-- **YouTube Backing Track Integration**  
-  Quick search links for practicing alongside recordings or backing tracks.
-
----
-
-## Repository Structure
-
-```text
-ChordStrikers/
-├── app/                    # Flask application package
-│   ├── routes/             # Blueprint routes (main.py, creator.py)
-│   ├── storage.py          # Shared song text file I/O
-│   ├── parsing.py          # Legacy text parser helpers
-│   ├── utils.py            # Chord splitting, transposition, iTunes cover fetch
-│   └── config.py           # App configuration
-├── docs/                   # Developer documentation
-│   └── chord_format_guide.md
-├── static/                 # CSS, JS, images, sample chord files
-│   ├── css/styles.css
-│   ├── js/view_sheet.js
-│   └── data/
-├── templates/              # Jinja2 templates
-│   ├── home.html
-│   ├── explore.html
-│   ├── view_sheet.html
-│   ├── creator.html
-│   └── edit_sheet.html
-├── tests/                  # Pytest suite
-│   ├── conftest.py
-│   ├── test_utils.py
-│   └── test_routes.py
-├── .env.example
-├── .github/                # CI workflows and issue templates
-├── requirements.txt
-├── requirements-dev.txt
-├── run.py
-└── LICENSE
-```
-
----
-
-## Quickstart & Setup
-
-### 1. Prerequisites
-- **Python 3.10+**
-- Git
-
-### 2. Clone Repository & Setup Virtual Environment
-```bash
-git clone https://github.com/duykhang132005/ChordStrikers.git
-cd ChordStrikers
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# Windows:
-.\venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements-dev.txt
-```
-
-### 4. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Cover art is fetched automatically from iTunes when you leave the image URL blank. No API keys are required.
-
-### 5. Initialize Database & Run
-```bash
-python run.py
-```
-Open your browser and navigate to `http://127.0.0.1:5000`.
-
-Startup creates any missing SQLite tables (`songs`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
-
----
-
-## Running Automated Tests
-
-Run the full pytest suite:
-
-```bash
-pytest
-```
-
----
-
-## Chord Sheet Notation Guide
-
-Chords should be wrapped in square brackets (`[...]`) directly before or inside lyrics:
-
-```text
-Verse 1:
-[C]You are my sunshine, my [F]only sun[C]shine
-You make me [F]happy when skies are [C]grey
-```
-
-For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/docs/chord_format_guide.md).
-
----
-
-## Roadmap
-
-- [x] Transposition & auto-scroll hands-free reading.
-- [x] Multi-column dynamic screen layout.
-- [x] Interactive chord fingering tooltips.
-- [x] Print / PDF and Plain Text export.
-
----
-
-## Contributing
-
-Contributions are welcome! Please check out [CONTRIBUTING.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/CONTRIBUTING.md) for details on submitting pull requests and running tests.
-
----
-
-## License
-
-This project is licensed under the [MIT License](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/LICENSE).
+# ChordStrikers
+
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+![Framework](https://img.shields.io/badge/framework-Flask-green.svg)
+![License](https://img.shields.io/badge/license-MIT-orange.svg)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
+
+**ChordStrikers** is an interactive, open-source web application for transcribing, reading, transposing, and practicing musical chord sheets without paywalls or ad clutter.
+
+---
+
+## Key Features
+
+- **Smart Bracketed Chord Parser**  
+  Parses inline chords like `[C]`, `[Am7]`, `[F#/A#]` into aligned chord/lyric layers.
+
+- **Real-time Transposition**  
+  Shift any song by semitones (`-11` to `+11`) with automatic sharp/flat preference handling.
+
+- **Adaptive Multi-Column Layout**  
+  Dynamically measures monospace font widths and screen boundaries to fit sheets into single or multi-column layouts.
+
+- **Interactive Chord Tooltips**  
+  Hover or tap to view guitar fingering diagrams.
+
+- **Auto-Scrolling**  
+  Adjustable hands-free scrolling for practice sessions.
+
+- **iTunes Artwork Search**  
+  Fetches album cover art via the public iTunes Search API (no API key required).
+
+- **Print & Plain Text Export**  
+  One-click printable PDF styling and raw text downloads.
+
+- **YouTube Backing Track Integration**  
+  Quick search links for practicing alongside recordings or backing tracks.
+
+---
+
+## Repository Structure
+
+```text
+ChordStrikers/
+├── app/                    # Flask application package
+│   ├── routes/             # Blueprint routes (main.py, creator.py)
+│   ├── storage.py          # Shared song text file I/O
+│   ├── parsing.py          # Legacy text parser helpers
+│   ├── utils.py            # Chord splitting, transposition, iTunes cover fetch
+│   └── config.py           # App configuration
+├── docs/                   # Developer documentation
+│   └── chord_format_guide.md
+├── static/                 # CSS, JS, images, sample chord files
+│   ├── css/styles.css
+│   ├── js/view_sheet.js
+│   └── data/
+├── templates/              # Jinja2 templates
+│   ├── home.html
+│   ├── explore.html
+│   ├── view_sheet.html
+│   ├── creator.html
+│   └── edit_sheet.html
+├── tests/                  # Pytest suite
+│   ├── conftest.py
+│   ├── test_utils.py
+│   └── test_routes.py
+├── .env.example
+├── .github/                # CI workflows and issue templates
+├── requirements.txt
+├── requirements-dev.txt
+├── run.py
+└── LICENSE
+```
+
+---
+
+## Quickstart & Setup
+
+### 1. Prerequisites
+- **Python 3.10+**
+- Git
+
+### 2. Clone Repository & Setup Virtual Environment
+```bash
+git clone https://github.com/duykhang132005/ChordStrikers.git
+cd ChordStrikers
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+.\venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements-dev.txt
+```
+
+### 4. Configure Environment Variables
+Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+Cover art is fetched automatically from iTunes when you leave the image URL blank. No API keys are required.
+
+### 5. Initialize Database & Run
+```bash
+python run.py
+```
+Open your browser and navigate to `http://127.0.0.1:5000`.
+
+Startup creates any missing SQLite tables (`songs`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
+
+---
+
+## Running Automated Tests
+
+Run the full pytest suite:
+
+```bash
+pytest
+```
+
+---
+
+## Chord Sheet Notation Guide
+
+Chords should be wrapped in square brackets (`[...]`) directly before or inside lyrics:
+
+```text
+Verse 1:
+[C]You are my sunshine, my [F]only sun[C]shine
+You make me [F]happy when skies are [C]grey
+```
+
+For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/docs/chord_format_guide.md).
+
+---
+
+## Roadmap
+
+- [x] Transposition & auto-scroll hands-free reading.
+- [x] Multi-column dynamic screen layout.
+- [x] Interactive chord fingering tooltips.
+- [x] Print / PDF and Plain Text export.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please check out [CONTRIBUTING.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/CONTRIBUTING.md) for details on submitting pull requests and running tests.
+
+---
+
+## Maintaining accounts
+
+`instance/*.db` stays gitignored so production user hashes are not overwritten by `git pull`.
+
+On startup, ChordStrikers may create **missing** bootstrap admins from `BOOTSTRAP_ADMINS` in `.env`. It **never** changes an existing user's password hash.
+
+### First deploy / empty database
+1. On the host, set in `.env` (not committed):
+   `BOOTSTRAP_ADMINS=admin:YOUR_TEMP_PASSWORD,duykhang132005:YOUR_TEMP_PASSWORD`
+   `PRIMARY_AUTHOR=duykhang132005`
+2. Start the app once so those users are created.
+3. Log in and change passwords in the app (or clear `BOOTSTRAP_ADMINS` afterward).
+4. You can remove or empty `BOOTSTRAP_ADMINS` after the accounts exist; later deploys will leave hashes alone.
+
+### Later updates (`git pull` on the host)
+1. Pull/reset tracked code from `main` as usual.
+2. Leave `instance/*.db` alone (ignored) — that is your live accounts.
+3. Do **not** put real passwords back into source code.
+4. New people: use **Register** in the app, or temporarily add `newuser:tempPass` to `BOOTSTRAP_ADMINS`, restart once, then remove that entry and have them change the password.
+5. Promote an existing user to admin in the DB/admin UI if you have one; bootstrap only sets `is_admin` for names listed when creating **or** if the user already exists and is not admin yet (still without touching their password).
+
+### Local development
+Copy `.env.example` to `.env`, set `BOOTSTRAP_ADMINS` for a fresh local DB only. Your local `instance/songs.db` remains private.
+
+## License
+
+This project is licensed under the [MIT License](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/LICENSE).
