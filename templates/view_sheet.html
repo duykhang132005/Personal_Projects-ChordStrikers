@@ -10,67 +10,70 @@
   {% endif %}
   <p class="mb-4"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}&mdash;{% endif %}</p>
 
-  <div class="d-flex align-items-center flex-wrap gap-2 mb-4 unified-controls" role="toolbar" aria-label="Sheet controls">
-    <div class="d-flex align-items-center flex-wrap gap-2" role="group" aria-label="Sheet actions">
-      <div class="control-box">
-        <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="control-btn">
-          <i class="bi bi-pencil" aria-hidden="true"></i> Edit
-        </a>
-      </div>
-      <div class="control-box">
-        <a href="{{ url_for('main.explore') }}" class="control-btn">
-          <i class="bi bi-arrow-left" aria-hidden="true"></i> Return
-        </a>
-      </div>
-      <div class="control-box">
-        <button type="button" id="btn-print-sheet" class="control-btn">
-          <i class="bi bi-printer" aria-hidden="true"></i> Print / Export PDF
-        </button>
-      </div>
-      <div class="control-box">
-        <button type="button" id="btn-download-txt" class="control-btn">
-          <i class="bi bi-download" aria-hidden="true"></i> Plain Text
-        </button>
-      </div>
-      <div class="control-box">
-        <a id="btn-yt-search" href="https://www.youtube.com/results?search_query={{ (song.title ~ ' ' ~ (song.artist or '') ~ ' chords backing track')|urlencode }}" target="_blank" rel="noopener noreferrer" class="control-btn">
-          <i class="bi bi-youtube" aria-hidden="true"></i> Backing Track
-        </a>
-      </div>
+  <div class="mb-4 sheet-controls-layout">
+    <div class="sheet-nav-actions" role="group" aria-label="Navigation">
+      <a href="{{ url_for('creator.edit_song', song_id=song.id) }}" class="btn-primary sheet-nav-btn">
+        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+      </a>
+      <a href="{{ url_for('main.explore') }}" class="btn-secondary sheet-nav-btn">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Return
+      </a>
     </div>
 
-    <div id="transpose-controls" class="d-flex align-items-center gap-2">
-      <div class="control-box" role="group" aria-label="Transpose">
-        <button type="button" class="transpose-btn control-btn" aria-label="Transpose down one semitone" data-step="-1">&larr;</button>
-
-        <input id="steps" type="text" inputmode="numeric" pattern="^-?\d{1,2}$"
-               value="0" class="steps-input" aria-label="Semitone steps (&minus;11 to +11)">
-
-        <button type="button" class="transpose-btn control-btn" aria-label="Transpose up one semitone" data-step="1">&rarr;</button>
+    <div class="unified-controls sheet-tools-panel" role="toolbar" aria-label="Sheet controls">
+      <div class="toolbar-row toolbar-row-center" role="group" aria-label="Sheet actions">
+        <div class="control-box">
+          <button type="button" id="btn-print-sheet" class="control-btn">
+            <i class="bi bi-printer" aria-hidden="true"></i> Print / Export PDF
+          </button>
+        </div>
+        <div class="control-box">
+          <button type="button" id="btn-download-txt" class="control-btn">
+            <i class="bi bi-download" aria-hidden="true"></i> Plain Text
+          </button>
+        </div>
+        <div class="control-box">
+          <a id="btn-yt-search" href="https://www.youtube.com/results?search_query={{ (song.title ~ ' ' ~ (song.artist or '') ~ ' chords backing track')|urlencode }}" target="_blank" rel="noopener noreferrer" class="control-btn">
+            <i class="bi bi-youtube" aria-hidden="true"></i> Backing Track
+          </a>
+        </div>
       </div>
 
-      <div class="prefer-toggle control-box" role="group" aria-label="Accidental preference">
-        <input type="radio" id="prefAuto" name="prefer" value="" checked>
-        <label for="prefAuto" title="Automatic accidentals">A</label>
+      <div class="toolbar-row toolbar-row-center" role="group" aria-label="Practice controls">
+        <div id="transpose-controls" class="toolbar-cluster">
+          <div class="control-box" role="group" aria-label="Transpose">
+            <button type="button" class="transpose-btn control-btn" aria-label="Transpose down one semitone" data-step="-1">&larr;</button>
 
-        <input type="radio" id="prefSharp" name="prefer" value="sharp">
-        <label for="prefSharp" title="Prefer sharps">&#9839;</label>
+            <input id="steps" type="text" inputmode="numeric" pattern="^-?\d{1,2}$"
+                   value="0" class="steps-input" aria-label="Semitone steps (&minus;11 to +11)">
 
-        <input type="radio" id="prefFlat" name="prefer" value="flat">
-        <label for="prefFlat" title="Prefer flats">&#9837;</label>
+            <button type="button" class="transpose-btn control-btn" aria-label="Transpose up one semitone" data-step="1">&rarr;</button>
+          </div>
+
+          <div class="prefer-toggle control-box" role="group" aria-label="Accidental preference">
+            <input type="radio" id="prefAuto" name="prefer" value="" checked>
+            <label for="prefAuto" title="Automatic accidentals">A</label>
+
+            <input type="radio" id="prefSharp" name="prefer" value="sharp">
+            <label for="prefSharp" title="Prefer sharps">&#9839;</label>
+
+            <input type="radio" id="prefFlat" name="prefer" value="flat">
+            <label for="prefFlat" title="Prefer flats">&#9837;</label>
+          </div>
+
+          <div class="control-box">
+            <button type="button" class="transpose-reset control-btn" aria-label="Reset transposition to 0">Reset</button>
+          </div>
+        </div>
+
+        <div class="control-box">
+          <button type="button" class="control-btn" id="toggle-vertical">Switch to Single Column View</button>
+        </div>
+
+        <div class="control-box">
+          <div id="auto-scroll-toggle" class="scroll-status">Scroll Speed</div>
+        </div>
       </div>
-
-      <div class="control-box">
-        <button type="button" class="transpose-reset control-btn" aria-label="Reset transposition to 0">Reset</button>
-      </div>
-    </div>
-
-    <div class="control-box">
-      <button type="button" class="control-btn" id="toggle-vertical">Switch to Single Column View</button>
-    </div>
-
-    <div class="control-box">
-      <div id="auto-scroll-toggle" class="scroll-status">Scroll Speed</div>
     </div>
   </div>
 
