@@ -1,10 +1,26 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import (
+    Blueprint, render_template, request, redirect, url_for, flash, session, abort,
+)
 from ..models import Song
 from ..utils import normalise_spacing, process_song_text, get_song_image_url, sanitize_image_url
 from ..storage import save_song_content, load_song_content, delete_song_file
+from ..auth_helpers import login_required
 from .. import db
 
 creator_bp = Blueprint('creator', __name__)
+
+
+def _assert_song_editable(song):
+    """Allow edit/delete if admin, legacy (no owner), or owned by current user."""
+    from ..auth_helpers import get_current_user
+
+    user = get_current_user()
+    if user is not None and user.is_admin:
+        return
+    if song.user_id is None:
+        return
+    if song.user_id != session.get('user_id'):
+        abort(403)
 
 
 @creator_bp.route('/creator')
@@ -15,6 +31,7 @@ def creator():
 
 
 @creator_bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     """Create a new song."""
     if request.method == 'POST':
@@ -47,7 +64,8 @@ def create():
         new_song = Song(
             title=title, 
             artist=artist if artist else None, 
-            song_key=song_key
+            song_key=song_key,
+            user_id=session['user_id'],
         )
         
         # Check if user wants to clear the image
@@ -84,9 +102,11 @@ def create():
 
 
 @creator_bp.route('/edit_song/<int:song_id>', methods=['GET', 'POST'])
+@login_required
 def edit_song(song_id):
     """Edit an existing song."""
     song = Song.query.get_or_404(song_id)
+    _assert_song_editable(song)
     
     if request.method == 'POST':
         # Store original values for comparison
@@ -163,9 +183,11 @@ def edit_song(song_id):
 
 
 @creator_bp.route('/delete_song/<int:song_id>', methods=['POST'])
+@login_required
 def delete_song(song_id):
     """Delete a song and its associated file."""
     song = Song.query.get_or_404(song_id)
+    _assert_song_editable(song)
     song_title = song.title  # Store for flash message
     
     # Delete file and database record

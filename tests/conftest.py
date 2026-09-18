@@ -57,3 +57,14 @@ def client(app):
 @pytest.fixture
 def runner(app):
     return app.test_cli_runner()
+
+
+@pytest.fixture
+def auth_client(client):
+    """Register and log in a default test user; return the client."""
+    client.post('/register', data={
+        'username': 'tester',
+        'password': 'testpass1',
+        'confirmation': 'testpass1',
+    })
+    return client

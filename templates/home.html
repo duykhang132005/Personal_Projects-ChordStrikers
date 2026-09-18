@@ -48,6 +48,25 @@
             <div>Explore</div>
         </div>
     </div>
+    {% if session.get('user_id') %}
+    <div class="circle-menu-item mx-3" data-target="account-card">
+        <i class="bi bi-person-check"></i>
+        <span class="circle-label">Account</span>
+        <div class="circle-categories">
+            <div>Profile</div>
+            <div>Logout</div>
+        </div>
+    </div>
+    {% else %}
+    <div class="circle-menu-item mx-3" data-target="signin-card" id="signin-circle">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span class="circle-label">Sign In</span>
+        <div class="circle-categories">
+            <div>Log In</div>
+            <div>Register</div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Circle Cards -->
@@ -153,5 +172,92 @@
             </div>
         </div>
     </div>
+    <!-- Sign In Card -->
+    <div id="signin-card" class="circle-card card shadow-sm accent-section fade-in d-none">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-box-arrow-in-right"></i> Sign In</h2>
+
+            <h3 id="signin-login" class="mt-4"><i class="bi bi-box-arrow-in-right"></i> Log In</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <form method="post" action="{{ url_for('auth.login') }}" class="text-start">
+                    <div class="mb-3">
+                        <label for="login-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="login-username" name="username" required autocomplete="username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="login-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="login-password" name="password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Log In</button>
+                </form>
+            </div>
+
+            <h3 id="signin-register" class="mt-4"><i class="bi bi-person-plus"></i> Register</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <form method="post" action="{{ url_for('auth.register') }}" class="text-start">
+                    <div class="mb-3">
+                        <label for="register-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="register-username" name="username" required autocomplete="username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="register-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="register-password" name="password" required autocomplete="new-password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="register-confirmation" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="register-confirmation" name="confirmation" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Card -->
+    <div id="account-card" class="circle-card card shadow-sm accent-section fade-in d-none">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-person-check"></i> Account</h2>
+            <h3 class="mt-4"><i class="bi bi-person"></i> Profile</h3>
+            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <p class="card-text mb-3">
+                    Signed in as
+                    <span class="fw-bold text-orange">{% if current_user %}{{ current_user.username }}{% else %}User{% endif %}</span>.
+                </p>
+                <form method="post" action="{{ url_for('auth.logout') }}">
+                    <button type="submit" class="btn btn-secondary">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('signin') !== '1') return;
+
+    function openSignInCard() {
+        var menu = document.getElementById('circle-menu');
+        var item = document.querySelector('.circle-menu-item[data-target="signin-card"]');
+        var card = document.getElementById('signin-card');
+        if (!menu || !item || !card) return;
+        document.querySelectorAll('.circle-menu-item').forEach(function (i) {
+            i.classList.remove('active', 'docked');
+        });
+        document.querySelectorAll('.circle-card').forEach(function (c) {
+            c.classList.add('d-none');
+        });
+        item.classList.add('active');
+        menu.classList.add('docked');
+        document.querySelectorAll('.circle-menu-item').forEach(function (i) {
+            if (i !== item) i.classList.add('docked');
+        });
+        card.classList.remove('d-none');
+    }
+    setTimeout(openSignInCard, 0);
+})();
+</script>
 {% endblock %}

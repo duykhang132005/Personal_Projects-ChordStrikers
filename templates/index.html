@@ -14,6 +14,19 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="music-bg">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container mt-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     {% if request.endpoint != 'main.home' %}
     <div class="text-center p-4 fade-in">
         <a href="{{ url_for('main.home') }}" class="text-decoration-none">
@@ -33,43 +46,52 @@
      {% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Circle menu interactivity
-        document.querySelectorAll('.circle-card').forEach(card => card.classList.add('d-none'));
+        // Circle menu interactivity (null-safe for non-home pages)
+        (function () {
+            var circleMenu = document.getElementById('circle-menu');
+            var circleCards = document.querySelectorAll('.circle-card');
+            var menuItems = document.querySelectorAll('.circle-menu-item');
+            if (!circleMenu || !menuItems.length) {
+                return;
+            }
 
-        document.querySelectorAll('.circle-menu-item').forEach(item => {
-            item.addEventListener('click', function () {
-                const isActive = item.classList.contains('active');
-                document.querySelectorAll('.circle-menu-item').forEach(i => i.classList.remove('active', 'docked'));
-                document.getElementById('circle-menu').classList.remove('docked');
-                document.querySelectorAll('.circle-card').forEach(card => card.classList.add('d-none'));
+            circleCards.forEach(function (card) { card.classList.add('d-none'); });
 
-                if (!isActive) {
-                    item.classList.add('active');
-                    document.getElementById('circle-menu').classList.add('docked');
-                    document.querySelectorAll('.circle-menu-item').forEach(i => {
-                        if (i !== item) i.classList.add('docked');
-                    });
-                    const target = item.getAttribute('data-target');
-                    const card = document.getElementById(target);
-                    if (card) card.classList.remove('d-none');
-                }
+            menuItems.forEach(function (item) {
+                item.addEventListener('click', function () {
+                    var isActive = item.classList.contains('active');
+                    menuItems.forEach(function (i) { i.classList.remove('active', 'docked'); });
+                    circleMenu.classList.remove('docked');
+                    circleCards.forEach(function (card) { card.classList.add('d-none'); });
+
+                    if (!isActive) {
+                        item.classList.add('active');
+                        circleMenu.classList.add('docked');
+                        menuItems.forEach(function (i) {
+                            if (i !== item) i.classList.add('docked');
+                        });
+                        var target = item.getAttribute('data-target');
+                        var card = document.getElementById(target);
+                        if (card) card.classList.remove('d-none');
+                    }
+                });
+
+                item.addEventListener('dblclick', function () {
+                    menuItems.forEach(function (i) { i.classList.remove('active', 'docked'); });
+                    circleMenu.classList.remove('docked');
+                    circleCards.forEach(function (c) { c.classList.add('d-none'); });
+                });
             });
 
-            item.addEventListener('dblclick', function () {
-                document.querySelectorAll('.circle-menu-item').forEach(i => i.classList.remove('active', 'docked'));
-                document.getElementById('circle-menu').classList.remove('docked');
-                document.querySelectorAll('.circle-card').forEach(c => c.classList.add('d-none'));
+            circleCards.forEach(function (card) {
+                card.addEventListener('click', function (e) {
+                    if (e.target !== card) return;
+                    menuItems.forEach(function (i) { i.classList.remove('active', 'docked'); });
+                    circleMenu.classList.remove('docked');
+                    circleCards.forEach(function (c) { c.classList.add('d-none'); });
+                });
             });
-        });
-
-        document.querySelectorAll('.circle-card').forEach(card => {
-            card.addEventListener('click', function (e) {
-                if (e.target !== card) return;
-                document.querySelectorAll('.circle-menu-item').forEach(i => i.classList.remove('active', 'docked'));
-                document.getElementById('circle-menu').classList.remove('docked');
-                document.querySelectorAll('.circle-card').forEach(c => c.classList.add('d-none'));
-            });
-        });
+        })();
     </script>
 </body>
 </html>

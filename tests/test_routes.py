@@ -185,7 +185,8 @@ def test_view_sheet_uses_storage_and_escapes_html(client, app):
     assert 'data-chord="[C]"' in sheet_html
 
 
-def test_create_song_uses_storage_and_accepts_allowed_image_url(client, app):
+def test_create_song_uses_storage_and_accepts_allowed_image_url(auth_client, app):
+    client = auth_client
     image_url = 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/aa/source/600x600bb.jpg'
     response = client.post('/create', data={
         'title': 'Safe Cover',
@@ -203,7 +204,8 @@ def test_create_song_uses_storage_and_accepts_allowed_image_url(client, app):
         assert load_song_content(song.id) == '[C]Hi there'
 
 
-def test_create_song_auto_fetches_itunes_cover_without_spotify(client, app, monkeypatch):
+def test_create_song_auto_fetches_itunes_cover_without_spotify(auth_client, app, monkeypatch):
+    client = auth_client
     artwork_100 = (
         'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/aa/bb/cc/source/100x100bb.jpg'
     )
@@ -229,7 +231,8 @@ def test_create_song_auto_fetches_itunes_cover_without_spotify(client, app, monk
         assert song.image_url == artwork_600
 
 
-def test_create_song_rejects_unsafe_image_url(client, app):
+def test_create_song_rejects_unsafe_image_url(auth_client, app):
+    client = auth_client
     response = client.post('/create', data={
         'title': 'XSS Cover',
         'artist': 'Someone',
@@ -246,7 +249,8 @@ def test_create_song_rejects_unsafe_image_url(client, app):
         assert load_song_content(song.id) == '[C]Hi'
 
 
-def test_delete_song_removes_storage_file(client, app):
+def test_delete_song_removes_storage_file(auth_client, app):
+    client = auth_client
     with app.app_context():
         song = Song(title='To Delete', artist='X', song_key='C')
         db.session.add(song)

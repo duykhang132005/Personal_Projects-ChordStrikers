@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect, text
 
 from .config import Config
 
@@ -31,21 +32,87 @@ def create_app(test_config=None):
     # Import and register blueprints
     from .routes.main import main_bp
     from .routes.creator import creator_bp
+    from .routes.auth import auth_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
+    app.register_blueprint(auth_bp)
     _register_error_handlers(app)
+    _register_context_processors(app)
 
-    # Create missing SQLite tables, then keep songs.id in sync with
-    # SONG_DATA_DIR/{id}.txt (orphan files and orphan rows). Idempotent.
+    # Create missing SQLite tables, ensure songs.user_id, then keep songs.id in
+    # sync with SONG_DATA_DIR/{id}.txt (orphan files and orphan rows). Idempotent.
     with app.app_context():
-        from .models import Song  # noqa: F401
+        from .models import User, Song  # noqa: F401
         from .storage import purge_unsynced_songs_and_sheets
 
         db.create_all()
+        _ensure_songs_user_id_column()
+        _ensure_users_is_admin_column()
+        _ensure_admin_user()
         purge_unsynced_songs_and_sheets()
 
     return app
+
+
+def _ensure_songs_user_id_column():
+    """Idempotent SQLite migration: add songs.user_id if the table predates it."""
+    try:
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if 'songs' not in tables:
+            return
+        columns = {col['name'] for col in inspector.get_columns('songs')}
+        if 'user_id' in columns:
+            return
+        with db.engine.begin() as conn:
+            conn.execute(text('ALTER TABLE songs ADD COLUMN user_id INTEGER'))
+    except Exception:
+        # Non-SQLite or locked DB: create_all already covers fresh schemas.
+        pass
+
+
+
+def _ensure_users_is_admin_column():
+    """Idempotent SQLite migration: add users.is_admin if missing."""
+    try:
+        inspector = inspect(db.engine)
+        if 'users' not in inspector.get_table_names():
+            return
+        columns = {col['name'] for col in inspector.get_columns('users')}
+        if 'is_admin' in columns:
+            return
+        with db.engine.begin() as conn:
+            conn.execute(text('ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0'))
+    except Exception:
+        pass
+
+
+def _ensure_admin_user():
+    """Ensure bootstrap admin exists with full access (username admin)."""
+    from werkzeug.security import generate_password_hash
+    from .models import User
+
+    password_hash = generate_password_hash('admin123')
+    admin = User.query.filter_by(username='admin').first()
+    if admin is None:
+        db.session.add(User(
+            username='admin',
+            password_hash=password_hash,
+            is_admin=True,
+        ))
+        db.session.commit()
+        return
+
+    admin.password_hash = password_hash
+    admin.is_admin = True
+    db.session.commit()
+
+def _register_context_processors(app):
+    @app.context_processor
+    def inject_current_user():
+        from .auth_helpers import get_current_user
+        return {'current_user': get_current_user()}
 
 
 def _register_error_handlers(app):
@@ -56,7 +123,7 @@ def _register_error_handlers(app):
             code=404,
             title='Page not found',
             message=(
-                "That isn\u2019t supposed to happen\u2026 we can\u2019t find "
+                "That isn’t supposed to happen… we can’t find "
                 "that page. Sorry about that."
             ),
         ), 404
@@ -68,7 +135,7 @@ def _register_error_handlers(app):
             code=500,
             title='Something went wrong',
             message=(
-                "That isn\u2019t supposed to happen\u2026 we\u2019ve hit an "
+                "That isn’t supposed to happen… we’ve hit an "
                 "error. Sorry about that."
             ),
         ), 500

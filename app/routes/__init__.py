@@ -3,5 +3,6 @@
 
 from .main import main_bp
 from .creator import creator_bp
+from .auth import auth_bp
 
-__all__ = ['main_bp', 'creator_bp']
+__all__ = ['main_bp', 'creator_bp', 'auth_bp']
