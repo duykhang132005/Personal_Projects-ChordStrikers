@@ -607,7 +607,8 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     if (base === 1) {
       parts.push(`<rect x="${padL - 1}" y="${padT - 3}" width="${gridW + 2}" height="4" fill="#222" rx="1"/>`);
     } else {
-      parts.push(`<text x="${padL - 6}" y="${padT + fretGap * 0.65}" text-anchor="end" class="chord-fret-num">${base}</text>`);
+      // Same baseline as mute/open markers above the grid
+      parts.push(`<text x="${padL - 6}" y="${padT - 8}" text-anchor="end" class="chord-fret-num">${base}</text>`);
       parts.push(`<line x1="${padL}" y1="${padT}" x2="${padL + gridW}" y2="${padT}" stroke="#222" stroke-width="1.5"/>`);
     }
 
