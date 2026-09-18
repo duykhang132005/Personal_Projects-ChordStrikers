@@ -937,15 +937,47 @@ a.control-btn-primary:hover {
 .chord-tooltip {
     position: absolute;
     z-index: 1050;
-    background: #1e1e2f;
-    color: #00e676;
-    padding: 6px 12px;
-    border-radius: 6px;
+    background: #ffffff;
+    color: #222;
+    padding: 8px 10px 6px;
+    border-radius: 8px;
     font-size: 0.85rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
     pointer-events: none;
-    border: 1px solid #00e676;
+    border: 1px solid #ddd;
     text-align: center;
+}
+
+.chord-diagram-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    color: #111;
+}
+
+.chord-diagram-fallback {
+    font-size: 0.8rem;
+    color: #666;
+    padding: 0.4rem 0.2rem 0.55rem;
+}
+
+.chord-fret-svg {
+    display: block;
+    margin: 0 auto;
+}
+
+.chord-fret-svg .chord-fret-num {
+    font-size: 11px;
+    font-weight: 700;
+    fill: #222;
+    font-family: inherit;
+}
+
+.chord-fret-svg .chord-mute {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #222;
+    font-family: inherit;
 }
 
 .chord {
