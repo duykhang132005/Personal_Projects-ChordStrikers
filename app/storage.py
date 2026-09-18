@@ -130,6 +130,9 @@ def purge_unsynced_songs_and_sheets():
     from .models import Song
 
     db_ids = [row[0] for row in db.session.query(Song.id).all()]
+    # Empty DB must never wipe the sheet library (fresh DB / failed restore).
+    if not db_ids:
+        return [], []
     deleted_files = purge_orphan_sheets(db_ids)
     deleted_songs = purge_orphan_song_rows(db_ids)
     return deleted_files, deleted_songs
