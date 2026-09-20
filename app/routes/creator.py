@@ -100,7 +100,7 @@ def create():
 @login_required
 def edit_song(song_id):
     """Edit an existing song."""
-    song = Song.query.get_or_404(song_id)
+    song = db.get_or_404(Song, song_id)
     _assert_song_editable(song)
     
     if request.method == 'POST':
@@ -181,7 +181,7 @@ def edit_song(song_id):
 @login_required
 def delete_song(song_id):
     """Delete a song and its associated file."""
-    song = Song.query.get_or_404(song_id)
+    song = db.get_or_404(Song, song_id)
     _assert_song_editable(song)
     song_title = song.title  # Store for flash message
     

@@ -1,6 +1,8 @@
 import os
 import unicodedata
 from flask import Blueprint, render_template, request, abort
+from sqlalchemy.orm import joinedload
+from .. import db
 from ..models import Song
 from ..utils import prepare_song
 from ..storage import get_song_filepath
@@ -65,7 +67,7 @@ def explore():
     key_normalized = selected_key.lower() if selected_key else ''
     author_normalized = normalize_text(author_raw) if author_raw else ''
 
-    all_songs = Song.query.all()
+    all_songs = Song.query.options(joinedload(Song.creator)).all()
     filtered_songs = [
         song for song in all_songs
         if song_matches_filters(song, query_normalized, key_normalized, author_normalized)
@@ -85,7 +87,7 @@ def explore():
 @main_bp.route('/view_sheet/<int:song_id>')
 def view_sheet(song_id):
     """Display a song's chord sheet with processed chords and lyrics."""
-    song = Song.query.get_or_404(song_id)
+    song = db.get_or_404(Song, song_id)
     filepath = get_song_filepath(song_id)
 
     if not os.path.isfile(filepath):

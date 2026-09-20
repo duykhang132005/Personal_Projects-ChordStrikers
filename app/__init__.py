@@ -7,6 +7,9 @@ from .config import Config
 
 db = SQLAlchemy()
 
+# Bump to cache-bust local static CSS/JS (url_for ..., v=static_v)
+STATIC_ASSET_VERSION = '20260918a'
+
 def create_app(test_config=None):
     # Explicitly set template and static folders at the root level
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -157,9 +160,12 @@ def _ensure_admin_user():
 
 def _register_context_processors(app):
     @app.context_processor
-    def inject_current_user():
+    def inject_globals():
         from .auth_helpers import get_current_user
-        return {'current_user': get_current_user()}
+        return {
+            'current_user': get_current_user(),
+            'static_v': STATIC_ASSET_VERSION,
+        }
 
 
 def _register_error_handlers(app):
