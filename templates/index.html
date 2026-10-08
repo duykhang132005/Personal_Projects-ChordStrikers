@@ -5,14 +5,27 @@
 <head>
     <script>
         (function () {
-            var allowed = { stage: 1, wooden: 1, nature: 1, limelight: 1 };
+            /* cs-theme-v2 is the live choice: "wooden" or "limelight".
+               Limelight is the green background (formerly stored as nature).
+               Old cs-theme "limelight" was the dark spotlight and is dropped,
+               along with "stage". Both become Default. */
+            var allowed = { wooden: 1, limelight: 1 };
             var theme = '';
-            try { theme = localStorage.getItem('cs-theme') || ''; } catch (e) { theme = ''; }
-            if (theme === 'normal') theme = '';
-            if (!allowed[theme]) theme = '';
+            try {
+                var saved = localStorage.getItem('cs-theme-v2');
+                if (saved === null) {
+                    var old = localStorage.getItem('cs-theme') || '';
+                    if (old === 'nature') theme = 'limelight';
+                    else if (old === 'wooden') theme = 'wooden';
+                    localStorage.setItem('cs-theme-v2', theme);
+                } else if (allowed[saved]) {
+                    theme = saved;
+                }
+            } catch (e) { theme = ''; }
             if (theme) document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
+
 
     <meta charset="UTF-8">
 
@@ -348,7 +361,7 @@
                     if (!radio.checked) return;
                     if (radio.value) document.documentElement.setAttribute('data-theme', radio.value);
                     else document.documentElement.removeAttribute('data-theme');
-                    try { localStorage.setItem('cs-theme', radio.value || 'normal'); } catch (e) { /* ignore */ }
+                    try { localStorage.setItem('cs-theme-v2', radio.value || ''); } catch (e) { /* ignore */ }
                 });
             });
         })();

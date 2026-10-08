@@ -119,19 +119,23 @@ def test_account_theme_picker(auth_client):
     assert 'id="theme-picker"' in html
     assert 'role="radiogroup"' in html
     assert 'aria-label="Color theme"' in html
-    for label in ('Default', 'Stage', 'Wooden', 'Nature', 'Limelight'):
+    for label in ('Default', 'Wooden', 'Limelight'):
         assert label in html
+    assert html.count('type="radio" name="color-theme"') == 3
     assert 'value="wooden"' in html
-    assert 'value="nature"' in html
     assert 'value="limelight"' in html
-    assert 'value="stage"' in html
+    assert 'value="stage"' not in html
+    assert 'value="nature"' not in html
+    assert '> Stage<' not in html
+    assert '> Nature<' not in html
     assert 'id="theme-toggle"' not in html
 
 
 def test_theme_applies_from_head_without_the_old_button(client):
     html = client.get('/').get_data(as_text=True)
     assert 'id="theme-toggle"' not in html
-    assert "localStorage.getItem('cs-theme')" in html
+    assert "localStorage.getItem('cs-theme-v2')" in html
+    assert "old === 'nature'" in html
     assert 'data-theme' in html
     sheet = client.get('/view_sheet/1').get_data(as_text=True)
     assert 'id="theme-toggle"' not in sheet
