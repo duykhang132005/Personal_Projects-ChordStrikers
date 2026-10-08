@@ -1672,3 +1672,27 @@ body.theme-stage .capo-banner {
         display: none !important;
     }
 }
+
+/* Explore cards: lighter by default, darken to the full look on hover or keyboard focus */
+.explore-song-card {
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.explore-song-card .song-card-body.with-image {
+    background: rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+.explore-song-card.bg-dark {
+    background-color: #4a4f55 !important;
+}
+
+.explore-song-card:hover .song-card-body.with-image,
+.explore-song-card:focus-within .song-card-body.with-image {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.explore-song-card.bg-dark:hover,
+.explore-song-card.bg-dark:focus-within {
+    background-color: #212529 !important;
+}
