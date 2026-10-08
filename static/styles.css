@@ -1500,7 +1500,6 @@ a.control-btn-primary:hover {
 body.performance-mode .sheet-controls-layout,
 body.performance-mode .practice-panel,
 body.performance-mode .text-center.p-4,
-body.performance-mode .theme-toggle,
 body.performance-mode .first-run-tip,
 body.performance-mode .favorite-status,
 body.performance-mode .capo-banner {
@@ -1513,51 +1512,6 @@ body.performance-mode {
 
 body.performance-mode .song-content {
     font-size: 1.15rem;
-}
-
-/* Stage colors: high contrast for performing */
-.theme-toggle {
-    display: block;
-    margin: 0.25rem auto 0;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    border-radius: 999px;
-    padding: 0.35rem 0.75rem;
-    font: inherit;
-    font-size: 0.85rem;
-}
-
-body.theme-stage {
-    background: #000 !important;
-    background-image: none !important;
-    color: #fff;
-}
-
-body.theme-stage .song-content,
-body.theme-stage .song-content .lyric-line,
-body.theme-stage .song-content .section-header {
-    background: #000;
-    color: #fff;
-}
-
-body.theme-stage .chord,
-body.theme-stage .song-content .chord {
-    color: #ffe14a !important;
-    font-weight: 700;
-}
-
-body.theme-stage .sheet-tools-panel,
-body.theme-stage .control-box,
-body.theme-stage .control-btn {
-    background: #111;
-    color: #fff;
-    border-color: #ffe14a;
-}
-
-body.theme-stage .practice-note,
-body.theme-stage .capo-banner {
-    color: #fff;
 }
 
 .first-run-tip {
@@ -1664,7 +1618,6 @@ body.theme-stage .capo-banner {
 }
 
 @media print {
-    .theme-toggle,
     .first-run-tip,
     .practice-panel,
     .perform-bar,
@@ -1695,4 +1648,93 @@ body.theme-stage .capo-banner {
 .explore-song-card.bg-dark:hover,
 .explore-song-card.bg-dark:focus-within {
     background-color: #212529 !important;
+}
+
+/* Color themes. Chosen in the account card, stored on this device.
+   The chord sheet stays a light box with red chords in every theme. */
+#theme-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.theme-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0.45rem 0.75rem;
+    border: 2px solid #ccc;
+    border-radius: 999px;
+    background: #fff;
+    color: #1a120c;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.theme-option:has(input:checked) {
+    border-color: #c45c00;
+    background: #fff3e0;
+}
+
+.theme-option:focus-within {
+    outline: 2px solid #ff9800;
+    outline-offset: 2px;
+}
+
+html[data-theme] body {
+    color: #f7f4ee;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+html[data-theme] .card,
+html[data-theme] .circle-card,
+html[data-theme] .sheet-tools-panel,
+html[data-theme] .control-box,
+html[data-theme] .control-btn,
+html[data-theme] .touch-editor,
+html[data-theme] .first-run-tip {
+    color: #1a120c;
+}
+
+html[data-theme="stage"] body {
+    background: #000 !important;
+    background-image: none !important;
+}
+
+html[data-theme="wooden"] body {
+    background-color: #3a2412;
+    background-image:
+        repeating-linear-gradient(90deg, rgba(255, 214, 160, 0.05) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(1deg, #3a2412 0px, #5a3818 5px, #6b4420 9px, #4a2c14 14px, #2e1b0c 19px);
+}
+
+html[data-theme="nature"] body {
+    background-color: #0e2418;
+    background-image:
+        radial-gradient(circle at 12% 18%, rgba(130, 176, 78, 0.28) 0 7%, transparent 8%),
+        radial-gradient(circle at 78% 26%, rgba(64, 130, 78, 0.3) 0 11%, transparent 12%),
+        radial-gradient(circle at 48% 78%, rgba(30, 80, 48, 0.55) 0 16%, transparent 17%),
+        linear-gradient(165deg, #1d4a32 0%, #0e2418 48%, #163528 100%);
+}
+
+html[data-theme="limelight"] body {
+    background-color: #07070a;
+    background-image: radial-gradient(ellipse 58% 40% at 50% 24%, rgba(255, 186, 70, 0.28) 0%, rgba(90, 42, 8, 0.22) 34%, rgba(7, 7, 10, 0) 70%);
+}
+
+html[data-theme] .chord-line,
+html[data-theme] .song-content .chord {
+    color: red;
+}
+
+
+/* Site title on the darker backgrounds. Default and Stage keep the original orange. */
+html[data-theme="wooden"] h1 .highlight.text-orange,
+html[data-theme="nature"] h1 .highlight.text-orange,
+html[data-theme="limelight"] h1 .highlight.text-orange {
+    color: #ffe08a !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 0, 0, 0.35);
 }

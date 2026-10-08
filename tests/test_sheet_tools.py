@@ -114,3 +114,25 @@ def test_js_chord_tools_match_python():
     )
     assert result.returncode == 0, result.stderr or result.stdout
 
+def test_account_theme_picker(auth_client):
+    html = auth_client.get('/').get_data(as_text=True)
+    assert 'id="theme-picker"' in html
+    assert 'role="radiogroup"' in html
+    assert 'aria-label="Color theme"' in html
+    for label in ('Default', 'Stage', 'Wooden', 'Nature', 'Limelight'):
+        assert label in html
+    assert 'value="wooden"' in html
+    assert 'value="nature"' in html
+    assert 'value="limelight"' in html
+    assert 'value="stage"' in html
+    assert 'id="theme-toggle"' not in html
+
+
+def test_theme_applies_from_head_without_the_old_button(client):
+    html = client.get('/').get_data(as_text=True)
+    assert 'id="theme-toggle"' not in html
+    assert "localStorage.getItem('cs-theme')" in html
+    assert 'data-theme' in html
+    sheet = client.get('/view_sheet/1').get_data(as_text=True)
+    assert 'id="theme-toggle"' not in sheet
+

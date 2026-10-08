@@ -3,6 +3,16 @@
 <html lang="en">
 
 <head>
+    <script>
+        (function () {
+            var allowed = { stage: 1, wooden: 1, nature: 1, limelight: 1 };
+            var theme = '';
+            try { theme = localStorage.getItem('cs-theme') || ''; } catch (e) { theme = ''; }
+            if (theme === 'normal') theme = '';
+            if (!allowed[theme]) theme = '';
+            if (theme) document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 
     <meta charset="UTF-8">
 
@@ -89,25 +99,12 @@
 
 
 
-    <button type="button" id="theme-toggle" class="theme-toggle">Stage colors</button>
     <div id="first-run-tip" class="first-run-tip" hidden>
         <p>Tip: star a sheet to keep it for offline use. Open a sheet and tap Perform for a bigger view that stays awake.</p>
         <button type="button" id="first-run-dismiss">Got it</button>
     </div>
     <script>
         (function () {
-            var themeBtn = document.getElementById('theme-toggle');
-            try {
-                if (localStorage.getItem('cs-theme') === 'stage') document.body.classList.add('theme-stage');
-            } catch (e) { /* ignore */ }
-            if (themeBtn) {
-                themeBtn.addEventListener('click', function () {
-                    var on = document.body.classList.toggle('theme-stage');
-                    themeBtn.textContent = on ? 'Normal colors' : 'Stage colors';
-                    try { localStorage.setItem('cs-theme', on ? 'stage' : 'normal'); } catch (e) { /* ignore */ }
-                });
-                if (document.body.classList.contains('theme-stage')) themeBtn.textContent = 'Normal colors';
-            }
             var tip = document.getElementById('first-run-tip');
             var dismiss = document.getElementById('first-run-dismiss');
             var seen = false;
@@ -337,6 +334,23 @@
                     })
                     .catch(function () {});
             };
+        })();
+    </script>
+
+    <script>
+        (function () {
+            var picker = document.getElementById('theme-picker');
+            if (!picker) return;
+            var current = document.documentElement.getAttribute('data-theme') || '';
+            picker.querySelectorAll('input[name="color-theme"]').forEach(function (radio) {
+                radio.checked = radio.value === current;
+                radio.addEventListener('change', function () {
+                    if (!radio.checked) return;
+                    if (radio.value) document.documentElement.setAttribute('data-theme', radio.value);
+                    else document.documentElement.removeAttribute('data-theme');
+                    try { localStorage.setItem('cs-theme', radio.value || 'normal'); } catch (e) { /* ignore */ }
+                });
+            });
         })();
     </script>
 
