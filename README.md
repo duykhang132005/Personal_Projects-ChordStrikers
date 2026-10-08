@@ -182,7 +182,7 @@ On startup, ChordStrikers may create **missing** bootstrap admins from `BOOTSTRA
 
 ### Later updates (`git pull` on the host)
 1. Pull/reset tracked code from `main` as usual.
-2. Leave `instance/*.db` alone (ignored) — that is your live accounts.
+2. Leave `instance/*.db` alone (ignored). That is your live accounts.
 3. Do **not** put real passwords back into source code.
 4. New people: use **Register** in the app, or temporarily add `newuser:tempPass` to `BOOTSTRAP_ADMINS`, restart once, then remove that entry and have them change the password.
 5. Promote an existing user to admin in the DB/admin UI if you have one; bootstrap only sets `is_admin` for names listed when creating **or** if the user already exists and is not admin yet (still without touching their password).

@@ -5,10 +5,10 @@
 {% macro song_grid(items) %}
     <div class="row">
         {% for song in items %}
-            <div class="col-md-6 col-lg-4 mb-4">
+            <div class="col-md-6 col-lg-4 mb-4" data-song-id="{{ song.id }}" data-title="{{ song.title }}">
             <div class="card bg-dark text-white h-100 shadow-sm song-card explore-song-card">
                 {% if song.image_url %}
-                <img src="{{ song.image_url }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" loading="lazy">
+                <img src="{{ song.image_url }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" loading="lazy" decoding="async">
                 <div class="song-card-body with-image">
                 {% else %}
                 <div class="song-card-body">
@@ -60,24 +60,31 @@
             <input
                 type="text"
                 name="author"
-                class="form-control"
+                class="form-control explore-filter"
                 placeholder="Author username"
                 value="{{ author or '' }}"
                 aria-label="Search by author"
-                style="max-width: 180px"
             >
             <input
                 type="text"
                 name="key"
-                class="form-control"
+                class="form-control explore-filter"
                 placeholder="Key (e.g., C, F#m)"
                 value="{{ selected_key or '' }}"
                 aria-label="Filter by key"
-                style="max-width: 160px"
             >
             <button class="btn btn-outline-light" type="submit" aria-label="Search">
                 <i class="fas fa-search"></i>
             </button>
+        </div>
+        <div class="explore-sort-row">
+            <p class="explore-search-note">Search ignores accents, so a plain spelling still finds a Vietnamese title.</p>
+            <label class="explore-sort" for="explore-sort">Sort
+                <select id="explore-sort" name="sort">
+                    <option value="az" {% if sort != 'newest' %}selected{% endif %}>A to Z</option>
+                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+                </select>
+            </label>
         </div>
     </form>
 
@@ -235,6 +242,34 @@
     if (!signedIn && saved !== 'library') saved = null;
     var savedTab = saved ? tabById(saved) : null;
     if (savedTab) select(savedTab);
+
+    var SORT_KEY = 'cs-explore-sort';
+    var sortSelect = document.getElementById('explore-sort');
+    function sortGrids(mode) {
+        document.querySelectorAll('.explore-panel .row').forEach(function (row) {
+            var cards = Array.prototype.slice.call(row.children);
+            cards.sort(function (a, b) {
+                if (mode === 'newest') {
+                    return Number(b.getAttribute('data-song-id')) - Number(a.getAttribute('data-song-id'));
+                }
+                return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+            });
+            cards.forEach(function (card) { row.appendChild(card); });
+        });
+    }
+    if (sortSelect) {
+        var sortFromUrl = new URLSearchParams(window.location.search).has('sort');
+        var savedSort = null;
+        try { savedSort = localStorage.getItem(SORT_KEY); } catch (e) { savedSort = null; }
+        if (!sortFromUrl && (savedSort === 'az' || savedSort === 'newest') && savedSort !== sortSelect.value) {
+            sortSelect.value = savedSort;
+            sortGrids(savedSort);
+        }
+        sortSelect.addEventListener('change', function () {
+            try { localStorage.setItem(SORT_KEY, sortSelect.value); } catch (e) { /* ignore */ }
+            sortGrids(sortSelect.value);
+        });
+    }
 })();
 </script>
 {% endblock %}

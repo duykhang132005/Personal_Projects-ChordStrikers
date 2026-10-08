@@ -82,6 +82,7 @@ function updateColumnCount() {
     container.style.columnCount = 1;
     container.classList.add('single-column');
     container.classList.remove('multi-column');
+    if (window.csAfterLayout) window.csAfterLayout();
     return;
   }
 
@@ -111,6 +112,7 @@ function updateColumnCount() {
     container.style.width = '100%';
     container.style.marginInline = '';
   }
+  if (window.csAfterLayout) window.csAfterLayout();
 }
 
 // Run on load, resize, phone rotation, and once web fonts have loaded
@@ -135,19 +137,38 @@ function shift(note, steps, prefer) {
   return toScale[(idx + steps + 12) % 12];
 }
 
-function applyTransposition(steps, prefer) {
-  document.querySelectorAll('.chord').forEach(el => {
-    const orig = el.dataset.chord;
-    if (!orig) return;
+let currentCapo = 0;
+let currentSimplify = false;
 
-    el.textContent = orig.replace(/\[([A-G][#b]?)(.*?)(?:\/([A-G][#b]?))?\]/,
-      (match, root, rest, bass) => {
-        const newRoot = shift(root, steps, prefer);
-        const newBass = bass ? '/' + shift(bass, steps, prefer) : '';
-        return `[${newRoot}${rest || ''}${newBass}]`;
-      }
-    );
+function preferValue() {
+  const value = document.querySelector('.prefer-toggle input:checked')?.value || '';
+  return value === 'flat' ? 'flat' : 'sharp';
+}
+
+function applyTransposition(steps, prefer) {
+  const net = steps - currentCapo;
+  const scale = prefer === 'flat' ? 'flat' : 'sharp';
+  document.querySelectorAll('.chord').forEach(el => {
+    const orig = (el.dataset.chord || '').replace(/^\[|\]$/g, '');
+    if (!orig) return;
+    let shown = window.ChordTools
+      ? ChordTools.transposeChord(orig, net, scale)
+      : shift(orig, net, scale);
+    if (currentSimplify && window.ChordTools) shown = ChordTools.simplifyChord(shown);
+    el.textContent = '[' + shown + ']';
   });
+  const banner = document.getElementById('capo-banner');
+  if (banner) {
+    const bits = [];
+    if (currentCapo > 0) {
+      bits.push('Capo ' + currentCapo + '. The names below are the shapes you finger. They sound ' + currentCapo + ' frets higher.');
+    }
+    if (currentSimplify) {
+      bits.push('Simplify is on, so 7, maj7, sus, add9 and similar extensions are hidden. Slash bass notes stay.');
+    }
+    banner.hidden = bits.length === 0;
+    banner.textContent = bits.join(' ');
+  }
 }
 
 function updateSteps(newSteps) {
@@ -266,6 +287,21 @@ document.getElementById('toggle-vertical').addEventListener('click', () => {
     updateDisplay();
     startScroll();
   });
+
+  window.csScroll = {
+    getSpeed: function () { return displaySpeed; },
+    setSpeed: function (value) {
+      displaySpeed = Math.max(0, Math.min(MAX_DISPLAY, Number(value) || 0));
+      updateDisplay();
+      startScroll();
+    },
+    pause: function () {
+      if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+    },
+    resume: function () { startScroll(); },
+    nudge: function (px) { window.scrollBy(0, px); },
+    isRunning: function () { return scrollInterval !== null; }
+  };
 
   updateDisplay();
 })();
@@ -944,5 +980,244 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
       .finally(() => {
         btn.disabled = false;
       });
+  });
+})();
+
+// --- Per-song choices, capo, simplify, perform, share ---
+(function () {
+  const root = document.getElementById('sheet-root');
+  if (!root || !window.ChordTools) return;
+  const songId = root.getAttribute('data-song-id');
+  const prefKey = 'cs-song-' + songId;
+  const capoSelect = document.getElementById('capo-fret');
+  const simplifyBox = document.getElementById('simplify-chords');
+  const suggestions = document.getElementById('capo-suggestions');
+  let fontScale = 1;
+  let ready = false;
+
+  function readPrefs() {
+    try { return JSON.parse(localStorage.getItem(prefKey)) || {}; } catch (e) { return {}; }
+  }
+  function savePrefs(partial) {
+    if (!ready) return;
+    try {
+      const all = Object.assign(readPrefs(), partial);
+      localStorage.setItem(prefKey, JSON.stringify(all));
+    } catch (e) { /* private mode */ }
+  }
+
+  window.csAfterLayout = function () {
+    const container = document.querySelector('.song-content');
+    if (!container || fontScale === 1) return;
+    const base = parseFloat(container.style.fontSize) || parseFloat(getComputedStyle(container).fontSize);
+    if (!base) return;
+    container.style.fontSize = (base * fontScale) + 'px';
+  };
+
+  function soundingChords() {
+    const found = [];
+    document.querySelectorAll('.chord').forEach(function (el) {
+      const name = (el.dataset.chord || '').replace(/^\[|\]$/g, '');
+      if (!name) return;
+      const shown = ChordTools.transposeChord(name, currentSteps, preferValue());
+      if (found.indexOf(shown) === -1) found.push(shown);
+    });
+    return found;
+  }
+
+  function paintSuggestions() {
+    if (!suggestions) return;
+    suggestions.innerHTML = '';
+    ChordTools.suggestCapos(soundingChords()).forEach(function (idea) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'control-btn';
+      btn.textContent = idea.fret === 0 ? 'No capo' : ('Capo ' + idea.fret);
+      btn.title = idea.chords.slice(0, 6).join(', ');
+      btn.addEventListener('click', function () {
+        capoSelect.value = String(idea.fret);
+        capoSelect.dispatchEvent(new Event('change'));
+      });
+      suggestions.appendChild(btn);
+    });
+  }
+
+  function refresh() {
+    applyTransposition(currentSteps, preferValue());
+    paintSuggestions();
+    savePrefs({
+      steps: currentSteps,
+      prefer: preferValue() === 'flat' ? 'flat' : '',
+      capo: currentCapo,
+      simplify: currentSimplify,
+      fontScale: fontScale,
+      scrollSpeed: window.csScroll ? window.csScroll.getSpeed() : 0
+    });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const saved = readPrefs();
+  function pickNumber(name, fallback) {
+    if (params.has(name)) return parseInt(params.get(name), 10);
+    return fallback;
+  }
+  currentCapo = Math.max(0, Math.min(7, pickNumber('capo', saved.capo || 0) || 0));
+  currentSimplify = params.has('simplify') ? params.get('simplify') === '1' : !!saved.simplify;
+  fontScale = Math.max(0.7, Math.min(1.8, Number(saved.fontScale) || 1));
+  if (capoSelect) capoSelect.value = String(currentCapo);
+  if (simplifyBox) simplifyBox.checked = currentSimplify;
+
+  const startSteps = pickNumber('steps', saved.steps || 0);
+  const prefer = params.get('prefer') || saved.prefer || '';
+  if (prefer === 'flat' || prefer === 'sharp') {
+    const radio = document.querySelector('.prefer-toggle input[value="' + prefer + '"]');
+    if (radio) radio.checked = true;
+  }
+  if (window.csScroll && saved.scrollSpeed) window.csScroll.setSpeed(saved.scrollSpeed);
+  ready = true;
+  if (startSteps) updateSteps(startSteps);
+  refresh();
+  if (fontScale !== 1) updateColumnCount();
+
+  if (capoSelect) capoSelect.addEventListener('change', function () {
+    currentCapo = Math.max(0, Math.min(7, parseInt(capoSelect.value, 10) || 0));
+    refresh();
+  });
+  if (simplifyBox) simplifyBox.addEventListener('change', function () {
+    currentSimplify = simplifyBox.checked;
+    refresh();
+  });
+  document.querySelectorAll('.transpose-btn, .prefer-toggle input, .transpose-reset, #steps').forEach(function (el) {
+    el.addEventListener('change', refresh);
+    el.addEventListener('click', function () { setTimeout(refresh, 0); });
+  });
+
+  document.getElementById('btn-font-down')?.addEventListener('click', function () {
+    fontScale = Math.max(0.7, Math.round((fontScale - 0.1) * 10) / 10);
+    updateColumnCount();
+    refresh();
+  });
+  document.getElementById('btn-font-up')?.addEventListener('click', function () {
+    fontScale = Math.min(1.8, Math.round((fontScale + 0.1) * 10) / 10);
+    updateColumnCount();
+    refresh();
+  });
+
+  function sheetBody() {
+    const rawNode = document.getElementById('sheet-raw');
+    const raw = rawNode ? JSON.parse(rawNode.textContent) : '';
+    return ChordTools.transformText(raw, {
+      steps: currentSteps - currentCapo,
+      prefer: preferValue(),
+      simplify: currentSimplify
+    });
+  }
+
+  document.getElementById('btn-download-cho')?.addEventListener('click', function () {
+    const doc = ChordTools.toChordPro({
+      title: root.getAttribute('data-title') || '',
+      artist: root.getAttribute('data-artist') || '',
+      key: root.getAttribute('data-key') || '',
+      capo: currentCapo,
+      body: sheetBody()
+    });
+    const blob = new Blob([doc], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = (root.getAttribute('data-title') || 'sheet').replace(/\s+/g, '_') + '.cho';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-share')?.addEventListener('click', function () {
+    const url = new URL(window.location.href);
+    url.searchParams.set('steps', String(currentSteps));
+    url.searchParams.set('capo', String(currentCapo));
+    url.searchParams.set('simplify', currentSimplify ? '1' : '0');
+    const preferNow = preferValue();
+    if (preferNow === 'flat') url.searchParams.set('prefer', 'flat');
+    else url.searchParams.delete('prefer');
+    const link = url.toString();
+    const status = document.getElementById('favorite-status');
+    const done = function (text) { if (status) status.textContent = text; };
+    if (navigator.share) {
+      navigator.share({ title: document.title, url: link }).catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        copy(link, done);
+      });
+      return;
+    }
+    copy(link, done);
+  });
+
+  function copy(link, done) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(function () { done('Link copied.'); }).catch(function () {
+        window.prompt('Copy this link:', link);
+      });
+      return;
+    }
+    window.prompt('Copy this link:', link);
+  }
+
+  // Performance view: bigger sheet, screen stays awake, tap the edges to nudge.
+  const performBtn = document.getElementById('btn-perform');
+  const bar = document.getElementById('perform-bar');
+  let wakeLock = null;
+  let paused = false;
+
+  async function acquireWake() {
+    if (!('wakeLock' in navigator)) return;
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { wakeLock = null; }
+  }
+  function releaseWake() {
+    if (wakeLock) wakeLock.release().catch(function () {});
+    wakeLock = null;
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && document.body.classList.contains('performance-mode')) {
+      acquireWake();
+    }
+  });
+
+  function setPerforming(on) {
+    document.body.classList.toggle('performance-mode', on);
+    if (bar) bar.hidden = !on;
+    if (performBtn) performBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) {
+      acquireWake();
+      const node = document.documentElement;
+      if (node.requestFullscreen) node.requestFullscreen().catch(function () {});
+      paused = false;
+    } else {
+      releaseWake();
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+    }
+  }
+
+  performBtn?.addEventListener('click', function () {
+    setPerforming(!document.body.classList.contains('performance-mode'));
+  });
+  document.getElementById('perform-exit')?.addEventListener('click', function () { setPerforming(false); });
+  document.getElementById('perform-back')?.addEventListener('click', function () {
+    if (window.csScroll) window.csScroll.nudge(-120);
+  });
+  document.getElementById('perform-ahead')?.addEventListener('click', function () {
+    if (window.csScroll) window.csScroll.nudge(120);
+  });
+  document.getElementById('perform-pause')?.addEventListener('click', function () {
+    if (!window.csScroll) return;
+    paused = !paused;
+    if (paused) window.csScroll.pause();
+    else window.csScroll.resume();
+    this.textContent = paused ? 'Resume' : 'Pause';
+  });
+  document.querySelector('.song-content')?.addEventListener('click', function (event) {
+    if (!document.body.classList.contains('performance-mode')) return;
+    if (event.target.closest('.chord')) return;
+    document.getElementById('perform-pause')?.click();
   });
 })();

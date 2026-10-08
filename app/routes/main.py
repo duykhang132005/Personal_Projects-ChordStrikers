@@ -82,7 +82,14 @@ def explore():
         if song_matches_filters(song, query_normalized, key_normalized, author_normalized)
     ]
 
-    songs = sorted(filtered_songs, key=lambda s: s.title.lower())
+    # id stands in for "newest": songs have no created_at column.
+    sort = request.args.get('sort', '').strip()
+    if sort not in ('az', 'newest'):
+        sort = 'az'
+    if sort == 'newest':
+        songs = sorted(filtered_songs, key=lambda s: -s.id)
+    else:
+        songs = sorted(filtered_songs, key=lambda s: s.title.lower())
 
     user = get_current_user()
     favorite_ids = set(favorite_ids_for(user))
@@ -115,6 +122,7 @@ def explore():
         query=query_raw,
         selected_key=selected_key,
         author=author_raw,
+        sort=sort,
     )
 
 
@@ -146,4 +154,5 @@ def view_sheet(song_id):
         author_name=author_name,
         can_edit=can_edit_song(song, user) if user is not None else False,
         is_favorite=song_id in favorite_ids_for(user),
+        raw_text=raw_text,
     )

@@ -60,11 +60,17 @@
       <!-- Direct text content -->
       <div class="form-group">
         <label for="sheet_content" class="form-label">Chord Sheet Text *</label>
+        <button type="button" id="toggle-touch-editor" class="btn-secondary touch-editor-toggle" aria-pressed="false">Touch editor</button>
+        <div id="touch-editor" class="touch-editor" hidden></div>
         <textarea class="form-textarea" id="sheet_content" name="sheet_content"
                   rows="20">{% block value_content %}{% if content %}{{ content }}{% endif %}{% endblock %}</textarea>
         <small class="form-hint">
           Format: Use [C], [Am], [G] etc. for chords. Place them inline with lyrics.
+          On a phone, Touch editor lets you tap a word and drop a chord on it.
         </small>
+        <label for="chordpro-paste" class="form-label">Paste ChordPro</label>
+        <textarea id="chordpro-paste" class="form-textarea" rows="4" placeholder="{title: Song}&#10;[C]Line of lyric"></textarea>
+        <button type="button" id="btn-paste-chordpro" class="btn-secondary">Import ChordPro</button>
       </div>
     </form>
 
@@ -78,4 +84,8 @@
     </div>
   </div>
 </main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sheet_editor.js', v=static_v) }}"></script>
 {% endblock %}

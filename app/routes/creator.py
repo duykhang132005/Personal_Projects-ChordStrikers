@@ -1,10 +1,12 @@
 from flask import (
     Blueprint, render_template, request, redirect, url_for, flash, session, abort,
+    jsonify,
 )
 from ..models import Song
 from ..utils import normalise_spacing, process_song_text, get_song_image_url, sanitize_image_url
 from ..storage import save_song_content, load_song_content, delete_song_file
 from ..auth_helpers import login_required
+from ..chordpro import parse_chordpro
 from .. import db
 
 creator_bp = Blueprint('creator', __name__)
@@ -192,3 +194,17 @@ def delete_song(song_id):
     
     flash(f"Song '{song_title}' deleted successfully.", "success")
     return redirect(url_for('main.explore'))
+
+
+@creator_bp.route('/api/chordpro/parse', methods=['POST'])
+def parse_chordpro_route():
+    """Turn ChordPro text into this app's sheet format. No database writes."""
+    payload = request.get_json(silent=True) or {}
+    text = payload.get('text')
+    if text is None:
+        text = request.form.get('text', '')
+    if not isinstance(text, str):
+        return jsonify({'error': 'Send the ChordPro text as a string.'}), 400
+    if len(text) > 200000:
+        return jsonify({'error': 'That file is too large.'}), 400
+    return jsonify(parse_chordpro(text))

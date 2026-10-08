@@ -3,13 +3,16 @@
 {% block title %}{{ song.title }} | ChordStrikers{% endblock %}
 
 {% block content %}
-<div class="container py-5 text-white">
+<div class="container py-5 text-white" id="sheet-root"
+     data-song-id="{{ song.id }}" data-title="{{ song.title }}"
+     data-artist="{{ song.artist or '' }}" data-key="{{ song.song_key or '' }}">
   <h1 class="mb-2">{{ song.title }}</h1>
   <p class="mb-1"><strong>Authored by:</strong> {% if author_name %}{{ author_name }}{% else %}Community{% endif %}</p>
   {% if song.artist %}
   <p class="mb-1"><strong>Artist:</strong> {{ song.artist }}</p>
   {% endif %}
-  <p class="mb-4"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}&mdash;{% endif %}</p>
+  <p class="mb-2"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}not set{% endif %}</p>
+  <p id="capo-banner" class="capo-banner" hidden></p>
 
   <div class="mb-4 sheet-controls-layout">
     <div class="sheet-nav-actions" role="group" aria-label="Navigation">
@@ -48,6 +51,16 @@
         <div class="control-box">
           <button type="button" id="btn-download-txt" class="control-btn">
             <i class="bi bi-download" aria-hidden="true"></i> Plain Text
+          </button>
+        </div>
+        <div class="control-box">
+          <button type="button" id="btn-download-cho" class="control-btn">
+            <i class="bi bi-file-earmark-music" aria-hidden="true"></i> ChordPro
+          </button>
+        </div>
+        <div class="control-box">
+          <button type="button" id="btn-share" class="control-btn">
+            <i class="bi bi-share" aria-hidden="true"></i> Share
           </button>
         </div>
         <div class="control-box">
@@ -92,7 +105,50 @@
           <div id="auto-scroll-toggle" class="scroll-status">Scroll Speed</div>
         </div>
       </div>
+
+      <div class="toolbar-row toolbar-row-center" role="group" aria-label="Capo and performance">
+        <div class="control-box">
+          <label for="capo-fret">Capo</label>
+          <select id="capo-fret" aria-label="Capo fret">
+            {% for fret in range(8) %}
+            <option value="{{ fret }}">{{ fret }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="control-box" id="capo-suggestions" aria-label="Suggested capos"></div>
+        <div class="control-box">
+          <label class="simplify-label"><input type="checkbox" id="simplify-chords"> Simplify</label>
+        </div>
+        <div class="control-box">
+          <button type="button" id="btn-font-down" class="control-btn" aria-label="Smaller sheet text">A-</button>
+          <button type="button" id="btn-font-up" class="control-btn" aria-label="Larger sheet text">A+</button>
+        </div>
+        <div class="control-box">
+          <button type="button" id="btn-perform" class="control-btn" aria-pressed="false">Perform</button>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="practice-panel" id="practice-panel">
+    <div class="control-box">
+      <label for="bpm-input">BPM</label>
+      <input id="bpm-input" type="number" min="40" max="240" value="80" inputmode="numeric" aria-label="Beats per minute">
+      <button type="button" id="btn-tap-tempo" class="control-btn">Tap tempo</button>
+      <button type="button" id="btn-metro" class="control-btn" aria-pressed="false">Start metronome</button>
+    </div>
+    <div class="control-box">
+      <button type="button" id="btn-tuner" class="control-btn" aria-pressed="false">Tuner</button>
+      <span id="tuner-readout" aria-live="polite">Mic off</span>
+    </div>
+    <p class="practice-note">On an iPhone, the installed app often cannot use the microphone. If the tuner is blocked, open this page in Safari.</p>
+  </div>
+
+  <div id="perform-bar" class="perform-bar" hidden>
+    <button type="button" id="perform-back">Back</button>
+    <button type="button" id="perform-pause">Pause</button>
+    <button type="button" id="perform-ahead">Ahead</button>
+    <button type="button" id="perform-exit">Exit</button>
   </div>
 
   <p id="favorite-status" class="favorite-status" role="status" aria-live="polite"></p>
@@ -112,11 +168,14 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-warning">No preview available &mdash; file could not be read.</p>
+    <p class="text-warning">No preview available. The file could not be read.</p>
   {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script type="application/json" id="sheet-raw">{{ raw_text|tojson }}</script>
+<script src="{{ url_for('static', filename='js/chord_tools.js', v=static_v) }}"></script>
 <script src="{{ url_for('static', filename='js/view_sheet.js', v=static_v) }}"></script>
+<script src="{{ url_for('static', filename='js/practice.js', v=static_v) }}"></script>
 {% endblock %}
