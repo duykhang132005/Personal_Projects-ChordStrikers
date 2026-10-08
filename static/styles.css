@@ -1154,3 +1154,15 @@ a.control-btn-primary:hover {
     outline-offset: 2px;
     border-radius: 3px;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   Mobile: View Sheet never wider than the screen
+──────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .song-content,
+    .song-content.single-column {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}

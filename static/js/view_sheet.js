@@ -1,6 +1,42 @@
 // ===== view_sheet.js =====
 
 // --- Column layout handling ---
+// Smallest font the sheet may shrink to on narrow phones before it scrolls
+// inside its own box instead.
+const MIN_SHEET_FONT_PX = 10;
+
+function measureCharWidth(container) {
+  const testSpan = document.createElement('span');
+  testSpan.textContent = 'M';
+  testSpan.style.visibility = 'hidden';
+  testSpan.style.position = 'absolute';
+  container.appendChild(testSpan);
+  const width = testSpan.getBoundingClientRect().width;
+  container.removeChild(testSpan);
+  return width;
+}
+
+// Content width the sheet can use without making the page wider than the screen.
+function availableSheetWidth(container) {
+  const parent = container.parentElement;
+  const parentStyle = getComputedStyle(parent);
+  const inner = parent.clientWidth
+    - parseFloat(parentStyle.paddingLeft) - parseFloat(parentStyle.paddingRight);
+  return Math.max(0, inner - horizontalPadding(container));
+}
+
+function horizontalPadding(el) {
+  const style = getComputedStyle(el);
+  return parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+    + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+}
+
+// Inline width for a given content width, respecting the box-sizing in use.
+function boxWidthFor(container, contentWidth) {
+  const borderBox = getComputedStyle(container).boxSizing === 'border-box';
+  return contentWidth + (borderBox ? horizontalPadding(container) : 0);
+}
+
 function updateColumnCount() {
   const container = document.querySelector('.song-content');
   if (!container) return;
@@ -17,19 +53,30 @@ function updateColumnCount() {
     return Math.max(chordLen, lyricLen);
   }));
 
-  // Measure monospace character width
-  const testSpan = document.createElement('span');
-  testSpan.textContent = 'M';
-  testSpan.style.visibility = 'hidden';
-  container.appendChild(testSpan);
-  const charWidth = testSpan.getBoundingClientRect().width;
-  container.removeChild(testSpan);
+  // Start from the stylesheet font size, then shrink only when needed.
+  container.style.fontSize = '';
+  let charWidth = measureCharWidth(container);
+  let desiredColWidth = (longestLineLength + extraPadding) * charWidth;
+  const available = availableSheetWidth(container);
 
-  const desiredColWidth = (longestLineLength + extraPadding) * charWidth;
+  // Phones: when one column is wider than the screen, scale the sheet text
+  // down so chords stay above their lyrics and the page never scrolls sideways.
+  if (available > 0 && desiredColWidth > available) {
+    const baseFont = parseFloat(getComputedStyle(container).fontSize);
+    const fitted = Math.max(
+      MIN_SHEET_FONT_PX,
+      Math.floor((baseFont * available / desiredColWidth) * 10) / 10
+    );
+    container.style.fontSize = `${fitted}px`;
+    charWidth = measureCharWidth(container);
+    desiredColWidth = (longestLineLength + extraPadding) * charWidth;
+  }
+
+  const singleColWidth = available > 0 ? Math.min(desiredColWidth, available) : desiredColWidth;
 
   // Handle vertical mode
   if (container.classList.contains('vertical-mode')) {
-    container.style.width = `${desiredColWidth}px`;
+    container.style.width = `${boxWidthFor(container, singleColWidth)}px`;
     container.style.marginLeft = 'auto';
     container.style.marginRight = 'auto';
     container.style.columnCount = 1;
@@ -38,12 +85,12 @@ function updateColumnCount() {
     return;
   }
 
-  // Determine column count based on container width
-  const containerWidth = container.getBoundingClientRect().width;
+  // Determine column count based on the usable width
+  const containerWidth = available > 0 ? available : container.getBoundingClientRect().width;
   const MAX_COLS = 3;
   const colCount = Math.max(1, Math.min(MAX_COLS, Math.floor(containerWidth / desiredColWidth)));
 
-  // NEW: Check vertical height to avoid splitting short songs
+  // Check vertical height to avoid splitting short songs
   const totalHeight = container.scrollHeight;
   const viewportHeight = window.innerHeight;
   const isTallEnough = totalHeight > viewportHeight * 0.8;
@@ -56,7 +103,7 @@ function updateColumnCount() {
   if (finalColCount === 1) {
     container.classList.add('single-column');
     container.classList.remove('multi-column');
-    container.style.width = `${desiredColWidth}px`;
+    container.style.width = `${boxWidthFor(container, singleColWidth)}px`;
     container.style.marginInline = 'auto';
   } else {
     container.classList.remove('single-column');
@@ -66,9 +113,13 @@ function updateColumnCount() {
   }
 }
 
-// Run on load and resize
+// Run on load, resize, phone rotation, and once web fonts have loaded
 window.addEventListener('load', updateColumnCount);
 window.addEventListener('resize', updateColumnCount);
+window.addEventListener('orientationchange', updateColumnCount);
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(updateColumnCount);
+}
 
 // --- Transposition + preference ---
 let currentSteps = parseInt(window.initialSteps, 10) || 0;
