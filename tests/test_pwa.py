@@ -117,8 +117,35 @@ def test_dev_flag_allows_insecure_key(monkeypatch, tmp_path):
     _clean_secret_env(monkeypatch)
     monkeypatch.setenv('ALLOW_INSECURE_DEV_KEY', '1')
     os.makedirs(tmp_path / 'songs', exist_ok=True)
-    app = create_app(_dev_config(tmp_path))
-    assert app.config['SECRET_KEY']
+    # The dev fallback must still warn loudly; assert it instead of leaking it.
+    with pytest.warns(UserWarning, match='insecure development key'):
+        app = create_app(_dev_config(tmp_path))
+    assert app.config['SECRET_KEY'] == 'insecure-dev-key-not-for-production'
+    with app.app_context():
+        from app import db
+        db.session.remove()
+        db.engine.dispose()
+
+
+def test_placeholder_secret_key_warns(monkeypatch, tmp_path):
+    _clean_secret_env(monkeypatch)
+    monkeypatch.setenv('SECRET_KEY', 'your_random_secret_key_here')
+    os.makedirs(tmp_path / 'songs', exist_ok=True)
+    with pytest.warns(UserWarning, match='placeholder'):
+        app = create_app(_dev_config(tmp_path))
+    with app.app_context():
+        from app import db
+        db.session.remove()
+        db.engine.dispose()
+
+
+def test_test_config_secret_key_wins_without_warning(monkeypatch, tmp_path, recwarn):
+    _clean_secret_env(monkeypatch)
+    config = dict(_dev_config(tmp_path), TESTING=True, SECRET_KEY='from-test-config')
+    os.makedirs(tmp_path / 'songs', exist_ok=True)
+    app = create_app(config)
+    assert app.config['SECRET_KEY'] == 'from-test-config'
+    assert not [w for w in recwarn if 'SECRET_KEY' in str(w.message)]
     with app.app_context():
         from app import db
         db.session.remove()

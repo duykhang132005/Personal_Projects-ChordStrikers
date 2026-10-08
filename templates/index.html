@@ -42,9 +42,10 @@
 
 </head>
 
-<body class="music-bg">
+<body class="music-bg" data-signed-in="{{ '1' if current_user else '0' }}">
 
-    {% set _flashes = get_flashed_messages(with_categories=true) %}
+    {# Offline copies fetched by the service worker must not eat flash messages. #}
+    {% set _flashes = [] if request.headers.get('X-CS-Offline-Save') else get_flashed_messages(with_categories=true) %}
 
     {% if _flashes and request.args.get('signin') != '1' and request.args.get('account') != '1' %}
 
@@ -263,9 +264,49 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register("{{ url_for('pwa.service_worker') }}", { scope: "/" }).catch(function () {});
+                navigator.serviceWorker.register("{{ url_for('pwa.service_worker') }}", { scope: "/" })
+                    .then(function () { if (window.csSyncOfflineFavorites) window.csSyncOfflineFavorites(); })
+                    .catch(function () {});
             });
         }
+
+        // Offline favorites: tell the service worker which sheets this account
+        // starred so it keeps exactly those on the device. Signed out, the
+        // saved copies are removed. Runs at most every 10 minutes per tab
+        // unless forced (view_sheet.js forces it after a star change).
+        (function () {
+            var SYNC_KEY = 'cs-fav-sync-at';
+            var SYNC_EVERY_MS = 10 * 60 * 1000;
+
+            function post(message) {
+                return navigator.serviceWorker.ready.then(function (reg) {
+                    if (reg.active) reg.active.postMessage(message);
+                });
+            }
+
+            window.csSyncOfflineFavorites = function (force, ids) {
+                if (!('serviceWorker' in navigator)) return Promise.resolve();
+                if (document.body.getAttribute('data-signed-in') !== '1') {
+                    try { sessionStorage.removeItem(SYNC_KEY); } catch (e) { /* ignore */ }
+                    return post({ type: 'clear-favorites' });
+                }
+                if (Array.isArray(ids)) {
+                    return post({ type: 'sync-favorites', ids: ids });
+                }
+                if (navigator.onLine === false) return Promise.resolve();
+                var last = 0;
+                try { last = parseInt(sessionStorage.getItem(SYNC_KEY) || '0', 10) || 0; } catch (e) { last = 0; }
+                if (!force && Date.now() - last < SYNC_EVERY_MS) return Promise.resolve();
+                return fetch('/api/favorites', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data || !Array.isArray(data.ids)) return;
+                        try { sessionStorage.setItem(SYNC_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+                        return post({ type: 'sync-favorites', ids: data.ids });
+                    })
+                    .catch(function () {});
+            };
+        })();
     </script>
 
 </body>

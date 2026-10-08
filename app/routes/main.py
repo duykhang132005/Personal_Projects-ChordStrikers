@@ -6,9 +6,18 @@ from .. import db
 from ..models import Song
 from ..utils import prepare_song
 from ..storage import get_song_filepath
-from ..auth_helpers import can_edit_song
+from ..auth_helpers import can_edit_song, get_current_user
+from .favorites import favorite_ids_for
 
 main_bp = Blueprint('main', __name__)
+
+# Explore categories, in tab order: (id, label).
+EXPLORE_TABS = (
+    ('mine', 'Your scores'),
+    ('favorites', 'Your favorites'),
+    ('library', 'Entire library'),
+)
+EXPLORE_TAB_IDS = {tab_id for tab_id, _label in EXPLORE_TABS}
 
 
 def normalize_text(text):
@@ -75,9 +84,34 @@ def explore():
 
     songs = sorted(filtered_songs, key=lambda s: s.title.lower())
 
+    user = get_current_user()
+    favorite_ids = set(favorite_ids_for(user))
+    if user is not None:
+        my_songs = [song for song in songs if song.user_id == user.id]
+        favorite_songs = [song for song in songs if song.id in favorite_ids]
+        has_any_scores = any(song.user_id == user.id for song in all_songs)
+    else:
+        my_songs, favorite_songs, has_any_scores = [], [], False
+
+    # ?tab= picks the category (bookmarks, no-JS); otherwise the page script
+    # restores the last choice from localStorage. Signed-out visitors start
+    # on the full library; the personal tabs ask them to sign in.
+    requested_tab = request.args.get('tab', '').strip()
+    if requested_tab not in EXPLORE_TAB_IDS:
+        requested_tab = ''
+    active_tab = requested_tab or 'library'
+
     return render_template(
         'explore.html',
         songs=songs,
+        my_songs=my_songs,
+        favorite_songs=favorite_songs,
+        favorite_ids=favorite_ids,
+        has_any_scores=has_any_scores,
+        has_filters=bool(query_raw or selected_key or author_raw),
+        tabs=EXPLORE_TABS,
+        active_tab=active_tab,
+        tab_from_url=bool(requested_tab),
         query=query_raw,
         selected_key=selected_key,
         author=author_raw,
@@ -103,11 +137,13 @@ def view_sheet(song_id):
     ]
 
     author_name = song.creator.username if song.creator else None
+    user = get_current_user()
 
     return render_template(
         'view_sheet.html',
         song=song,
         lines=processed_lines,
         author_name=author_name,
-        can_edit=can_edit_song(song),
+        can_edit=can_edit_song(song, user) if user is not None else False,
+        is_favorite=song_id in favorite_ids_for(user),
     )

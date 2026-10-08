@@ -62,11 +62,14 @@ ChordStrikers/
 ├── tests/                  # Pytest suite
 │   ├── conftest.py
 │   ├── test_utils.py
-│   └── test_routes.py
+│   ├── test_routes.py
+│   ├── test_favorites.py
+│   └── test_mobile_viewport.py   # optional, needs Playwright
 ├── .env.example
 ├── .github/                # CI workflows and issue templates
 ├── requirements.txt
 ├── requirements-dev.txt
+├── requirements-browser.txt  # optional Playwright checks
 ├── run.py
 └── LICENSE
 ```
@@ -112,7 +115,7 @@ python run.py
 ```
 Open your browser and navigate to `http://127.0.0.1:5000`.
 
-Startup creates any missing SQLite tables (`songs`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
+Startup creates any missing SQLite tables (`songs`, `users`, `favorites`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
 
 ---
 
@@ -122,6 +125,14 @@ Run the full pytest suite:
 
 ```bash
 pytest
+```
+
+Optional real-browser checks (View Sheet on phone-sized screens: no sideways scrolling, centered toolbar) use Playwright and are skipped when it is not installed:
+
+```bash
+pip install -r requirements-browser.txt
+python -m playwright install chromium
+pytest -m browser
 ```
 
 ---
@@ -204,7 +215,7 @@ ChordStrikers ships a web app manifest, icons and a small service worker, so it 
 - iPhone or iPad (Safari): Share, then Add to Home Screen.
 - Android (Chrome): menu, then Install app or Add to Home screen.
 
-The service worker only caches versioned CSS, JS and icons, plus an offline page. Pages, logins and song sheets always come from the server. Installing needs HTTPS, which PythonAnywhere provides.
+The service worker caches versioned CSS, JS and icons, plus an offline page. Pages, logins and song sheets come from the server, with one exception: signed-in users can tap **Save offline** (the star) on a sheet. Starred sheets are stored per account in the `favorites` table, listed under **Your favorites** on Explore, and copied to the device together with the styles and fonts they need, so they open with bad or no signal. Unstarring removes the copy, and signing out clears all saved copies. Installing needs HTTPS, which PythonAnywhere provides.
 
 ## License
 

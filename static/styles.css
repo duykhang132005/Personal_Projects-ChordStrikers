@@ -1166,3 +1166,204 @@ a.control-btn-primary:hover {
         -webkit-overflow-scrolling: touch;
     }
 }
+
+/* ────────────────────────────────────────────────────────────────
+   View Sheet toolbar: centered at every width
+   Wide screens keep Edit/Return beside the tools panel. When the panel
+   wraps under the buttons (portrait phones), both rows center on the page.
+──────────────────────────────────────────────────────────────── */
+.sheet-controls-layout {
+    justify-content: center;
+}
+
+/* Centers the Edit/Return stack whenever it sits on a line by itself. */
+.sheet-nav-actions {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* A wrapped transpose group centers each of its lines too. */
+.toolbar-cluster {
+    justify-content: center;
+}
+
+@media (max-width: 575.98px) {
+    .sheet-controls-layout {
+        gap: 0.75rem;
+    }
+
+    .sheet-nav-actions {
+        flex: 1 1 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .sheet-nav-actions .sheet-nav-btn {
+        flex: 1 1 0;
+        width: auto;
+        max-width: 11rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .unified-controls.sheet-tools-panel {
+        flex: 1 1 100%;
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Favorite (Save offline) button and its status line */
+.favorite-btn i {
+    color: #c45c00;
+}
+
+.favorite-btn.is-favorite {
+    background: #fff3e0;
+    color: #c45c00;
+    font-weight: 600;
+}
+
+.favorite-btn[disabled] {
+    opacity: 0.7;
+    cursor: progress;
+}
+
+.favorite-status {
+    min-height: 0;
+    margin: -0.75rem 0 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #ffe0b2;
+}
+
+.favorite-status:empty {
+    display: none;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Explore: category switch (Your scores / Your favorites / Entire library)
+──────────────────────────────────────────────────────────────── */
+.explore-tabs {
+    display: flex;
+    gap: 0.25rem;
+    max-width: 40rem;
+    margin: 0 auto 2rem;
+    padding: 0.3rem;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    box-sizing: border-box;
+}
+
+.explore-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (hover: hover) {
+    .explore-tab:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
+}
+
+.explore-tab[aria-selected="true"] {
+    background: #FF8800;
+    color: #1a120c;
+}
+
+.explore-tab:focus-visible {
+    outline: 2px solid #ffcc80;
+    outline-offset: 2px;
+}
+
+.explore-tab-count {
+    flex: 0 0 auto;
+    min-width: 1.6em;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.explore-tab[aria-selected="true"] .explore-tab-count {
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.explore-tab-lock {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.explore-panel:focus {
+    outline: none;
+}
+
+.explore-panel:focus-visible {
+    outline: 2px dashed rgba(255, 204, 128, 0.6);
+    outline-offset: 6px;
+    border-radius: 8px;
+}
+
+.explore-empty {
+    max-width: 32rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+}
+
+.explore-empty-icon {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: #FF8800;
+}
+
+.explore-empty-hint {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.song-card-fav {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    color: #FFB74D;
+    font-size: 1.25rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 575.98px) {
+    .explore-tabs {
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+    }
+
+    .explore-tab {
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.5rem 0.3rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+}

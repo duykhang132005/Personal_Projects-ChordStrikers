@@ -2,12 +2,52 @@
 
 {% block title %}Explore | ChordStrikers{% endblock %}
 
+{% macro song_grid(items) %}
+    <div class="row">
+        {% for song in items %}
+            <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card bg-dark text-white h-100 shadow-sm song-card explore-song-card">
+                {% if song.image_url %}
+                <img src="{{ song.image_url }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" loading="lazy">
+                <div class="song-card-body with-image">
+                {% else %}
+                <div class="song-card-body">
+                {% endif %}
+                {% if song.id in favorite_ids %}
+                <span class="song-card-fav" title="In your favorites, saved for offline">
+                    <i class="bi bi-star-fill" aria-hidden="true"></i><span class="visually-hidden">In your favorites</span>
+                </span>
+                {% endif %}
+                <h5 class="card-title song-card-title">{{ song.title }}</h5>
+                <p class="card-text song-card-text"><strong>Authored by:</strong> {% if song.creator %}{{ song.creator.username }}{% else %}Community{% endif %}</p>
+                {% if song.artist %}
+                <p class="card-text song-card-text"><strong>Artist:</strong> {{ song.artist }}</p>
+                {% endif %}
+                <p class="card-text song-card-text"><strong>Key:</strong> {{ song.song_key or '-' }}</p>
+                <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="btn btn-outline-light mt-2" style="align-self: flex-start;">View Sheet</a>
+                </div>
+            </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro empty_state(icon, message) %}
+    <div class="explore-empty">
+        <i class="bi {{ icon }} explore-empty-icon" aria-hidden="true"></i>
+        <p class="fs-5 mb-3">{{ message }}</p>
+        {{ caller() if caller is defined else '' }}
+    </div>
+{% endmacro %}
+
 {% block content %}
+{% set clear_url = url_for('main.explore') %}
 <div class="container py-5 text-white">
     <p class="fs-5 text-center">Browse community-created chord sheets by song, artist, author, or key.</p>
     
     <!-- Search Bar -->
     <form method="GET" action="{{ url_for('main.explore') }}" class="my-4">
+        <input type="hidden" name="tab" id="explore-tab-input" value="{{ active_tab }}">
         <div class="input-group">
             <input
                 type="text"
@@ -41,34 +81,160 @@
         </div>
     </form>
 
-    <!-- Results Section -->
-    <div class="row mt-5">
-        {% if songs %}
-        {% for song in songs %}
-            <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card bg-dark text-white h-100 shadow-sm song-card explore-song-card">
-                {% if song.image_url %}
-                <img src="{{ song.image_url }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}">
-                <div class="song-card-body with-image">
-                {% else %}
-                <div class="song-card-body">
-                {% endif %}
-                <h5 class="card-title song-card-title">{{ song.title }}</h5>
-                <p class="card-text song-card-text"><strong>Authored by:</strong> {% if song.creator %}{{ song.creator.username }}{% else %}Community{% endif %}</p>
-                {% if song.artist %}
-                <p class="card-text song-card-text"><strong>Artist:</strong> {{ song.artist }}</p>
-                {% endif %}
-                <p class="card-text song-card-text"><strong>Key:</strong> {{ song.song_key or '—' }}</p>
-                <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="btn btn-outline-light mt-2" style="align-self: flex-start;">View Sheet</a>
-                </div>
-            </div>
-            </div>
+    <!-- Category switch: accessible tabs (arrow keys, Home, End) -->
+    <div class="explore-tabs" role="tablist" aria-label="Sheet categories"
+         data-signed-in="{{ '1' if current_user else '0' }}"
+         data-from-url="{{ '1' if tab_from_url else '0' }}">
+        {% for tab_id, label in tabs %}
+        {% set selected = tab_id == active_tab %}
+        <button type="button" role="tab" class="explore-tab"
+                id="explore-tab-{{ tab_id }}" data-tab="{{ tab_id }}"
+                aria-controls="explore-panel-{{ tab_id }}"
+                aria-selected="{{ 'true' if selected else 'false' }}"
+                tabindex="{{ '0' if selected else '-1' }}">
+            <span class="explore-tab-label">{{ label }}</span>
+            {% if tab_id == 'library' %}
+            <span class="explore-tab-count">{{ songs|length }}</span>
+            {% elif not current_user %}
+            <i class="bi bi-lock explore-tab-lock" aria-hidden="true"></i>
+            {% elif tab_id == 'mine' %}
+            <span class="explore-tab-count">{{ my_songs|length }}</span>
+            {% else %}
+            <span class="explore-tab-count">{{ favorite_songs|length }}</span>
+            {% endif %}
+        </button>
         {% endfor %}
+    </div>
+
+    <!-- Your scores -->
+    <div class="explore-panel" role="tabpanel" id="explore-panel-mine"
+         aria-labelledby="explore-tab-mine" tabindex="0"{% if active_tab != 'mine' %} hidden{% endif %}>
+        {% if not current_user %}
+            {% call empty_state('bi-person-lock', 'Sign in to see the scores you have written.') %}
+            <a class="btn btn-primary" href="{{ url_for('main.home', signin=1, next=url_for('main.explore', tab='mine')) }}">Sign in</a>
+            {% endcall %}
+        {% elif my_songs %}
+            {{ song_grid(my_songs) }}
+        {% elif has_any_scores %}
+            {% call empty_state('bi-search', 'None of your scores match this search.') %}
+            <a class="btn btn-outline-light" href="{{ url_for('main.explore', tab='mine') }}">Clear search</a>
+            {% endcall %}
         {% else %}
-        <div class="col-12 text-center">
-            <p class="fs-5">No songs found. Try a different search or check back later!</p>
-        </div>
+            {% call empty_state('bi-music-note-list', 'You have not created any scores yet.') %}
+            <a class="btn btn-primary" href="{{ url_for('creator.create') }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create your first score</a>
+            {% endcall %}
+        {% endif %}
+    </div>
+
+    <!-- Your favorites -->
+    <div class="explore-panel" role="tabpanel" id="explore-panel-favorites"
+         aria-labelledby="explore-tab-favorites" tabindex="0"{% if active_tab != 'favorites' %} hidden{% endif %}>
+        {% if not current_user %}
+            {% call empty_state('bi-star', 'Sign in to star sheets and keep them on this device for offline use.') %}
+            <a class="btn btn-primary" href="{{ url_for('main.home', signin=1, next=url_for('main.explore', tab='favorites')) }}">Sign in</a>
+            {% endcall %}
+        {% elif favorite_songs %}
+            {{ song_grid(favorite_songs) }}
+        {% elif favorite_ids %}
+            {% call empty_state('bi-search', 'None of your favorites match this search.') %}
+            <a class="btn btn-outline-light" href="{{ url_for('main.explore', tab='favorites') }}">Clear search</a>
+            {% endcall %}
+        {% else %}
+            {% call empty_state('bi-star', 'No favorites yet.') %}
+            <p class="mb-0 explore-empty-hint">Open any sheet and tap <strong>Save offline</strong> to star it. Starred sheets show up here and open even with no signal.</p>
+            {% endcall %}
+        {% endif %}
+    </div>
+
+    <!-- Entire library -->
+    <div class="explore-panel" role="tabpanel" id="explore-panel-library"
+         aria-labelledby="explore-tab-library" tabindex="0"{% if active_tab != 'library' %} hidden{% endif %}>
+        {% if songs %}
+            {{ song_grid(songs) }}
+        {% elif has_filters %}
+            {% call empty_state('bi-search', 'No songs found. Try a different search.') %}
+            <a class="btn btn-outline-light" href="{{ url_for('main.explore', tab='library') }}">Clear search</a>
+            {% endcall %}
+        {% else %}
+            {% call empty_state('bi-music-note-beamed', 'No songs yet. Check back later!') %}{% endcall %}
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var tablist = document.querySelector('.explore-tabs');
+    if (!tablist) return;
+    var STORAGE_KEY = 'cs-explore-tab';
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    var hiddenInput = document.getElementById('explore-tab-input');
+    var signedIn = tablist.getAttribute('data-signed-in') === '1';
+
+    function tabById(id) {
+        for (var i = 0; i < tabs.length; i++) {
+            if (tabs[i].getAttribute('data-tab') === id) return tabs[i];
+        }
+        return null;
+    }
+
+    function remember(id) {
+        try { localStorage.setItem(STORAGE_KEY, id); } catch (e) { /* private mode */ }
+    }
+
+    function select(tab, options) {
+        options = options || {};
+        tabs.forEach(function (t) {
+            var on = t === tab;
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            t.tabIndex = on ? 0 : -1;
+            var panel = document.getElementById(t.getAttribute('aria-controls'));
+            if (panel) panel.hidden = !on;
+        });
+        var id = tab.getAttribute('data-tab');
+        if (hiddenInput) hiddenInput.value = id;
+        if (options.focus) tab.focus();
+        if (options.save) {
+            remember(id);
+            // Keep a ?tab= already in the address bar in step with the choice.
+            var url = new URL(window.location.href);
+            if (url.searchParams.has('tab') && window.history.replaceState) {
+                url.searchParams.set('tab', id);
+                window.history.replaceState(null, '', url.toString());
+            }
+        }
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () { select(tab, { save: true }); });
+    });
+
+    tablist.addEventListener('keydown', function (e) {
+        var index = tabs.indexOf(document.activeElement);
+        if (index < 0) return;
+        var next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(index + 1) % tabs.length];
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(index - 1 + tabs.length) % tabs.length];
+        else if (e.key === 'Home') next = tabs[0];
+        else if (e.key === 'End') next = tabs[tabs.length - 1];
+        if (!next) return;
+        e.preventDefault();
+        select(next, { focus: true, save: true });
+    });
+
+    // Restore the last choice unless the URL picked a tab. Signed-out
+    // visitors start on the full library instead of a sign-in prompt.
+    if (tablist.getAttribute('data-from-url') === '1') {
+        var current = tablist.querySelector('[aria-selected="true"]');
+        if (current) remember(current.getAttribute('data-tab'));
+        return;
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) { saved = null; }
+    if (!signedIn && saved !== 'library') saved = null;
+    var savedTab = saved ? tabById(saved) : null;
+    if (savedTab) select(savedTab);
+})();
+</script>
 {% endblock %}

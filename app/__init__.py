@@ -79,18 +79,21 @@ def create_app(test_config=None):
     from .routes.creator import creator_bp
     from .routes.auth import auth_bp
     from .routes.pwa import pwa_bp
+    from .routes.favorites import favorites_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(pwa_bp)
+    app.register_blueprint(favorites_bp)
     _register_error_handlers(app)
     _register_context_processors(app)
 
-    # Create missing SQLite tables, ensure songs.user_id, then keep songs.id in
+    # Create missing SQLite tables (including favorites on older databases),
+    # ensure songs.user_id, then keep songs.id in
     # sync with SONG_DATA_DIR/{id}.txt (orphan files and orphan rows). Idempotent.
     with app.app_context():
-        from .models import User, Song  # noqa: F401
+        from .models import User, Song, Favorite  # noqa: F401
         from .storage import purge_unsynced_songs_and_sheets
 
         db.create_all()

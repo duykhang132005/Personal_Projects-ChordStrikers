@@ -26,6 +26,21 @@
     <div class="unified-controls sheet-tools-panel" role="toolbar" aria-label="Sheet controls">
       <div class="toolbar-row toolbar-row-center" role="group" aria-label="Sheet actions">
         <div class="control-box">
+          {% if current_user %}
+          <button type="button" id="btn-favorite" class="control-btn favorite-btn{% if is_favorite %} is-favorite{% endif %}"
+                  data-song-id="{{ song.id }}" aria-pressed="{{ 'true' if is_favorite else 'false' }}"
+                  title="Star this sheet to keep it on this device for offline use">
+            <i class="bi {{ 'bi-star-fill' if is_favorite else 'bi-star' }}" aria-hidden="true"></i>
+            <span class="favorite-label">{{ 'Saved offline' if is_favorite else 'Save offline' }}</span>
+          </button>
+          {% else %}
+          <a href="{{ url_for('main.home', signin=1, next=url_for('main.view_sheet', song_id=song.id)) }}" class="control-btn favorite-btn"
+             title="Sign in to star sheets and keep them offline">
+            <i class="bi bi-star" aria-hidden="true"></i> Save offline
+          </a>
+          {% endif %}
+        </div>
+        <div class="control-box">
           <button type="button" id="btn-print-sheet" class="control-btn">
             <i class="bi bi-printer" aria-hidden="true"></i> Print / Export PDF
           </button>
@@ -79,6 +94,8 @@
       </div>
     </div>
   </div>
+
+  <p id="favorite-status" class="favorite-status" role="status" aria-live="polite"></p>
 
   {% if lines %}
     <h4 class="mt-4">Chords and Lyrics</h4>

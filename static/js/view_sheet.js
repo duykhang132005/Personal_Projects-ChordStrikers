@@ -884,3 +884,65 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   window.addEventListener('resize', hideTooltip);
 })();
 
+// --- Favorites: star a sheet to keep it on this device for offline use ---
+(function () {
+  const btn = document.getElementById('btn-favorite');
+  if (!btn) return;
+  const status = document.getElementById('favorite-status');
+  const songId = Number(btn.dataset.songId);
+
+  function announce(text) {
+    if (status) status.textContent = text;
+  }
+
+  function render(favorited) {
+    btn.classList.toggle('is-favorite', favorited);
+    btn.setAttribute('aria-pressed', favorited ? 'true' : 'false');
+    const icon = btn.querySelector('i');
+    if (icon) icon.className = favorited ? 'bi bi-star-fill' : 'bi bi-star';
+    const label = btn.querySelector('.favorite-label');
+    if (label) label.textContent = favorited ? 'Saved offline' : 'Save offline';
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      const data = event.data || {};
+      if (data.type !== 'favorites-synced' || !Array.isArray(data.ids)) return;
+      const saved = data.ids.indexOf(songId) !== -1;
+      if (saved && btn.getAttribute('aria-pressed') === 'true') {
+        announce('Saved on this device. This sheet opens even with no signal.');
+      }
+    });
+  }
+
+  btn.addEventListener('click', () => {
+    const wasFavorite = btn.getAttribute('aria-pressed') === 'true';
+    if (navigator.onLine === false) {
+      announce('You are offline. Try again when you have signal.');
+      return;
+    }
+    btn.disabled = true;
+    render(!wasFavorite);
+    fetch(`/api/favorites/${songId}`, {
+      method: wasFavorite ? 'DELETE' : 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        render(Boolean(data.favorited));
+        announce(data.favorited ? 'Added to favorites. Saving for offline use.' : 'Removed from favorites and from this device.');
+        if (window.csSyncOfflineFavorites) window.csSyncOfflineFavorites(true, data.ids);
+      })
+      .catch(() => {
+        render(wasFavorite);
+        announce('Could not update favorites. Please try again.');
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
+  });
+})();

@@ -20,6 +20,20 @@
         }
         h1 { color: #e07a1f; margin-bottom: 0.5rem; }
         p { max-width: 28rem; margin: 0.5rem auto 1.5rem; line-height: 1.5; }
+        .saved { max-width: 28rem; margin: 2rem auto 0; text-align: left; }
+        .saved h2 { font-size: 1.1rem; color: #ffcc80; margin: 0 0 0.5rem; text-align: center; }
+        .saved ul { list-style: none; padding: 0; margin: 0; }
+        .saved a {
+            display: block;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            text-decoration: none;
+            overflow-wrap: anywhere;
+        }
+        .saved a:hover, .saved a:focus-visible { background: rgba(224, 122, 31, 0.35); }
         button {
             background: #e07a1f;
             color: #1a120c;
@@ -37,6 +51,38 @@
         <h1>You are offline</h1>
         <p>ChordStrikers needs a connection to load chord sheets. Check your network and try again.</p>
         <button type="button" onclick="window.location.reload()">Try again</button>
+        <section class="saved" id="saved-sheets" hidden>
+            <h2>Saved on this device</h2>
+            <ul id="saved-list"></ul>
+        </section>
     </main>
+    <script>
+        // List starred sheets the service worker saved for offline use.
+        (function () {
+            if (!window.caches) return;
+            caches.open('chordstrikers-favorites')
+                .then(function (cache) { return cache.match('/__cs-offline-favorites.json'); })
+                .then(function (response) { return response ? response.json() : null; })
+                .then(function (manifest) {
+                    var pages = manifest && manifest.pages ? manifest.pages : {};
+                    var ids = Object.keys(pages);
+                    if (!ids.length) return;
+                    ids.sort(function (a, b) {
+                        return String(pages[a].title || '').localeCompare(String(pages[b].title || ''));
+                    });
+                    var list = document.getElementById('saved-list');
+                    ids.forEach(function (id) {
+                        var link = document.createElement('a');
+                        link.href = '/view_sheet/' + id;
+                        link.textContent = pages[id].title || ('Sheet ' + id);
+                        var item = document.createElement('li');
+                        item.appendChild(link);
+                        list.appendChild(item);
+                    });
+                    document.getElementById('saved-sheets').hidden = false;
+                })
+                .catch(function () {});
+        })();
+    </script>
 </body>
 </html>
