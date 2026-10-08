@@ -549,6 +549,7 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   const tooltip = document.createElement('div');
   tooltip.className = 'chord-tooltip d-none';
   tooltip.setAttribute('role', 'tooltip');
+  tooltip.id = 'chord-tooltip';
   document.body.appendChild(tooltip);
 
   function getCleanChordName(rawChord) {
@@ -724,31 +725,111 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     tooltip.style.top = `${top}px`;
   }
 
-  document.addEventListener('mouseover', (e) => {
-    const chordSpan = e.target.closest('.chord');
-    if (!chordSpan) return;
-    showTooltip(chordSpan);
-  });
+  // --- Showing and hiding: mouse hover, touch tap, and keyboard ---
+  let activeChord = null;
+  let lastPointerType = 'mouse';
 
-  document.addEventListener('mouseout', (e) => {
-    const fromChord = e.target.closest('.chord');
-    if (!fromChord) return;
-    const toChord = e.relatedTarget && e.relatedTarget.closest
-      ? e.relatedTarget.closest('.chord')
-      : null;
-    if (toChord === fromChord) return;
+  function isFocusVisible(el) {
+    try {
+      return el.matches(':focus-visible');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function hideTooltip() {
     tooltip.classList.add('d-none');
+    if (activeChord) {
+      activeChord.setAttribute('aria-expanded', 'false');
+      activeChord.removeAttribute('aria-describedby');
+    }
+    activeChord = null;
+  }
+
+  function openFor(chordSpan) {
+    if (activeChord && activeChord !== chordSpan) hideTooltip();
+    showTooltip(chordSpan);
+    activeChord = chordSpan;
+    chordSpan.setAttribute('aria-expanded', 'true');
+    chordSpan.setAttribute('aria-describedby', tooltip.id);
+  }
+
+  function chordFrom(target) {
+    return target && target.closest ? target.closest('.chord') : null;
+  }
+
+  // Make every chord reachable with Tab and announced as a button.
+  document.querySelectorAll('.chord').forEach((el) => {
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-expanded', 'false');
   });
 
-  // Tap support for touch devices
+  document.addEventListener('pointerdown', (e) => {
+    lastPointerType = e.pointerType || 'mouse';
+  }, true);
+
+  // Desktop: hover with a mouse or pen. Touch is handled by tap below.
+  document.addEventListener('pointerover', (e) => {
+    if (e.pointerType === 'touch') return;
+    const chordSpan = chordFrom(e.target);
+    if (chordSpan) openFor(chordSpan);
+  });
+
+  document.addEventListener('pointerout', (e) => {
+    if (e.pointerType === 'touch') return;
+    const fromChord = chordFrom(e.target);
+    if (!fromChord || fromChord !== activeChord) return;
+    if (chordFrom(e.relatedTarget) === fromChord) return;
+    if (isFocusVisible(fromChord)) return; // keep it open for keyboard users
+    hideTooltip();
+  });
+
+  // Tap a chord to show its diagram, tap it again (or anywhere else) to hide.
   document.addEventListener('click', (e) => {
-    const chordSpan = e.target.closest('.chord');
+    const chordSpan = chordFrom(e.target);
     if (!chordSpan) {
-      tooltip.classList.add('d-none');
+      hideTooltip();
       return;
     }
     e.preventDefault();
-    showTooltip(chordSpan);
+    if (lastPointerType === 'touch' && activeChord === chordSpan) {
+      hideTooltip();
+      return;
+    }
+    openFor(chordSpan);
   });
+
+  // Keyboard: Tab to a chord shows it, Enter or Space toggles, Escape closes.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && activeChord) {
+      const chordSpan = activeChord;
+      hideTooltip();
+      chordSpan.focus();
+      return;
+    }
+    const chordSpan = chordFrom(e.target);
+    if (!chordSpan) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (activeChord === chordSpan) {
+        hideTooltip();
+      } else {
+        openFor(chordSpan);
+      }
+    }
+  });
+
+  document.addEventListener('focusin', (e) => {
+    const chordSpan = chordFrom(e.target);
+    if (chordSpan && isFocusVisible(chordSpan)) openFor(chordSpan);
+  });
+
+  document.addEventListener('focusout', (e) => {
+    const chordSpan = chordFrom(e.target);
+    if (chordSpan && chordSpan === activeChord) hideTooltip();
+  });
+
+  window.addEventListener('resize', hideTooltip);
 })();
 

@@ -1,14 +1,53 @@
 import os
+import warnings
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
 from .config import Config
+from .assets import compute_static_version
 
 db = SQLAlchemy()
 
-# Bump to cache-bust local static CSS/JS (url_for ..., v=static_v)
-STATIC_ASSET_VERSION = '20260918a'
+# Placeholder values that must not be trusted as real secrets.
+_PLACEHOLDER_KEYS = {'your_random_secret_key_here', 'fallback-dev-key'}
+_TRUTHY = {'1', 'true', 'yes', 'on'}
+
+
+def _env_flag(name):
+    return (os.environ.get(name) or '').strip().lower() in _TRUTHY
+
+
+def _resolve_secret_key(test_config):
+    """Return the session signing key, or refuse to start without one.
+
+    A missing key silently falling back to a public default would let anyone
+    forge login cookies, so production must set SECRET_KEY. For local
+    development only, set ALLOW_INSECURE_DEV_KEY=1 (or run with FLASK_DEBUG=1).
+    """
+    if test_config and test_config.get('SECRET_KEY'):
+        return test_config['SECRET_KEY']
+
+    testing = bool(test_config and test_config.get('TESTING'))
+    dev_ok = testing or _env_flag('ALLOW_INSECURE_DEV_KEY') or _env_flag('FLASK_DEBUG')
+
+    key = (os.environ.get('SECRET_KEY') or '').strip()
+    if key:
+        if key in _PLACEHOLDER_KEYS and not dev_ok:
+            warnings.warn('SECRET_KEY is still a placeholder value. Set a real random key.')
+        return key
+
+    if dev_ok:
+        if not testing:
+            warnings.warn('SECRET_KEY is not set. Using an insecure development key. Never do this in production.')
+        return 'insecure-dev-key-not-for-production'
+
+    raise RuntimeError(
+        'SECRET_KEY is not set. Set it in the environment or in .env '
+        '(generate one with: python -c "import secrets; print(secrets.token_hex(32))"). '
+        'For local development only, set ALLOW_INSECURE_DEV_KEY=1 or FLASK_DEBUG=1.'
+    )
+
 
 def create_app(test_config=None):
     # Explicitly set template and static folders at the root level
@@ -20,12 +59,15 @@ def create_app(test_config=None):
         static_folder=os.path.join(root_dir, 'static')
     )
 
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-dev-key')
+    app.config['SECRET_KEY'] = _resolve_secret_key(test_config)
 
     # Load additional config
     app.config.from_object(Config)
     if test_config is not None:
         app.config.update(test_config)
+
+    # Version for cache-busting static files, derived from file mtimes.
+    app.config.setdefault('STATIC_ASSET_VERSION', compute_static_version(app.static_folder))
 
     os.makedirs(app.instance_path, exist_ok=True)
 
@@ -36,10 +78,12 @@ def create_app(test_config=None):
     from .routes.main import main_bp
     from .routes.creator import creator_bp
     from .routes.auth import auth_bp
+    from .routes.pwa import pwa_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(pwa_bp)
     _register_error_handlers(app)
     _register_context_processors(app)
 
@@ -162,9 +206,13 @@ def _register_context_processors(app):
     @app.context_processor
     def inject_globals():
         from .auth_helpers import get_current_user
+        version = app.config.get('STATIC_ASSET_VERSION', '0')
+        if app.debug:
+            # Pick up CSS/JS edits without restarting the dev server.
+            version = compute_static_version(app.static_folder)
         return {
             'current_user': get_current_user(),
-            'static_v': STATIC_ASSET_VERSION,
+            'static_v': version,
         }
 
 

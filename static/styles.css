@@ -1071,4 +1071,86 @@ a.control-btn-primary:hover {
         color: #000000 !important;
         font-weight: bold;
     }
-}
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Mobile: Home circle menu (wraps instead of overflowing)
+──────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    #circle-menu {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0 0.5rem;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    #circle-menu .circle-menu-item {
+        width: 84px;
+        height: 84px;
+        margin: 0 !important;
+        font-size: 1.6rem;
+    }
+
+    #circle-menu .circle-menu-item .circle-label {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    #circle-menu .circle-menu-item:hover,
+    #circle-menu .circle-menu-item.active {
+        width: 92px;
+        height: 92px;
+        font-size: 1.8rem;
+    }
+
+    /* Hover dropdowns spill off narrow screens; the cards show the same info. */
+    #circle-menu .circle-menu-item .circle-categories {
+        display: none !important;
+    }
+
+    /* When a card is open, dock the menu as a row above it, not a fixed side column. */
+    #circle-menu.docked {
+        position: static;
+        transform: none;
+        flex-direction: row !important;
+        justify-content: center;
+        align-items: center !important;
+        width: 100%;
+        gap: 0.25rem;
+    }
+
+    #circle-menu.docked .circle-menu-item.docked,
+    #circle-menu.docked .circle-menu-item.active {
+        margin: 0 !important;
+        transform: scale(0.8);
+    }
+
+    #circle-cards {
+        padding: 0 0.5rem;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Chord diagrams: tap and keyboard friendly
+──────────────────────────────────────────────────────────────── */
+.chord {
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.chord:focus {
+    outline: none;
+}
+
+.chord:focus-visible {
+    outline: 2px solid #e07a1f;
+    outline-offset: 2px;
+    border-radius: 3px;
+}

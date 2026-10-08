@@ -16,6 +16,15 @@
 
 
 
+    <!-- Installable app (PWA) -->
+    <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
+    <meta name="theme-color" content="#1a120c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ChordStrikers">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+
     <!-- Stylesheets -->
 
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=static_v) }}">
@@ -244,6 +253,14 @@
 
         })();
 
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register("{{ url_for('pwa.service_worker') }}", { scope: "/" }).catch(function () {});
+            });
+        }
     </script>
 
 </body>
