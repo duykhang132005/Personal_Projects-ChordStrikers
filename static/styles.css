@@ -111,7 +111,7 @@ footer {
     color: #000;
     padding: 1rem;
     border-radius: 0.375rem;
-    font-family: monospace;
+    font-family: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, monospace;
     column-gap: 2rem;
     column-rule: 1px solid orangered;
 
@@ -149,7 +149,7 @@ footer {
 
 .chord-line,
 .section-header {
-    font-family: monospace;
+    font-family: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, monospace;
     color: red;
     font-weight: bold;
     line-height: 1.2;
@@ -159,7 +159,7 @@ footer {
 }
 
 .lyric-line {
-    font-family: monospace;
+    font-family: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, monospace;
     line-height: 1.6;
     margin-top: 0;
     white-space: pre-wrap;
@@ -342,7 +342,7 @@ footer {
 .lyric-input {
     width: 100%;
     padding: 0.5em;
-    font-family: monospace;
+    font-family: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, monospace;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -699,7 +699,7 @@ a.control-btn-primary:hover {
 }
 
 .form-textarea {
-    font-family: 'Courier New', monospace;
+    font-family: 'Roboto Mono', 'Noto Sans Mono', ui-monospace, monospace;
     resize: vertical;
     min-height: 400px;
     line-height: 1.6;
