@@ -3,143 +3,105 @@
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![Framework](https://img.shields.io/badge/framework-Flask-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
 
-**ChordStrikers** is an interactive, open-source web application for transcribing, reading, transposing, and practicing musical chord sheets without paywalls or ad clutter.
+**ChordStrikers** is a free chord sheet app for musicians. Write songs with chords inline, then read, transpose and practice them on your phone or computer, with no paywalls or ads. Vietnamese lyrics display properly, and search ignores accents, so a plain spelling still finds a Vietnamese title.
 
----
-
-## Key Features
-
-- **Smart Bracketed Chord Parser**  
-  Parses inline chords like `[C]`, `[Am7]`, `[F#/A#]` into aligned chord/lyric layers.
-
-- **Real-time Transposition**  
-  Shift any song by semitones (`-11` to `+11`) with automatic sharp/flat preference handling.
-
-- **Adaptive Multi-Column Layout**  
-  Dynamically measures monospace font widths and screen boundaries to fit sheets into single or multi-column layouts.
-
-- **Interactive Chord Tooltips**  
-  Hover or tap to view guitar fingering diagrams.
-
-- **Auto-Scrolling**  
-  Adjustable hands-free scrolling for practice sessions.
-
-- **iTunes Artwork Search**  
-  Fetches album cover art via the public iTunes Search API (no API key required).
-
-- **Print & Plain Text Export**  
-  One-click printable PDF styling and raw text downloads.
-
-- **YouTube Backing Track Integration**  
-  Quick search links for practicing alongside recordings or backing tracks.
+**Try it live:** [duykhang132005.pythonanywhere.com](https://duykhang132005.pythonanywhere.com)
 
 ---
 
-## Repository Structure
+## Features
 
-```text
-ChordStrikers/
-├── app/                    # Flask application package
-│   ├── routes/             # Blueprint routes (main.py, creator.py)
-│   ├── storage.py          # Shared song text file I/O
-│   ├── parsing.py          # Legacy text parser helpers
-│   ├── utils.py            # Chord splitting, transposition, iTunes cover fetch
-│   └── config.py           # App configuration
-├── docs/                   # Developer documentation
-│   └── chord_format_guide.md
-├── static/                 # CSS, JS, images, sample chord files
-│   ├── css/styles.css
-│   ├── js/view_sheet.js
-│   └── data/
-├── templates/              # Jinja2 templates
-│   ├── home.html
-│   ├── explore.html
-│   ├── view_sheet.html
-│   ├── creator.html
-│   └── edit_sheet.html
-├── tests/                  # Pytest suite
-│   ├── conftest.py
-│   ├── test_utils.py
-│   ├── test_routes.py
-│   ├── test_favorites.py
-│   └── test_mobile_viewport.py   # optional, needs Playwright
-├── .env.example
-├── .github/                # CI workflows and issue templates
-├── requirements.txt
-├── requirements-dev.txt
-├── requirements-browser.txt  # optional Playwright checks
-├── run.py
-└── LICENSE
-```
+### Find songs
+- **Explore** with three tabs: *Your scores*, *Your favorites* and the *Entire library*.
+- **Search** by song or artist, author username, or key. Accents are optional.
+- **Sort** A to Z or Newest.
+- Album cover art fetched automatically from iTunes (no API key needed).
+
+### Read and play
+- **Transpose** up or down by semitones, with a sharp or flat preference.
+- **Capo suggestions**: one tap picks a capo that gives easier shapes, and the chords shown are the shapes you finger.
+- **Simplify** turns chords like `Cmaj7` or `F#m7/C#` into easy ones (`C`, `F#m/C#`).
+- **Chord diagrams**: tap or hover a chord to see a guitar fret diagram.
+- **Adaptive layout** fits a sheet into one or several columns, with bigger or smaller text (A- / A+).
+- **Autoscroll** with adjustable speed.
+- **Perform mode**: a big, clean view that starts autoscrolling right away and keeps the screen awake. Use Pause, Back and Ahead, or tap the sheet to pause.
+- **Practice tools**: a metronome with tap tempo, and a microphone tuner.
+- **Backing track** link that searches YouTube for the song.
+
+### Keep and share
+- **Offline favorites**: star a sheet (Save offline) and it opens even with bad or no signal.
+- **Share links** keep your transpose, capo and simplify choices, using your phone's share menu or a copied link.
+- **Print / Export PDF** and **Plain Text** download.
+- Your transpose, capo, simplify, text size and scroll speed are remembered per song on your device.
+
+### Write
+- **Classic editor**: type lyrics with chords in brackets, like `[C]You are my [F]sunshine`.
+- **Touch editor** for phones: tap a word and drop a chord on it.
+
+### Make it yours
+- **Accounts**: register, sign in, change your password.
+- **Color themes**: Default, Wooden and Limelight, picked in the Account card and saved on your device.
 
 ---
 
-## Quickstart & Setup
+## Install it on your phone
 
-### 1. Prerequisites
-- **Python 3.10+**
-- Git
+ChordStrikers can be installed like an app (it is a PWA). Open the [live site](https://duykhang132005.pythonanywhere.com), then:
 
-### 2. Clone Repository & Setup Virtual Environment
+- **iPhone or iPad (Safari):** tap Share, then **Add to Home Screen**.
+- **Android (Chrome):** open the menu, then **Install app** or **Add to Home screen**.
+
+It then opens full screen from your home screen. Sign in and star a few sheets so they are ready offline. On iPhone, the installed app often cannot use the microphone; if the tuner is blocked, open the page in Safari instead.
+
+---
+
+## Run it locally
+
+You need **Python 3.10+** and Git.
+
 ```bash
-git clone https://github.com/duykhang132005/ChordStrikers.git
-cd ChordStrikers
+git clone https://github.com/duykhang132005/Personal_Projects-ChordStrikers.git
+cd Personal_Projects-ChordStrikers
 
-# Create virtual environment
 python -m venv venv
-
-# Activate virtual environment
 # Windows:
 .\venv\Scripts\activate
 # macOS/Linux:
 source venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-### 3. Install Dependencies
+Create your settings file and give it a secret key:
+
 ```bash
-pip install -r requirements-dev.txt
+cp .env.example .env          # Windows: copy .env.example .env
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-### 4. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Cover art is fetched automatically from iTunes when you leave the image URL blank. No API keys are required.
+Open `.env` and replace `your_random_secret_key_here` with the key you just printed. The app will not start without a real `SECRET_KEY`. To create an admin account on a fresh database, you can also set `BOOTSTRAP_ADMINS=yourname:temporary-password` (or just use **Register** in the app).
 
-### 5. Initialize Database & Run
+Start the app:
+
 ```bash
 python run.py
 ```
-Open your browser and navigate to `http://127.0.0.1:5000`.
 
-Startup creates any missing SQLite tables (`songs`, `users`, `favorites`) automatically via SQLAlchemy `create_all` and does not wipe existing rows. Restart the app after model changes so new tables or columns that `create_all` can add are applied. Chord sheets are stored as `static/data/{song_id}.txt` (or `SONG_DATA_DIR`) and must match `songs.id`. On startup the app removes sheet files whose ids are not in the database, and deletes song rows that have no matching sheet file.
+Open http://127.0.0.1:5000. The SQLite database (`instance/songs.db`) and its tables are created on first start.
 
----
-
-## Running Automated Tests
-
-Run the full pytest suite:
+### Run the tests
 
 ```bash
-pytest
-```
-
-Optional real-browser checks (View Sheet on phone-sized screens: no sideways scrolling, centered toolbar) use Playwright and are skipped when it is not installed:
-
-```bash
-pip install -r requirements-browser.txt
-python -m playwright install chromium
-pytest -m browser
+pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
 ---
 
-## Chord Sheet Notation Guide
+## Writing chord sheets
 
-Chords should be wrapped in square brackets (`[...]`) directly before or inside lyrics:
+Put each chord in square brackets right before the syllable it falls on:
 
 ```text
 Verse 1:
@@ -147,110 +109,16 @@ Verse 1:
 You make me [F]happy when skies are [C]grey
 ```
 
-For complete syntax details, see [docs/chord_format_guide.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/docs/chord_format_guide.md).
-
----
-
-## Roadmap
-
-- [x] Transposition & auto-scroll hands-free reading.
-- [x] Multi-column dynamic screen layout.
-- [x] Interactive chord fingering tooltips.
-- [x] Print / PDF and Plain Text export.
+See the [chord format guide](docs/chord_format_guide.md) for the full syntax.
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please check out [CONTRIBUTING.md](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/CONTRIBUTING.md) for details on submitting pull requests and running tests.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for how to submit pull requests and run tests.
 
----
-
-## Maintaining accounts
-
-`instance/*.db` stays gitignored so production user hashes are not overwritten by `git pull`.
-
-On startup, ChordStrikers may create **missing** bootstrap admins from `BOOTSTRAP_ADMINS` in `.env`. It **never** changes an existing user's password hash.
-
-### First deploy / empty database
-1. On the host, set in `.env` (not committed):
-   `BOOTSTRAP_ADMINS=admin:YOUR_TEMP_PASSWORD,duykhang132005:YOUR_TEMP_PASSWORD`
-   `PRIMARY_AUTHOR=duykhang132005`
-2. Start the app once so those users are created.
-3. Log in and change passwords in the app (or clear `BOOTSTRAP_ADMINS` afterward).
-4. You can remove or empty `BOOTSTRAP_ADMINS` after the accounts exist; later deploys will leave hashes alone.
-
-### Later updates (`git pull` on the host)
-1. Pull/reset tracked code from `main` as usual.
-2. Leave `instance/*.db` alone (ignored). That is your live accounts.
-3. Do **not** put real passwords back into source code.
-4. New people: use **Register** in the app, or temporarily add `newuser:tempPass` to `BOOTSTRAP_ADMINS`, restart once, then remove that entry and have them change the password.
-5. Promote an existing user to admin in the DB/admin UI if you have one; bootstrap only sets `is_admin` for names listed when creating **or** if the user already exists and is not admin yet (still without touching their password).
-
-### Local development
-Copy `.env.example` to `.env`, set `BOOTSTRAP_ADMINS` for a fresh local DB only. Your local `instance/songs.db` remains private.
-
-### Daily database backup
-
-`scripts/backup_db.py` copies `instance/songs.db` into `backups/` (gitignored, outside `static/`) as `songs-YYYYMMDD-HHMMSS.db` and keeps only the newest 7. It uses the SQLite backup API, so it is safe while the site is running. It needs nothing beyond the Python standard library.
-
-Run it by hand:
-
-```bash
-python scripts/backup_db.py
-```
-
-On PythonAnywhere, open the **Tasks** tab and add a daily Scheduled Task:
-
-- Time (UTC): `08:00` (about 4 AM New York time; pick any quiet hour).
-- Command (replace `YOUR_PA_USERNAME`, and use your real virtualenv path from the **Web** tab, "Virtualenv" field, with `/bin/python` added):
-
-```bash
-/home/YOUR_PA_USERNAME/Personal_Projects-ChordStrikers/venv/bin/python /home/YOUR_PA_USERNAME/Personal_Projects-ChordStrikers/scripts/backup_db.py
-```
-
-If the virtualenv lives under `~/.virtualenvs/NAME`, the first part becomes `/home/YOUR_PA_USERNAME/.virtualenvs/NAME/bin/python`. Since the script is stdlib only, `python3` also works. After the first run, check the task log and look for a new file in `~/Personal_Projects-ChordStrikers/backups/`.
-
-Not confirmed: whether the free PythonAnywhere plan still allows a daily Scheduled Task (historically one daily task, and free tasks may expire unless renewed from the Tasks tab). Check the Tasks tab on your account. If tasks are not available, run the command by hand from a Bash console now and then, or download a backup from the Files tab.
-
-To restore, stop the web app (or accept a short blip), copy a backup over `instance/songs.db`, and press Reload.
-
-### Trimmed Bootstrap and icon CSS
-
-`static/vendor/vendor.min.css` holds Bootstrap 5.3.3, Bootstrap Icons and Font Awesome, trimmed to the classes the app uses (about 29 KB instead of about 430 KB). If you add a Bootstrap class or icon that is not used anywhere yet, rebuild it on your PC (Node needed only for this):
-
-```bash
-npm install --no-save purgecss@6 clean-css@5
-node scripts/build_vendor_css.js
-```
-
-## Production checklist and installing as an app
-
-### SECRET_KEY is required
-
-The app will not start without a `SECRET_KEY`, because a public default would let anyone forge login cookies. Set it in the host environment or in `.env`:
-
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
-
-For local development only, you can instead set `ALLOW_INSECURE_DEV_KEY=1` (or run with `FLASK_DEBUG=1`) to use a throwaway key. Tests supply their own key.
-
-On PythonAnywhere, add `SECRET_KEY` to the `.env` file in the project folder (or the WSGI file) before pulling this change, then press Reload.
-
-### Static file versions
-
-CSS and JS links carry a `?v=` value computed from the newest file modification time under `static/` (song text files in `static/data/` are ignored). There is nothing to bump by hand. Set `STATIC_ASSET_VERSION` in the environment to pin a value.
-
-### Install on a phone (PWA)
-
-ChordStrikers ships a web app manifest, icons and a small service worker, so it can be installed:
-
-- iPhone or iPad (Safari): Share, then Add to Home Screen.
-- Android (Chrome): menu, then Install app or Add to Home screen.
-
-The service worker caches versioned CSS, JS and icons, plus an offline page. Pages, logins and song sheets come from the server, with one exception: signed-in users can tap **Save offline** (the star) on a sheet. Starred sheets are stored per account in the `favorites` table, listed under **Your favorites** on Explore, and copied to the device together with the styles and fonts they need, so they open with bad or no signal. Unstarring removes the copy, and signing out clears all saved copies. Installing needs HTTPS, which PythonAnywhere provides.
+Hosting, deploying, backups and other maintainer notes are in [docs/MAINTAINING.md](docs/MAINTAINING.md).
 
 ## License
 
-This project is licensed under the [MIT License](file:///c:/Users/khang/Desktop/Personal_Projects/ChordStrikers/LICENSE).
+This project is licensed under the [MIT License](LICENSE).
