@@ -174,3 +174,20 @@ def test_get_song_image_url_falls_back_to_artist(monkeypatch):
 
     monkeypatch.setattr('app.utils._itunes_search', fake_search)
     assert get_song_image_url('Unknown Track', 'The Beatles') == ITUNES_ARTWORK_600
+
+
+def test_artwork_srcset_offers_smaller_covers():
+    from app.utils import artwork_srcset
+    spotify = 'https://i.scdn.co/image/ab67616d0000b273abc'
+    assert artwork_srcset(spotify) == (
+        'https://i.scdn.co/image/ab67616d00001e02abc 300w, '
+        'https://i.scdn.co/image/ab67616d0000b273abc 640w'
+    )
+    itunes = 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/aa/source/600x600bb.jpg'
+    assert artwork_srcset(itunes) == (
+        'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/aa/source/300x300bb.jpg 300w, '
+        'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/aa/source/600x600bb.jpg 600w'
+    )
+    assert artwork_srcset('data:image/jpeg;base64,AAAA') == ''
+    assert artwork_srcset('https://example.com/a.jpg') == ''
+    assert artwork_srcset(None) == ''

@@ -206,6 +206,9 @@ def _ensure_admin_user():
 
 
 def _register_context_processors(app):
+    from .utils import artwork_srcset
+    app.jinja_env.filters['artwork_srcset'] = artwork_srcset
+
     @app.context_processor
     def inject_globals():
         from .auth_helpers import get_current_user

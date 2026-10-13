@@ -96,24 +96,12 @@
     });
   }
 
-  function toChordPro(info) {
-    var lines = [];
-    if (info.title) lines.push('{title: ' + info.title + '}');
-    if (info.artist) lines.push('{artist: ' + info.artist + '}');
-    if (info.key) lines.push('{key: ' + info.key + '}');
-    if (info.capo) lines.push('{capo: ' + info.capo + '}');
-    if (lines.length) lines.push('');
-    lines.push(info.body || '');
-    return lines.join('\n');
-  }
-
   return {
     shiftNote: shiftNote,
     simplifyChord: simplifyChord,
     transposeChord: transposeChord,
     suggestCapos: suggestCapos,
     difficulty: difficulty,
-    transformText: transformText,
-    toChordPro: toChordPro
+    transformText: transformText
   };
 });

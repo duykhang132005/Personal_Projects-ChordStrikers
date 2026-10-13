@@ -35,3 +35,9 @@ htmlcov/
 
 # Git signing
 .gitallowed_signers
+
+# Database backups (scripts/backup_db.py)
+backups/
+
+# Only used to rebuild static/vendor/vendor.min.css
+node_modules/

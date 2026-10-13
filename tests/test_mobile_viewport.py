@@ -169,3 +169,26 @@ def test_view_sheet_toolbar_centered_in_portrait(browser, live_server, admin_sta
             assert abs(c - result['mid']) <= 2, f'{width}px: a toolbar line is centered at {c:.1f}, page center {result["mid"]}'
     finally:
         context.close()
+
+
+def test_perform_starts_autoscroll_and_exit_restores(browser, live_server, admin_state):
+    context, page = _open_sheet(browser, live_server, admin_state, 390, 844)
+    try:
+        state = "[csScroll.getSpeed(), csScroll.isRunning()]"
+        assert page.evaluate(state) == [0, False]
+        page.click('#btn-perform')
+        assert page.evaluate(state) == [1, True]
+        page.click('#perform-pause')
+        assert page.evaluate(state) == [1, False]
+        page.click('#perform-pause')
+        assert page.evaluate(state) == [1, True]
+        page.click('#perform-exit')
+        assert page.evaluate(state) == [0, False]
+
+        page.evaluate("csScroll.setSpeed(3); csScroll.pause()")
+        page.click('#btn-perform')
+        assert page.evaluate(state) == [3, True]
+        page.click('#perform-exit')
+        assert page.evaluate(state) == [3, False]
+    finally:
+        context.close()

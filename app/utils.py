@@ -374,3 +374,33 @@ def get_song_image_url(song_title, artist_name=None):
         _log_cover_fetch_error(f"Error fetching iTunes image for song {song_title!r}: {exc}")
 
     return None
+
+
+# Smaller artwork for cards. The stored URL is never changed; this only
+# offers the browser a lighter size next to it (srcset). Base64 data URIs
+# and unknown hosts get no srcset and keep using the stored image as is.
+_SPOTIFY_SIZES = (('ab67616d00001e02', 300), ('ab67616d0000b273', 640))
+_ITUNES_TOKEN = re.compile(r'/(\d{2,4})x(\d{2,4})bb\.(jpg|jpeg|png|webp)$')
+
+
+def artwork_srcset(url):
+    """Return a srcset string with a small and a large cover, or ''."""
+    if not url or not isinstance(url, str) or not url.startswith('https://'):
+        return ''
+    host = (urlparse(url).hostname or '').lower()
+    if host == 'i.scdn.co':
+        for token, _size in _SPOTIFY_SIZES:
+            if token in url:
+                return ', '.join(
+                    f"{url.replace(token, other)} {size}w" for other, size in _SPOTIFY_SIZES
+                )
+        return ''
+    if host.endswith('.mzstatic.com'):
+        match = _ITUNES_TOKEN.search(url)
+        if not match:
+            return ''
+        ext = match.group(3)
+        small = url[:match.start()] + f'/300x300bb.{ext}'
+        large = url[:match.start()] + f'/600x600bb.{ext}'
+        return f'{small} 300w, {large} 600w'
+    return ''

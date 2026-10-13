@@ -8,7 +8,8 @@
             <div class="col-md-6 col-lg-4 mb-4" data-song-id="{{ song.id }}" data-title="{{ song.title }}">
             <div class="card bg-dark text-white h-100 shadow-sm song-card explore-song-card">
                 {% if song.image_url %}
-                <img src="{{ song.image_url }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" loading="lazy" decoding="async">
+                {% set cover_srcset = song.image_url|artwork_srcset %}
+                <img src="{{ song.image_url }}"{% if cover_srcset %} srcset="{{ cover_srcset }}" sizes="(min-width: 992px) 33vw, (min-width: 768px) 50vw, 100vw"{% endif %} width="640" height="640" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" loading="lazy" decoding="async">
                 <div class="song-card-body with-image">
                 {% else %}
                 <div class="song-card-body">

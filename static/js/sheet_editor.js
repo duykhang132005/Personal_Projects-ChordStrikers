@@ -171,35 +171,6 @@
     setMode(area.hidden ? 'classic' : 'touch');
   });
 
-  const pasteBtn = document.getElementById('btn-paste-chordpro');
-  const pasteArea = document.getElementById('chordpro-paste');
-  if (pasteBtn && pasteArea) {
-    pasteBtn.addEventListener('click', function () {
-      const text = pasteArea.value;
-      if (!text.trim()) return;
-      fetch('/api/chordpro/parse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ text: text })
-      })
-        .then(function (response) { if (!response.ok) throw new Error('parse failed'); return response.json(); })
-        .then(function (data) {
-          if (data.content) area.value = data.content;
-          const title = document.getElementById('title');
-          const artist = document.getElementById('artist');
-          const key = document.getElementById('song_key');
-          if (title && data.title && !title.value) title.value = data.title;
-          if (artist && data.artist && !artist.value) artist.value = data.artist;
-          if (key && data.key && !key.value) key.value = data.key;
-          pasteArea.value = '';
-          if (!mount.hidden) render();
-        })
-        .catch(function () {
-          pasteArea.setAttribute('aria-invalid', 'true');
-        });
-    });
-  }
-
   area.addEventListener('input', function () { if (!mount.hidden) render(); });
   setMode(wantedMode());
 })();

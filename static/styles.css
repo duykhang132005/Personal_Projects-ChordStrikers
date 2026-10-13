@@ -315,7 +315,7 @@ footer {
    Background Styling
 ──────────────────────────────────────────────────────────────── */
 .music-bg {
-    background-image: url('../static/music_bg.png');
+    background-image: url('../static/music_bg.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -1500,7 +1500,6 @@ a.control-btn-primary:hover {
 body.performance-mode .sheet-controls-layout,
 body.performance-mode .practice-panel,
 body.performance-mode .text-center.p-4,
-body.performance-mode .first-run-tip,
 body.performance-mode .favorite-status,
 body.performance-mode .capo-banner {
     display: none !important;
@@ -1512,36 +1511,6 @@ body.performance-mode {
 
 body.performance-mode .song-content {
     font-size: 1.15rem;
-}
-
-.first-run-tip {
-    max-width: 36rem;
-    margin: 0.75rem auto 0;
-    padding: 0.75rem 1rem;
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    justify-content: space-between;
-    background: #fff8e8;
-    color: #1a120c;
-    border-radius: 10px;
-}
-
-.first-run-tip[hidden] {
-    display: none;
-}
-
-.first-run-tip p {
-    margin: 0;
-}
-
-#first-run-dismiss {
-    flex: 0 0 auto;
-    border: 0;
-    background: #1a120c;
-    color: #fff;
-    border-radius: 8px;
-    padding: 0.4rem 0.7rem;
 }
 
 .touch-editor-toggle {
@@ -1618,7 +1587,6 @@ body.performance-mode .song-content {
 }
 
 @media print {
-    .first-run-tip,
     .practice-panel,
     .perform-bar,
     #capo-banner {
@@ -1699,8 +1667,7 @@ html[data-theme] .circle-card,
 html[data-theme] .sheet-tools-panel,
 html[data-theme] .control-box,
 html[data-theme] .control-btn,
-html[data-theme] .touch-editor,
-html[data-theme] .first-run-tip {
+html[data-theme] .touch-editor {
     color: #1a120c;
 }
 

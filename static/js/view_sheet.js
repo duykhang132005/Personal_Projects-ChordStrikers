@@ -1103,35 +1103,6 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     refresh();
   });
 
-  function sheetBody() {
-    const rawNode = document.getElementById('sheet-raw');
-    const raw = rawNode ? JSON.parse(rawNode.textContent) : '';
-    return ChordTools.transformText(raw, {
-      steps: currentSteps - currentCapo,
-      prefer: preferValue(),
-      simplify: currentSimplify
-    });
-  }
-
-  document.getElementById('btn-download-cho')?.addEventListener('click', function () {
-    const doc = ChordTools.toChordPro({
-      title: root.getAttribute('data-title') || '',
-      artist: root.getAttribute('data-artist') || '',
-      key: root.getAttribute('data-key') || '',
-      capo: currentCapo,
-      body: sheetBody()
-    });
-    const blob = new Blob([doc], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = (root.getAttribute('data-title') || 'sheet').replace(/\s+/g, '_') + '.cho';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  });
-
   document.getElementById('btn-share')?.addEventListener('click', function () {
     const url = new URL(window.location.href);
     url.searchParams.set('steps', String(currentSteps));
@@ -1168,6 +1139,9 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   const bar = document.getElementById('perform-bar');
   let wakeLock = null;
   let paused = false;
+  // Perform starts autoscroll. Remember the state before so Exit can put it back.
+  const PERFORM_DEFAULT_SPEED = 1;
+  let scrollBefore = null;
 
   async function acquireWake() {
     if (!('wakeLock' in navigator)) return;
@@ -1192,8 +1166,21 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
       const node = document.documentElement;
       if (node.requestFullscreen) node.requestFullscreen().catch(function () {});
       paused = false;
+      const pauseBtn = document.getElementById('perform-pause');
+      if (pauseBtn) pauseBtn.textContent = 'Pause';
+      if (window.csScroll) {
+        scrollBefore = { speed: window.csScroll.getSpeed(), running: window.csScroll.isRunning() };
+        const savedSpeed = Number(readPrefs().scrollSpeed) || 0;
+        const speed = scrollBefore.speed > 0 ? scrollBefore.speed : (savedSpeed > 0 ? savedSpeed : PERFORM_DEFAULT_SPEED);
+        window.csScroll.setSpeed(speed);
+      }
     } else {
       releaseWake();
+      if (window.csScroll && scrollBefore) {
+        window.csScroll.setSpeed(scrollBefore.speed);
+        if (!scrollBefore.running) window.csScroll.pause();
+      }
+      scrollBefore = null;
       if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
     }
   }

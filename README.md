@@ -190,6 +190,40 @@ On startup, ChordStrikers may create **missing** bootstrap admins from `BOOTSTRA
 ### Local development
 Copy `.env.example` to `.env`, set `BOOTSTRAP_ADMINS` for a fresh local DB only. Your local `instance/songs.db` remains private.
 
+### Daily database backup
+
+`scripts/backup_db.py` copies `instance/songs.db` into `backups/` (gitignored, outside `static/`) as `songs-YYYYMMDD-HHMMSS.db` and keeps only the newest 7. It uses the SQLite backup API, so it is safe while the site is running. It needs nothing beyond the Python standard library.
+
+Run it by hand:
+
+```bash
+python scripts/backup_db.py
+```
+
+On PythonAnywhere, open the **Tasks** tab and add a daily Scheduled Task:
+
+- Time (UTC): `08:00` (about 4 AM New York time; pick any quiet hour).
+- Command (replace `YOUR_PA_USERNAME`, and use your real virtualenv path from the **Web** tab, "Virtualenv" field, with `/bin/python` added):
+
+```bash
+/home/YOUR_PA_USERNAME/Personal_Projects-ChordStrikers/venv/bin/python /home/YOUR_PA_USERNAME/Personal_Projects-ChordStrikers/scripts/backup_db.py
+```
+
+If the virtualenv lives under `~/.virtualenvs/NAME`, the first part becomes `/home/YOUR_PA_USERNAME/.virtualenvs/NAME/bin/python`. Since the script is stdlib only, `python3` also works. After the first run, check the task log and look for a new file in `~/Personal_Projects-ChordStrikers/backups/`.
+
+Not confirmed: whether the free PythonAnywhere plan still allows a daily Scheduled Task (historically one daily task, and free tasks may expire unless renewed from the Tasks tab). Check the Tasks tab on your account. If tasks are not available, run the command by hand from a Bash console now and then, or download a backup from the Files tab.
+
+To restore, stop the web app (or accept a short blip), copy a backup over `instance/songs.db`, and press Reload.
+
+### Trimmed Bootstrap and icon CSS
+
+`static/vendor/vendor.min.css` holds Bootstrap 5.3.3, Bootstrap Icons and Font Awesome, trimmed to the classes the app uses (about 29 KB instead of about 430 KB). If you add a Bootstrap class or icon that is not used anywhere yet, rebuild it on your PC (Node needed only for this):
+
+```bash
+npm install --no-save purgecss@6 clean-css@5
+node scripts/build_vendor_css.js
+```
+
 ## Production checklist and installing as an app
 
 ### SECRET_KEY is required
