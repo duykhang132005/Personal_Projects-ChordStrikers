@@ -20,20 +20,19 @@
 
 ### Read and play
 - **Transpose** up or down by semitones, with a sharp or flat preference.
-- **Capo suggestions**: one tap picks a capo that gives easier shapes, and the chords shown are the shapes you finger.
 - **Simplify** turns chords like `Cmaj7` or `F#m7/C#` into easy ones (`C`, `F#m/C#`).
 - **Chord diagrams**: tap or hover a chord to see a guitar fret diagram.
-- **Adaptive layout** fits a sheet into one or several columns, with bigger or smaller text (A- / A+).
+- **Adaptive layout** fits a sheet into one or several columns, with bigger or smaller text (A- / A+). Reset puts the transpose and text size back to the original.
 - **Autoscroll** with adjustable speed.
-- **Perform mode**: a big, clean view that starts autoscrolling right away and keeps the screen awake. Use Pause, Back and Ahead, or tap the sheet to pause.
+- **Perform mode**: a big, clean view that starts autoscrolling right away and keeps the screen awake. Change the scroll speed with - and +, use Pause, Back and Ahead, or tap the sheet to pause.
 - **Practice tools**: a metronome with tap tempo, and a microphone tuner.
 - **Backing track** link that searches YouTube for the song.
 
 ### Keep and share
 - **Offline favorites**: star a sheet (Save offline) and it opens even with bad or no signal.
-- **Share links** keep your transpose, capo and simplify choices, using your phone's share menu or a copied link.
+- **Share links** keep your transpose, sharps/flats and simplify choices, using your phone's share menu or a copied link.
 - **Print / Export PDF** and **Plain Text** download.
-- Your transpose, capo, simplify, text size and scroll speed are remembered per song on your device.
+- Your transpose, simplify, text size and scroll speed are remembered per song on your device.
 
 ### Write
 - **Classic editor**: type lyrics with chords in brackets, like `[C]You are my [F]sunshine`.

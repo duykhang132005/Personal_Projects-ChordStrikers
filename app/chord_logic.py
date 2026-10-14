@@ -1,4 +1,4 @@
-"""Capo suggestions and chord simplifying.
+"""Transposing and chord simplifying.
 
 The same rules live in static/js/chord_tools.js (the page has to work
 offline). tests/test_sheet_tools.py checks both.
@@ -7,8 +7,6 @@ import re
 
 SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-EASY = {'C', 'D', 'E', 'G', 'A', 'Am', 'Dm', 'Em', 'A7', 'D7', 'E7', 'G7', 'C7'}
-OPEN_ROOTS = {'C', 'D', 'E', 'G', 'A'}
 _CHORD_RE = re.compile(r'^([A-G][#b]?)(.*?)(?:/([A-G][#b]?))?$')
 _TOKEN_RE = re.compile(r'\[[^\]]+\]')
 
@@ -70,28 +68,6 @@ def transpose_chord(name, steps, prefer='sharp'):
     if bass:
         shown += '/' + shift_note(bass, steps, prefer)
     return shown
-
-
-def difficulty(name):
-    simple = simplify_chord(name).split('/')[0]
-    if simple in EASY:
-        return 0
-    match = re.match(r'^([A-G][#b]?)(.*)$', simple)
-    if not match:
-        return 4
-    if match.group(1) in OPEN_ROOTS and match.group(2) in ('', 'm', '7', 'm7'):
-        return 1
-    return 4
-
-
-def suggest_capos(chords, max_fret=7, limit=3):
-    ideas = []
-    for fret in range(max_fret + 1):
-        shown = [transpose_chord(chord, -fret) for chord in chords]
-        score = sum(difficulty(chord) for chord in shown)
-        ideas.append({'fret': fret, 'score': score, 'chords': shown})
-    ideas.sort(key=lambda idea: (idea['score'], idea['fret']))
-    return ideas[:limit]
 
 
 def transform_text(text, steps=0, prefer='sharp', simplify=False):

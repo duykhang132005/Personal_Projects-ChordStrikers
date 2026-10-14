@@ -121,6 +121,8 @@ window.addEventListener('resize', updateColumnCount);
 window.addEventListener('orientationchange', updateColumnCount);
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(updateColumnCount);
+  // Roboto Mono loads after first paint, so fit again when it arrives.
+  if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', updateColumnCount);
 }
 
 // --- Transposition + preference ---
@@ -137,7 +139,6 @@ function shift(note, steps, prefer) {
   return toScale[(idx + steps + 12) % 12];
 }
 
-let currentCapo = 0;
 let currentSimplify = false;
 
 function preferValue() {
@@ -146,7 +147,7 @@ function preferValue() {
 }
 
 function applyTransposition(steps, prefer) {
-  const net = steps - currentCapo;
+  const net = steps;
   const scale = prefer === 'flat' ? 'flat' : 'sharp';
   document.querySelectorAll('.chord').forEach(el => {
     const orig = (el.dataset.chord || '').replace(/^\[|\]$/g, '');
@@ -157,12 +158,9 @@ function applyTransposition(steps, prefer) {
     if (currentSimplify && window.ChordTools) shown = ChordTools.simplifyChord(shown);
     el.textContent = '[' + shown + ']';
   });
-  const banner = document.getElementById('capo-banner');
+  const banner = document.getElementById('sheet-banner');
   if (banner) {
     const bits = [];
-    if (currentCapo > 0) {
-      bits.push('Capo ' + currentCapo + '. The names below are the shapes you finger. They sound ' + currentCapo + ' frets higher.');
-    }
     if (currentSimplify) {
       bits.push('Simplify is on, so 7, maj7, sus, add9 and similar extensions are hidden. Slash bass notes stay.');
     }
@@ -983,15 +981,13 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   });
 })();
 
-// --- Per-song choices, capo, simplify, perform, share ---
+// --- Per-song choices, simplify, perform, share ---
 (function () {
   const root = document.getElementById('sheet-root');
   if (!root || !window.ChordTools) return;
   const songId = root.getAttribute('data-song-id');
   const prefKey = 'cs-song-' + songId;
-  const capoSelect = document.getElementById('capo-fret');
   const simplifyBox = document.getElementById('simplify-chords');
-  const suggestions = document.getElementById('capo-suggestions');
   let fontScale = 1;
   let ready = false;
 
@@ -1014,41 +1010,11 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     container.style.fontSize = (base * fontScale) + 'px';
   };
 
-  function soundingChords() {
-    const found = [];
-    document.querySelectorAll('.chord').forEach(function (el) {
-      const name = (el.dataset.chord || '').replace(/^\[|\]$/g, '');
-      if (!name) return;
-      const shown = ChordTools.transposeChord(name, currentSteps, preferValue());
-      if (found.indexOf(shown) === -1) found.push(shown);
-    });
-    return found;
-  }
-
-  function paintSuggestions() {
-    if (!suggestions) return;
-    suggestions.innerHTML = '';
-    ChordTools.suggestCapos(soundingChords()).forEach(function (idea) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'control-btn';
-      btn.textContent = idea.fret === 0 ? 'No capo' : ('Capo ' + idea.fret);
-      btn.title = idea.chords.slice(0, 6).join(', ');
-      btn.addEventListener('click', function () {
-        capoSelect.value = String(idea.fret);
-        capoSelect.dispatchEvent(new Event('change'));
-      });
-      suggestions.appendChild(btn);
-    });
-  }
-
   function refresh() {
     applyTransposition(currentSteps, preferValue());
-    paintSuggestions();
     savePrefs({
       steps: currentSteps,
       prefer: preferValue() === 'flat' ? 'flat' : '',
-      capo: currentCapo,
       simplify: currentSimplify,
       fontScale: fontScale,
       scrollSpeed: window.csScroll ? window.csScroll.getSpeed() : 0
@@ -1061,10 +1027,9 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     if (params.has(name)) return parseInt(params.get(name), 10);
     return fallback;
   }
-  currentCapo = Math.max(0, Math.min(7, pickNumber('capo', saved.capo || 0) || 0));
+  // Older links (?capo=) and saved prefs (capo) are ignored; capo was removed.
   currentSimplify = params.has('simplify') ? params.get('simplify') === '1' : !!saved.simplify;
   fontScale = Math.max(0.7, Math.min(1.8, Number(saved.fontScale) || 1));
-  if (capoSelect) capoSelect.value = String(currentCapo);
   if (simplifyBox) simplifyBox.checked = currentSimplify;
 
   const startSteps = pickNumber('steps', saved.steps || 0);
@@ -1079,10 +1044,6 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   refresh();
   if (fontScale !== 1) updateColumnCount();
 
-  if (capoSelect) capoSelect.addEventListener('change', function () {
-    currentCapo = Math.max(0, Math.min(7, parseInt(capoSelect.value, 10) || 0));
-    refresh();
-  });
   if (simplifyBox) simplifyBox.addEventListener('change', function () {
     currentSimplify = simplifyBox.checked;
     refresh();
@@ -1090,6 +1051,21 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   document.querySelectorAll('.transpose-btn, .prefer-toggle input, .transpose-reset, #steps').forEach(function (el) {
     el.addEventListener('change', refresh);
     el.addEventListener('click', function () { setTimeout(refresh, 0); });
+  });
+
+  // Reset puts the text size back too, then fits the sheet again.
+  document.querySelector('.transpose-reset')?.addEventListener('click', function () {
+    fontScale = 1;
+    const container = document.querySelector('.song-content');
+    if (container) {
+      // Start the fit from scratch, like the first page load does.
+      container.style.width = '';
+      container.style.columnCount = '';
+      container.classList.remove('single-column');
+    }
+    updateColumnCount();
+    requestAnimationFrame(function () { updateColumnCount(); });
+    refresh();
   });
 
   document.getElementById('btn-font-down')?.addEventListener('click', function () {
@@ -1106,7 +1082,7 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   document.getElementById('btn-share')?.addEventListener('click', function () {
     const url = new URL(window.location.href);
     url.searchParams.set('steps', String(currentSteps));
-    url.searchParams.set('capo', String(currentCapo));
+    url.searchParams.delete('capo');
     url.searchParams.set('simplify', currentSimplify ? '1' : '0');
     const preferNow = preferValue();
     if (preferNow === 'flat') url.searchParams.set('prefer', 'flat');
@@ -1142,6 +1118,23 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
   // Perform starts autoscroll. Remember the state before so Exit can put it back.
   const PERFORM_DEFAULT_SPEED = 1;
   let scrollBefore = null;
+  let speedChanged = false;
+  const speedOut = document.getElementById('perform-speed');
+
+  function showSpeed() {
+    if (speedOut && window.csScroll) speedOut.textContent = window.csScroll.getSpeed() + 'x';
+  }
+  function changeSpeed(delta) {
+    if (!window.csScroll) return;
+    const next = Math.max(1, Math.min(4, window.csScroll.getSpeed() + delta));
+    window.csScroll.setSpeed(next);
+    if (paused) window.csScroll.pause();
+    speedChanged = true;
+    savePrefs({ scrollSpeed: next });
+    showSpeed();
+  }
+  document.getElementById('perform-slower')?.addEventListener('click', function () { changeSpeed(-1); });
+  document.getElementById('perform-faster')?.addEventListener('click', function () { changeSpeed(1); });
 
   async function acquireWake() {
     if (!('wakeLock' in navigator)) return;
@@ -1173,11 +1166,14 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
         const savedSpeed = Number(readPrefs().scrollSpeed) || 0;
         const speed = scrollBefore.speed > 0 ? scrollBefore.speed : (savedSpeed > 0 ? savedSpeed : PERFORM_DEFAULT_SPEED);
         window.csScroll.setSpeed(speed);
+        speedChanged = false;
+        showSpeed();
       }
     } else {
       releaseWake();
       if (window.csScroll && scrollBefore) {
-        window.csScroll.setSpeed(scrollBefore.speed);
+        // A speed picked in Perform is kept; otherwise the old speed comes back.
+        if (!speedChanged) window.csScroll.setSpeed(scrollBefore.speed);
         if (!scrollBefore.running) window.csScroll.pause();
       }
       scrollBefore = null;

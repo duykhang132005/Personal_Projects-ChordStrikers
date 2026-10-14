@@ -1,4 +1,4 @@
-"""Sort, capo, simplify, and the color theme picker."""
+"""Sort, transpose, simplify, and the color theme picker."""
 import shutil
 import subprocess
 from pathlib import Path
@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from app import db
-from app.chord_logic import simplify_chord, suggest_capos, transform_text, transpose_chord
+from app import chord_logic
+from app.chord_logic import simplify_chord, transform_text, transpose_chord
 from app.models import Song
 from app.storage import save_song_content
 
@@ -33,13 +34,11 @@ SIMPLIFY_CASES = [
 def test_simplify_chord(raw, expected):
     assert simplify_chord(raw) == expected
 
-def test_capo_suggestion_prefers_open_shapes():
-    ideas = suggest_capos(["B", "F#", "C#m"])
-    assert ideas[0]["fret"] == 4
-    assert ideas[0]["chords"] == ["G", "D", "Am"]
-    assert ideas[0]["score"] == 0
+def test_capo_logic_is_gone():
+    assert not hasattr(chord_logic, 'suggest_capos')
+    assert not hasattr(chord_logic, 'difficulty')
 
-def test_transform_text_applies_capo_and_simplify():
+def test_transform_text_applies_steps_and_simplify():
     shown = transform_text("[B]line [F#m7]here", steps=-4, simplify=True)
     assert shown == "[G]line [Dm]here"
 
@@ -59,10 +58,15 @@ def test_explore_sort_newest(client, app):
     fallback = client.get("/explore?sort=nope").get_data(as_text=True)
     assert "selected" in fallback.split('value="az"')[1][:80]
 
-def test_view_sheet_has_performance_and_capo(client):
+def test_view_sheet_has_performance_and_no_capo(client):
     html = client.get("/view_sheet/1").get_data(as_text=True)
     assert 'id="btn-perform"' in html
-    assert 'id="capo-fret"' in html
+    assert 'capo' not in html.lower()
+    assert 'id="perform-slower"' in html
+    assert 'id="perform-faster"' in html
+    assert 'id="perform-speed"' in html
+    old_link = client.get("/view_sheet/1?steps=2&capo=5&simplify=1")
+    assert old_link.status_code == 200
     assert 'id="simplify-chords"' in html
     assert 'id="btn-tuner"' in html
     assert 'id="sheet-raw"' in html
@@ -122,3 +126,25 @@ def test_first_run_tip_is_gone(client):
     assert 'first-run-tip' not in html
     assert 'cs-tip-dismissed' not in html
     assert 'Tip: star a sheet' not in html
+
+
+def test_explore_has_no_accent_hint(client):
+    html = client.get('/explore').get_data(as_text=True)
+    assert 'Search ignores accents' not in html
+    assert 'explore-search-note' not in html
+
+
+def test_site_nav_links_on_every_page(client):
+    for path, current in (('/', 'Home'), ('/explore', 'Explore'), ('/view_sheet/1', None)):
+        html = client.get(path).get_data(as_text=True)
+        nav = html.split('<nav class="site-nav"', 1)[1].split('</nav>', 1)[0]
+        assert nav.count('<li><a ') == 3
+        for label in ('Home', 'Explore', 'Create'):
+            assert label in nav
+        assert 'href="/creator"' in nav and 'href="/explore"' in nav and 'href="/"' in nav
+        if current:
+            assert ('aria-current="page"><i class="bi') in nav
+            marked = nav.split('aria-current="page">', 1)[1].split('</a>', 1)[0]
+            assert current in marked
+        else:
+            assert 'aria-current' not in nav

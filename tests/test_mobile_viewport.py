@@ -192,3 +192,83 @@ def test_perform_starts_autoscroll_and_exit_restores(browser, live_server, admin
         assert page.evaluate(state) == [3, False]
     finally:
         context.close()
+
+
+@pytest.mark.parametrize('width,height', [(390, 844), (1366, 900)])
+def test_perform_speed_controls(browser, live_server, admin_state, width, height):
+    context, page = _open_sheet(browser, live_server, admin_state, width, height)
+    try:
+        page.click('#btn-perform')
+        assert page.locator('#perform-speed').inner_text() == '1x'
+        page.click('#perform-faster')
+        page.click('#perform-faster')
+        assert page.locator('#perform-speed').inner_text() == '3x'
+        assert page.evaluate("[csScroll.getSpeed(), csScroll.isRunning()]") == [3, True]
+        page.click('#perform-slower')
+        assert page.evaluate("csScroll.getSpeed()") == 2
+        for _ in range(5):
+            page.click('#perform-slower')
+        assert page.evaluate("csScroll.getSpeed()") == 1
+        page.focus('#perform-faster')
+        page.keyboard.press('Enter')
+        assert page.evaluate("csScroll.getSpeed()") == 2
+        size = page.evaluate(OVERFLOW_JS)
+        assert size['sw'] <= size['iw']
+        for sel in ('#perform-slower', '#perform-faster', '#perform-pause', '#perform-exit'):
+            box = page.locator(sel).bounding_box()
+            assert box['height'] >= 40 and box['width'] >= 40
+            assert box['x'] >= 0 and box['x'] + box['width'] <= width + 1
+        page.click('#perform-exit')
+        assert page.evaluate("csScroll.getSpeed()") == 2
+        saved = page.evaluate("JSON.parse(localStorage.getItem('cs-song-' + document.getElementById('sheet-root').dataset.songId))")
+        assert saved['scrollSpeed'] == 2
+    finally:
+        context.close()
+
+
+def test_reset_restores_text_size(browser, live_server, admin_state):
+    context, page = _open_sheet(browser, live_server, admin_state, 1366, 900)
+    try:
+        font = "parseFloat(getComputedStyle(document.querySelector('.song-content')).fontSize)"
+        page.wait_for_function("document.fonts.status === 'loaded'")
+        page.wait_for_timeout(200)
+        start = page.evaluate(font)
+        page.click('#btn-font-up')
+        page.click('#btn-font-up')
+        page.click('.transpose-btn[data-step="1"]')
+        assert page.evaluate(font) > start
+        page.click('.transpose-reset')
+        page.wait_for_timeout(150)
+        assert abs(page.evaluate(font) - start) < 0.2
+        assert page.input_value('#steps') == '0'
+        saved = page.evaluate("JSON.parse(localStorage.getItem('cs-song-' + document.getElementById('sheet-root').dataset.songId))")
+        assert saved['fontScale'] == 1 and saved['steps'] == 0
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize('width,height', PORTRAIT + LANDSCAPE + [(768, 1024), (1366, 900)])
+def test_site_nav_fits_and_hides_in_perform(browser, live_server, admin_state, width, height):
+    context, page = _open_sheet(browser, live_server, admin_state, width, height)
+    try:
+        toggle = page.locator('.site-nav-toggle')
+        if toggle.is_visible():
+            toggle.click()
+            assert toggle.get_attribute('aria-expanded') == 'true'
+        links = page.locator('.site-nav-list a')
+        assert links.count() == 3
+        assert links.nth(2).is_visible()
+        size = page.evaluate(OVERFLOW_JS)
+        assert size['sw'] <= size['iw']
+        nav = page.locator('.site-nav-toggle' if toggle.is_visible() else '.site-nav-list').bounding_box()
+        title = page.locator('h1 .highlight').bounding_box()
+        overlap = not (nav['x'] >= title['x'] + title['width'] or nav['x'] + nav['width'] <= title['x']
+                       or nav['y'] >= title['y'] + title['height'] or nav['y'] + nav['height'] <= title['y'])
+        assert not overlap
+        if toggle.is_visible():
+            page.keyboard.press('Escape')
+        page.click('#btn-perform')
+        assert not page.locator('.site-nav').is_visible()
+        page.click('#perform-exit')
+    finally:
+        context.close()

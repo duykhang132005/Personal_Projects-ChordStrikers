@@ -1378,12 +1378,6 @@ a.control-btn-primary:hover {
     margin-top: 0.75rem;
 }
 
-.explore-search-note {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.9rem;
-}
-
 .explore-sort {
     display: inline-flex;
     align-items: center;
@@ -1393,7 +1387,6 @@ a.control-btn-primary:hover {
 }
 
 .explore-sort select,
-#capo-fret,
 #bpm-input {
     background: #fff;
     color: #1a120c;
@@ -1430,7 +1423,7 @@ a.control-btn-primary:hover {
     }
 }
 
-.capo-banner {
+.sheet-banner {
     margin: 0 0 1rem;
     padding: 0.55rem 0.8rem;
     border-radius: 8px;
@@ -1497,11 +1490,52 @@ a.control-btn-primary:hover {
     outline-offset: -2px;
 }
 
+/* Scroll speed in Perform: - / speed / + next to Back, Pause, Ahead, Exit */
+.perform-speed {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.perform-bar .perform-speed button {
+    flex: 0 0 3rem;
+    font-size: 1.4rem;
+}
+
+#perform-speed {
+    min-width: 2.6rem;
+    color: #ffcc80;
+    font-weight: 700;
+    text-align: center;
+}
+
+@media (max-width: 575.98px) {
+    .perform-bar {
+        flex-wrap: wrap;
+    }
+
+    .perform-speed {
+        flex: 1 1 100%;
+        justify-content: center;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .perform-bar .perform-speed button {
+        min-height: 2.75rem;
+    }
+
+    html body.performance-mode {
+        padding-bottom: 6.2rem;
+    }
+}
+
 body.performance-mode .sheet-controls-layout,
 body.performance-mode .practice-panel,
 body.performance-mode .text-center.p-4,
 body.performance-mode .favorite-status,
-body.performance-mode .capo-banner {
+body.performance-mode .sheet-banner {
     display: none !important;
 }
 
@@ -1589,7 +1623,7 @@ body.performance-mode .song-content {
 @media print {
     .practice-panel,
     .perform-bar,
-    #capo-banner {
+    #sheet-banner {
         display: none !important;
     }
 }
@@ -1698,4 +1732,107 @@ html[data-theme="wooden"] h1 .highlight.text-orange,
 html[data-theme="limelight"] h1 .highlight.text-orange {
     color: #ffe08a !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Top-right site menu: a menu button on phones and tablets, inline links on wide screens */
+.site-nav {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 60;
+    padding: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.site-nav-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(26, 18, 12, 0.78);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.site-nav-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    min-width: 10rem;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    background: rgba(26, 18, 12, 0.94);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.site-nav.open .site-nav-list {
+    display: block;
+}
+
+.site-nav-list a {
+    display: block;
+    margin: 0;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.site-nav-list a:hover,
+.site-nav-list a:focus-visible {
+    background: rgba(255, 136, 0, 0.25);
+    color: #fff;
+}
+
+.site-nav-list a[aria-current="page"] {
+    color: #ffcc80;
+    box-shadow: inset 3px 0 0 #FF8800;
+}
+
+.site-nav-toggle:focus-visible,
+.site-nav-list a:focus-visible {
+    outline: 2px solid #ffcc80;
+    outline-offset: 2px;
+}
+
+@media (min-width: 992px) {
+    .site-nav-toggle {
+        display: none;
+    }
+
+    .site-nav-list,
+    .site-nav.open .site-nav-list {
+        display: flex;
+        position: static;
+        min-width: 0;
+        gap: 0.15rem;
+        border-radius: 999px;
+        background: rgba(26, 18, 12, 0.78);
+    }
+
+    .site-nav-list a {
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+    }
+
+    .site-nav-list a[aria-current="page"] {
+        box-shadow: inset 0 -2px 0 #FF8800;
+    }
+}
+
+body.performance-mode .site-nav {
+    display: none !important;
+}
+
+@media print {
+    .site-nav {
+        display: none !important;
+    }
 }

@@ -12,7 +12,7 @@
   <p class="mb-1"><strong>Artist:</strong> {{ song.artist }}</p>
   {% endif %}
   <p class="mb-2"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}not set{% endif %}</p>
-  <p id="capo-banner" class="capo-banner" hidden></p>
+  <p id="sheet-banner" class="sheet-banner" hidden></p>
 
   <div class="mb-4 sheet-controls-layout">
     <div class="sheet-nav-actions" role="group" aria-label="Navigation">
@@ -88,7 +88,7 @@
           </div>
 
           <div class="control-box">
-            <button type="button" class="transpose-reset control-btn" aria-label="Reset transposition to 0">Reset</button>
+            <button type="button" class="transpose-reset control-btn" aria-label="Reset transposition and text size">Reset</button>
           </div>
         </div>
 
@@ -101,16 +101,7 @@
         </div>
       </div>
 
-      <div class="toolbar-row toolbar-row-center" role="group" aria-label="Capo and performance">
-        <div class="control-box">
-          <label for="capo-fret">Capo</label>
-          <select id="capo-fret" aria-label="Capo fret">
-            {% for fret in range(8) %}
-            <option value="{{ fret }}">{{ fret }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="control-box" id="capo-suggestions" aria-label="Suggested capos"></div>
+      <div class="toolbar-row toolbar-row-center" role="group" aria-label="Sheet and performance">
         <div class="control-box">
           <label class="simplify-label"><input type="checkbox" id="simplify-chords"> Simplify</label>
         </div>
@@ -140,6 +131,11 @@
   </div>
 
   <div id="perform-bar" class="perform-bar" hidden>
+    <div class="perform-speed" role="group" aria-label="Scroll speed">
+      <button type="button" id="perform-slower" aria-label="Scroll slower">&minus;</button>
+      <output id="perform-speed" aria-live="polite">1x</output>
+      <button type="button" id="perform-faster" aria-label="Scroll faster">+</button>
+    </div>
     <button type="button" id="perform-back">Back</button>
     <button type="button" id="perform-pause">Pause</button>
     <button type="button" id="perform-ahead">Ahead</button>

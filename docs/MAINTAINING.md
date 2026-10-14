@@ -7,7 +7,7 @@ Notes for whoever hosts and updates the app. Visitors and contributors can start
 ```text
 app/                    Flask application package
   routes/               Blueprints: main, creator, auth, pwa, favorites
-  chord_logic.py        Transpose, capo suggestions, simplify (server side)
+  chord_logic.py        Transpose and simplify (server side)
   storage.py            Song text file I/O
   parsing.py            Legacy text parser helpers
   utils.py              Chord splitting, iTunes cover fetch, artwork sizes

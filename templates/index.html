@@ -73,6 +73,34 @@
 
 <body class="music-bg" data-signed-in="{{ '1' if current_user else '0' }}">
 
+    {% set _nav = [('main.home', 'Home', 'bi-house'), ('main.explore', 'Explore', 'bi-search'), ('creator.creator', 'Create', 'bi-plus-circle')] %}
+    <nav class="site-nav" aria-label="Main">
+        <button type="button" class="site-nav-toggle" aria-expanded="false" aria-controls="site-nav-list" aria-label="Menu">
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        <ul id="site-nav-list" class="site-nav-list">
+            {% for endpoint, label, icon in _nav %}
+            <li><a href="{{ url_for(endpoint) }}"{% if request.endpoint == endpoint %} aria-current="page"{% endif %}><i class="bi {{ icon }}" aria-hidden="true"></i> {{ label }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+    <script>
+        (function () {
+            var nav = document.querySelector('.site-nav');
+            var toggle = nav && nav.querySelector('.site-nav-toggle');
+            if (!toggle) return;
+            function setOpen(open) {
+                nav.classList.toggle('open', open);
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            toggle.addEventListener('click', function () { setOpen(!nav.classList.contains('open')); });
+            document.addEventListener('click', function (event) { if (!nav.contains(event.target)) setOpen(false); });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && nav.classList.contains('open')) { setOpen(false); toggle.focus(); }
+            });
+        })();
+    </script>
+
     {# Offline copies fetched by the service worker must not eat flash messages. #}
     {% set _flashes = [] if request.headers.get('X-CS-Offline-Save') else get_flashed_messages(with_categories=true) %}
 

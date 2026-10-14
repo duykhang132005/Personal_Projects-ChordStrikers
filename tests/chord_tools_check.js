@@ -6,7 +6,6 @@ for (const pair of cases) {
     process.exit(1);
   }
 }
-const ideas = t.suggestCapos(["B","F#","C#m"]);
-if (ideas[0].fret !== 4 || ideas[0].chords.join(",") !== "G,D,Am") process.exit(1);
+if (t.suggestCapos !== undefined) process.exit(1);
 if (t.transformText("[B]line [F#m7]here", {steps: -4, simplify: true}) !== "[G]line [Dm]here") process.exit(1);
 console.log("ok");
