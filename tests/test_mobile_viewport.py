@@ -75,6 +75,9 @@ def live_server():
         shutil.rmtree(song_dir, ignore_errors=True)
 
 
+_PW = {}
+
+
 @pytest.fixture(scope='module')
 def browser():
     try:
@@ -86,6 +89,7 @@ def browser():
     except Exception as exc:  # pragma: no cover - browsers not installed
         playwright.stop()
         pytest.skip(f'Chromium is not installed for Playwright: {exc}')
+    _PW['playwright'] = playwright
     yield chromium
     chromium.close()
     playwright.stop()
@@ -316,3 +320,58 @@ def test_explore_search_desktop_is_unchanged(browser, live_server):
     assert shape['groupRadius'] == 0 and shape['overflow'] != 'hidden'
     assert len({round(k['top']) for k in shape['kids']}) == 1  # one row
     assert shape['kids'][0]['radius'][0] != '0px'  # Bootstrap rounded ends
+
+
+@pytest.fixture(scope='module')
+def ipad_webkit(browser):
+    """WebKit (Safari engine) with iPad landscape descriptors, if installed."""
+    playwright = _PW['playwright']
+    try:
+        webkit = playwright.webkit.launch()
+    except Exception as exc:  # pragma: no cover - WebKit not installed
+        pytest.skip(f'WebKit is not installed for Playwright: {exc}')
+    yield webkit, playwright.devices
+    webkit.close()
+
+
+IPADS = ['iPad (gen 7) landscape', 'iPad Pro 11 landscape', 'iPad Mini landscape']
+
+
+@pytest.mark.parametrize('device', IPADS)
+def test_ipad_landscape_perform_scrolls_and_bar_fits(ipad_webkit, live_server, admin_state, device):
+    webkit, devices = ipad_webkit
+    context = webkit.new_context(**devices[device], storage_state=admin_state)
+    page = context.new_page()
+    page.goto(f"{live_server['base']}/view_sheet/{live_server['song_id']}", wait_until='load')
+    assert page.evaluate('document.documentElement.scrollWidth - innerWidth') <= 0
+    page.evaluate("document.querySelector('.song-content').style.minHeight = '4000px'")
+    page.click('#btn-perform')
+    # Speed 1 is a sub-pixel step; Safari ignored it before the fix.
+    assert page.inner_text('#perform-speed') == '1x'
+    start = page.evaluate('scrollY')
+    page.wait_for_timeout(1500)
+    assert page.evaluate('scrollY') - start >= 5
+    page.click('#perform-faster')  # Back used to cover + in WebKit
+    assert page.inner_text('#perform-speed') == '2x'
+    page.click('#perform-slower')
+    assert page.inner_text('#perform-speed') == '1x'
+    page.evaluate("scrollTo({top: document.documentElement.scrollHeight - innerHeight - 40, behavior: 'instant'})")
+    page.wait_for_function('innerHeight + scrollY >= document.documentElement.scrollHeight - 2', timeout=15000)
+    context.close()
+
+
+@pytest.mark.parametrize('device', IPADS)
+def test_ipad_landscape_nav_does_not_cover_home_title(ipad_webkit, live_server, device):
+    webkit, devices = ipad_webkit
+    context = webkit.new_context(**devices[device])
+    page = context.new_page()
+    page.goto(live_server['base'] + '/', wait_until='load')
+    overlap = page.evaluate("""() => {
+        const n = document.querySelector('.site-nav').getBoundingClientRect();
+        const h = document.querySelector('h1');
+        const r = document.createRange(); r.selectNodeContents(h);
+        const t = r.getBoundingClientRect();
+        return t.right > n.left && t.left < n.right && t.bottom > n.top && t.top < n.bottom;
+    }""")
+    context.close()
+    assert not overlap

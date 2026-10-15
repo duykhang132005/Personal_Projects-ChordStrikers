@@ -247,9 +247,15 @@ document.getElementById('toggle-vertical').addEventListener('click', () => {
     if (scrollInterval) clearInterval(scrollInterval);
     const speed = getActualSpeed();
     if (speed > 0) {
+      // Track a fractional position and scroll to whole pixels: Safari/WebKit
+      // drops sub-pixel scrollBy steps, so 0.5px per tick never moved on iPad.
+      let pos = window.scrollY;
       scrollInterval = setInterval(() => {
-        window.scrollBy(0, speed);
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+        if (Math.abs(window.scrollY - Math.round(pos)) > 2) pos = window.scrollY; // user scrolled by hand
+        pos += speed;
+        // instant: Bootstrap sets scroll-behavior: smooth on :root.
+        window.scrollTo({ top: Math.round(pos), behavior: 'instant' });
+        if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 1) {
           clearInterval(scrollInterval);
           scrollInterval = null;
         }

@@ -1560,6 +1560,10 @@ a.control-btn-primary:hover {
 
 .perform-bar .perform-speed button {
     flex: 0 0 3rem;
+    /* Explicit width too: Safari/WebKit ignores flex-basis when sizing the
+       auto-width group, which let Back cover the + button on iPads. */
+    width: 3rem;
+    min-width: 3rem;
     font-size: 1.4rem;
 }
 
@@ -1862,7 +1866,9 @@ html[data-theme="limelight"] h1 .highlight.text-orange {
     outline-offset: 2px;
 }
 
-@media (min-width: 992px) {
+/* Inline links only on wide desktops: at iPad landscape widths (1024 to
+   1194px) the pill covered the end of the centered Home title. */
+@media (min-width: 1280px) {
     .site-nav-toggle {
         display: none;
     }
