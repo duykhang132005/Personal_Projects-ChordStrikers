@@ -440,8 +440,31 @@ def test_page_canvas_is_never_white(browser, live_server, engine, theme, expecte
     page.route('**/*.css*', lambda route: route.abort())  # worst case: no stylesheet at all
     page.route('**/*.webp*', lambda route: route.abort())
     page.goto(live_server['base'] + '/explore', wait_until='domcontentloaded')
-    canvas = page.evaluate('getComputedStyle(document.documentElement).backgroundColor')
+    canvas = page.evaluate('getComputedStyle(document.body).backgroundColor')
     context.close()
     if engine == 'webkit':
         launched.close()
     assert canvas == expected
+
+
+@pytest.mark.parametrize('theme', ['', 'wooden', 'limelight'])
+@pytest.mark.parametrize('width,height', [(1366, 900), (390, 780), (1024, 768)])
+def test_home_background_fills_window_no_bottom_band(browser, live_server, theme, width, height):
+    """Regression: a painted html background left a flat band under short pages."""
+    context = browser.new_context(viewport={'width': width, 'height': height})
+    page = context.new_page()
+    page.goto(live_server['base'] + '/')
+    page.evaluate("(t) => localStorage.setItem('cs-theme-v2', t)", theme)
+    page.goto(live_server['base'] + '/', wait_until='load')
+    info = page.evaluate("""() => {
+        const h = getComputedStyle(document.documentElement);
+        const el = document.elementFromPoint(innerWidth / 2, innerHeight - 2);
+        return {htmlBg: h.backgroundColor, htmlImg: h.backgroundImage,
+                bodyImg: getComputedStyle(document.body).backgroundImage,
+                bottom: el ? el.tagName : null};
+    }""")
+    context.close()
+    # html unpainted, so the body background is drawn over the whole canvas.
+    assert info['htmlBg'] == 'rgba(0, 0, 0, 0)' and info['htmlImg'] == 'none'
+    assert info['bodyImg'] != 'none'
+    assert info['bottom'] in ('HTML', 'BODY')  # nothing fixed covering the bottom

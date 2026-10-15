@@ -31,13 +31,14 @@
         })();
     </script>
     <style>
-        /* Critical paint: a dark canvas per theme before styles.css and the
+        /* Critical paint: a dark colour per theme before styles.css and the
            background image arrive, so page changes never flash white.
-           #3a2f63 is the average colour of music_bg.webp. */
-        html { background: #3a2f63; }
-        html[data-theme="wooden"] { background: #3a2412; }
-        html[data-theme="limelight"] { background: #0e2418; }
+           #3a2f63 is the average colour of music_bg.webp. Set on body only:
+           html must stay unpainted so the body background (image or theme
+           pattern) is drawn across the whole window, not just the content. */
         body.music-bg { background-color: #3a2f63; }
+        html[data-theme="wooden"] body { background-color: #3a2412; }
+        html[data-theme="limelight"] body { background-color: #0e2418; }
     </style>
     <!-- Prerender likely next pages on hover/touch (Chromium; others ignore).
          Only safe GET pages: never logout, edit, delete or API URLs. -->

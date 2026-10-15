@@ -97,9 +97,10 @@ def test_no_white_flash_head_order(client):
     head = html.split('</head>', 1)[0]
     first_css = head.index('rel="stylesheet"')
     assert head.index("setAttribute('data-theme'") < first_css
-    assert head.index('html { background: #3a2f63; }') < first_css
-    assert 'html[data-theme="wooden"] { background: #3a2412; }' in head
-    assert 'html[data-theme="limelight"] { background: #0e2418; }' in head
+    assert head.index('body.music-bg { background-color: #3a2f63; }') < first_css
+    assert 'html[data-theme="wooden"] body { background-color: #3a2412; }' in head
+    assert 'html[data-theme="limelight"] body { background-color: #0e2418; }' in head
+    assert 'html { background' not in head  # would stop the body background filling the window
     assert head.index('name="theme-color"') < head.index('<script>')
 
 
