@@ -76,7 +76,7 @@ Static files are served by Flask (Flask-Compress skips them) unless you add a **
 
 ### Health check
 
-`GET /healthz` returns `{"status": "ok", "db": "ok"}` with 200 when a trivial `SELECT 1` works, or `{"status": "error", "db": "error"}` with 503 when it does not. No login, no version or error details, `Cache-Control: no-store`, and the service worker never touches it. Point an uptime monitor at `https://duykhang132005.pythonanywhere.com/healthz`.
+`GET /healthz` returns `{"status": "ok", "db": "ok"}` with 200 when the database answers and the `songs` table exists (`SELECT 1 FROM songs LIMIT 1`; an empty table is fine), or `{"status": "error", "db": "error"}` with 503 when it does not. No login, no version or error details, `Cache-Control: no-store`, and the service worker never touches it. Point an uptime monitor at `https://duykhang132005.pythonanywhere.com/healthz`.
 
 ### Chord font
 
@@ -140,10 +140,22 @@ node scripts/build_vendor_css.js
 
 ## Optional browser tests
 
-Real-browser checks (View Sheet on phone-sized screens: no sideways scrolling, centered toolbar, Perform autoscroll) use Playwright and are skipped when it is not installed:
+Real-browser checks (phone and iPad layouts, Perform autoscroll, menu Create then submit) use Playwright with Chromium and WebKit (the Safari engine) and are skipped when Playwright or a browser is not installed. Playwright is a dev-only dependency: never add it to `requirements.txt`, and PythonAnywhere does not need it.
+
+Windows (PowerShell, from the project folder):
+
+```powershell
+.\venv\Scripts\python.exe -m pip install -r requirements-browser.txt
+.\venv\Scripts\python.exe -m playwright install chromium webkit
+.\venv\Scripts\python.exe -m pytest -q
+```
+
+macOS / Linux:
 
 ```bash
 pip install -r requirements-browser.txt
-python -m playwright install chromium
-python -m pytest -m browser
+python -m playwright install chromium webkit
+python -m pytest -q
 ```
+
+On Linux, WebKit may also need system libraries: `sudo python -m playwright install-deps webkit`. WebKit emulates iPad Safari layout but is not a real iPad.

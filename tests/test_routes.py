@@ -44,10 +44,10 @@ def test_explore_route_filter(client):
     assert b"Test Song" not in response_empty.data
 
 
-def test_creator_route(client):
+def test_creator_route_redirects_to_create(client):
     response = client.get('/creator')
-    assert response.status_code == 200
-    assert b"Create New Song" in response.data
+    assert response.status_code == 308
+    assert response.headers['Location'].endswith('/create')
 
 
 def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
@@ -76,7 +76,7 @@ def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
         assert client.get('/').status_code == 200
         explore = client.get('/explore')
         assert explore.status_code == 200
-        assert client.get('/creator').status_code == 200
+        assert client.get('/creator').status_code == 308
 
         conn = sqlite3.connect(db_path)
         tables = {
@@ -318,10 +318,19 @@ def test_500_error_page(app):
 
 def test_creator_form_posts_to_create_not_get_only_creator(client):
     """Regression: /creator rendered action="" and submitting gave 405."""
-    html = client.get('/creator').get_data(as_text=True)
-    assert 'action="/create"' in html
-    assert client.post('/creator', data={'title': 'x'}).status_code == 405
+    stale = client.post('/creator', data={'title': 'x'})
+    assert stale.status_code == 308  # method-preserving, never 405
+    assert stale.headers['Location'].endswith('/create')
     assert client.get('/create').status_code in (302, 401)  # login gate
+
+
+def test_stale_post_to_creator_saves_song(auth_client, app):
+    from app.models import Song
+    response = auth_client.post('/creator', data={'title': 'Stale form song', 'sheet_content': '[C]la'},
+                                follow_redirects=True)
+    assert response.status_code == 200
+    with app.app_context():
+        assert Song.query.filter_by(title='Stale form song').count() == 1
 
 
 def test_menu_create_link_targets_create(client):

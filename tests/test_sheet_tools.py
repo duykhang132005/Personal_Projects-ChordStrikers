@@ -116,7 +116,7 @@ def test_chordpro_is_gone(client, auth_client):
     assert 'btn-download-cho' not in sheet
     assert 'id="btn-share"' in sheet
     assert 'id="btn-download-txt"' in sheet
-    creator = auth_client.get("/creator").get_data(as_text=True)
+    creator = auth_client.get("/create").get_data(as_text=True)
     assert 'chordpro-paste' not in creator
     assert 'toggle-touch-editor' in creator
 

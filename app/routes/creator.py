@@ -18,13 +18,14 @@ def _assert_song_editable(song):
         abort(403)
 
 
-@creator_bp.route('/creator')
+@creator_bp.route('/creator', methods=['GET', 'POST'])
 def creator():
-    """Display list of all songs."""
-    # The form must post to /create: this URL is GET only, so an empty
-    # action here used to submit back to /creator and fail with 405.
-    songs = Song.query.all()
-    return render_template("creator.html", songs=songs, form_action_url=url_for('creator.create'))
+    """Old address of the create page; send everything to /create.
+
+    308 keeps the method and body, so a stale cached form that still posts
+    here is saved by /create instead of failing with 405.
+    """
+    return redirect(url_for('creator.create'), code=308)
 
 
 @creator_bp.route('/create', methods=['GET', 'POST'])

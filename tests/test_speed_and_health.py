@@ -2,6 +2,7 @@
 import gzip
 from unittest import mock
 
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
 from app import db
@@ -65,3 +66,14 @@ def test_scroll_speed_buttons_are_in_the_markup(client):
     """Rendering them server-side keeps the toolbar from jumping (layout shift)."""
     html = client.get('/view_sheet/1').get_data(as_text=True)
     assert 'id="scroll-slower"' in html and 'id="scroll-faster"' in html
+
+
+def test_healthz_reports_missing_songs_table(client, app):
+    with app.app_context():
+        db.session.execute(text('DROP TABLE songs'))
+        db.session.commit()
+    response = client.get('/healthz')
+    assert response.status_code == 503
+    assert response.get_json() == {'status': 'error', 'db': 'error'}
+    assert response.headers['Cache-Control'] == 'no-store'
+    assert 'songs' not in response.get_data(as_text=True)

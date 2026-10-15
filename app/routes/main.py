@@ -163,7 +163,8 @@ def view_sheet(song_id):
 def healthz():
     """Uptime check: no auth, no secrets, never cached."""
     try:
-        db.session.execute(text('SELECT 1'))
+        # Also proves the songs table exists (empty table is still healthy).
+        db.session.execute(text('SELECT 1 FROM songs LIMIT 1'))
         body, status = {'status': 'ok', 'db': 'ok'}, 200
     except Exception:  # any database failure means unhealthy
         db.session.rollback()
