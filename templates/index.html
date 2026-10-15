@@ -3,6 +3,9 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3a2f63">
     <script>
         (function () {
             /* cs-theme-v2 is the live choice: "wooden" or "limelight".
@@ -23,13 +26,30 @@
                 }
             } catch (e) { theme = ''; }
             if (theme) document.documentElement.setAttribute('data-theme', theme);
+            var bar = { wooden: '#3a2412', limelight: '#0e2418' }[theme];
+            if (bar) document.querySelector('meta[name="theme-color"]').setAttribute('content', bar);
         })();
     </script>
+    <style>
+        /* Critical paint: a dark canvas per theme before styles.css and the
+           background image arrive, so page changes never flash white.
+           #3a2f63 is the average colour of music_bg.webp. */
+        html { background: #3a2f63; }
+        html[data-theme="wooden"] { background: #3a2412; }
+        html[data-theme="limelight"] { background: #0e2418; }
+        body.music-bg { background-color: #3a2f63; }
+    </style>
+    <!-- Prerender likely next pages on hover/touch (Chromium; others ignore).
+         Only safe GET pages: never logout, edit, delete or API URLs. -->
+    <script type="speculationrules">
+        {"prerender": [{"where": {"or": [
+            {"href_matches": "/"},
+            {"href_matches": "/explore"},
+            {"href_matches": "/create"},
+            {"href_matches": "/view_sheet/*"}
+        ]}, "eagerness": "moderate"}]}
+    </script>
 
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{% block title %}ChordStrikers{% endblock %}</title>
 
@@ -41,7 +61,6 @@
 
     <!-- Installable app (PWA) -->
     <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
-    <meta name="theme-color" content="#1a120c">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="ChordStrikers">

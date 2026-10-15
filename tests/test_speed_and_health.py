@@ -89,3 +89,26 @@ def test_view_transitions_css_and_reduced_motion(client):
     # Chord sheet must never be a shared element (would animate sheet open).
     assert 'view-transition-name: song' not in css
     assert 'view-transition-name: sheet' not in css
+
+
+def test_no_white_flash_head_order(client):
+    """Theme and a dark canvas are set inline before any stylesheet loads."""
+    html = client.get('/').get_data(as_text=True)
+    head = html.split('</head>', 1)[0]
+    first_css = head.index('rel="stylesheet"')
+    assert head.index("setAttribute('data-theme'") < first_css
+    assert head.index('html { background: #3a2f63; }') < first_css
+    assert 'html[data-theme="wooden"] { background: #3a2412; }' in head
+    assert 'html[data-theme="limelight"] { background: #0e2418; }' in head
+    assert head.index('name="theme-color"') < head.index('<script>')
+
+
+def test_speculation_rules_only_safe_pages(client):
+    import json
+    html = client.get('/').get_data(as_text=True)
+    rules = json.loads(html.split('<script type="speculationrules">', 1)[1].split('</script>', 1)[0])
+    patterns = [r['href_matches'] for r in rules['prerender'][0]['where']['or']]
+    assert patterns == ['/', '/explore', '/create', '/view_sheet/*']
+    assert rules['prerender'][0]['eagerness'] == 'moderate'
+    for unsafe in ('logout', 'edit', 'delete', 'api', 'favorites'):
+        assert not any(unsafe in p for p in patterns)

@@ -420,3 +420,28 @@ def test_chromium_nav_with_view_transitions(browser, live_server, admin_state):
     assert page.evaluate('scrollY') - start >= 5
     page.click('#perform-exit')
     context.close()
+
+
+@pytest.mark.parametrize('engine', ['chromium', 'webkit'])
+@pytest.mark.parametrize('theme,expected', [('', 'rgb(58, 47, 99)'), ('wooden', 'rgb(58, 36, 18)'), ('limelight', 'rgb(14, 36, 24)')])
+def test_page_canvas_is_never_white(browser, live_server, engine, theme, expected):
+    """Before styles.css and the background image load, html is already dark."""
+    if engine == 'webkit':
+        try:
+            launched = _PW['playwright'].webkit.launch()
+        except Exception as exc:  # pragma: no cover - WebKit not installed
+            pytest.skip(f'WebKit is not installed for Playwright: {exc}')
+    else:
+        launched = browser
+    context = launched.new_context(viewport={'width': 390, 'height': 780})
+    page = context.new_page()
+    page.goto(live_server['base'] + '/explore')
+    page.evaluate("(t) => localStorage.setItem('cs-theme-v2', t)", theme)
+    page.route('**/*.css*', lambda route: route.abort())  # worst case: no stylesheet at all
+    page.route('**/*.webp*', lambda route: route.abort())
+    page.goto(live_server['base'] + '/explore', wait_until='domcontentloaded')
+    canvas = page.evaluate('getComputedStyle(document.documentElement).backgroundColor')
+    context.close()
+    if engine == 'webkit':
+        launched.close()
+    assert canvas == expected

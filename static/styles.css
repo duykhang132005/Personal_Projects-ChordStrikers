@@ -1923,26 +1923,11 @@ body.performance-mode .site-nav {
     navigation: auto;
 }
 
+/* Keep the browser's own crossfade (old fades out while new fades in,
+   blended so there is no dark or white dip); only shorten it. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation-duration: 180ms;
-    animation-timing-function: ease;
-}
-
-::view-transition-old(root) {
-    animation-name: cs-vt-fade-out;
-}
-
-::view-transition-new(root) {
-    animation-name: cs-vt-fade-in;
-}
-
-@keyframes cs-vt-fade-out {
-    to { opacity: 0; transform: translateY(-4px); }
-}
-
-@keyframes cs-vt-fade-in {
-    from { opacity: 0; transform: translateY(4px); }
 }
 
 .site-nav {
