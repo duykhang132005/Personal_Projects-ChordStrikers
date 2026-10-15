@@ -120,7 +120,7 @@
 
     {% if _flashes and request.args.get('signin') != '1' and request.args.get('account') != '1' %}
 
-    <div class="container mt-3">
+    <div class="container flash-stack">
 
         {% for category, message in _flashes %}
 

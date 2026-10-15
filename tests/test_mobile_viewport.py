@@ -468,3 +468,25 @@ def test_home_background_fills_window_no_bottom_band(browser, live_server, theme
     assert info['htmlBg'] == 'rgba(0, 0, 0, 0)' and info['htmlImg'] == 'none'
     assert info['bodyImg'] != 'none'
     assert info['bottom'] in ('HTML', 'BODY')  # nothing fixed covering the bottom
+
+
+@pytest.mark.parametrize('width,height', [(360, 740), (390, 780), (1024, 768), (1366, 900)])
+def test_flash_close_button_is_clickable_and_dismisses(browser, live_server, width, height):
+    """Regression: the top-right menu covered the flash banner close X."""
+    import uuid
+    user = 'flash' + uuid.uuid4().hex[:6]
+    context = browser.new_context(viewport={'width': width, 'height': height})
+    context.request.post(live_server['base'] + '/register', max_redirects=0,
+                         form={'username': user, 'password': 'pw', 'confirmation': 'pw'})
+    page = context.new_page()
+    page.goto(live_server['base'] + '/explore', wait_until='load')  # shows the welcome flash
+    assert page.locator('.alert').count() == 1
+    hit = page.evaluate("""() => {
+        const btn = document.querySelector('.alert .btn-close');
+        const r = btn.getBoundingClientRect();
+        return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === btn;
+    }""")
+    assert hit
+    page.click('.alert .btn-close')  # a real click, not forced
+    page.wait_for_selector('.alert', state='detached')
+    context.close()

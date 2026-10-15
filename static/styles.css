@@ -1893,6 +1893,13 @@ html[data-theme="limelight"] h1 .highlight.text-orange {
     }
 }
 
+/* Flash banners start below the top-right menu so their close X is never
+   covered (the menu sits at top: 0.6rem and is about 2.75rem tall). The
+   open phone dropdown (z-index 60) still drops over the banners. */
+.flash-stack {
+    margin-top: 3.9rem;
+}
+
 body.performance-mode .site-nav {
     display: none !important;
 }
