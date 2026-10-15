@@ -9,6 +9,7 @@
 *.gif binary
 *.webp binary
 *.ico binary
+*.woff2 binary
 *.db binary
 *.sqlite binary
 *.sqlite3 binary

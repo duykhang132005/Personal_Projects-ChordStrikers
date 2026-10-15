@@ -272,3 +272,47 @@ def test_site_nav_fits_and_hides_in_perform(browser, live_server, admin_state, w
         page.click('#perform-exit')
     finally:
         context.close()
+
+
+_SEARCH_SHAPE = """() => {
+    const group = document.querySelector('.input-group');
+    const g = getComputedStyle(group);
+    const kids = [...group.children].map((el) => {
+        const s = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return {radius: [s.borderTopLeftRadius, s.borderTopRightRadius,
+                         s.borderBottomLeftRadius, s.borderBottomRightRadius],
+                left: r.left, width: r.width, top: r.top};
+    });
+    return {groupRadius: parseFloat(g.borderTopLeftRadius), overflow: g.overflow,
+            groupWidth: group.getBoundingClientRect().width, kids};
+}"""
+
+
+@pytest.mark.parametrize('theme', ['', 'wooden', 'limelight'])
+@pytest.mark.parametrize('width', [360, 390])
+def test_explore_search_is_one_rounded_card_on_phones(browser, live_server, theme, width):
+    context = browser.new_context(viewport={'width': width, 'height': 780}, is_mobile=True)
+    page = context.new_page()
+    page.goto(live_server['base'] + '/explore')
+    page.evaluate("(t) => localStorage.setItem('cs-theme-v2', t)", theme)
+    page.goto(live_server['base'] + '/explore', wait_until='load')
+    shape = page.evaluate(_SEARCH_SHAPE)
+    context.close()
+    assert shape['groupRadius'] >= 8 and shape['overflow'] == 'hidden'
+    tops = [k['top'] for k in shape['kids']]
+    assert tops == sorted(tops) and len(set(tops)) == len(tops)  # stacked
+    for kid in shape['kids']:
+        assert kid['radius'] == ['0px'] * 4  # uniform; the card clips the corners
+        assert abs(kid['width'] - (shape['groupWidth'] - 2)) < 2
+
+
+def test_explore_search_desktop_is_unchanged(browser, live_server):
+    context = browser.new_context(viewport={'width': 1366, 'height': 900})
+    page = context.new_page()
+    page.goto(live_server['base'] + '/explore', wait_until='load')
+    shape = page.evaluate(_SEARCH_SHAPE)
+    context.close()
+    assert shape['groupRadius'] == 0 and shape['overflow'] != 'hidden'
+    assert len({round(k['top']) for k in shape['kids']}) == 1  # one row
+    assert shape['kids'][0]['radius'][0] != '0px'  # Bootstrap rounded ends

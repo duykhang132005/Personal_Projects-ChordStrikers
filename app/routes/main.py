@@ -1,6 +1,7 @@
 import os
 import unicodedata
-from flask import Blueprint, render_template, request, abort
+from flask import Blueprint, render_template, request, abort, jsonify
+from sqlalchemy import text
 from sqlalchemy.orm import joinedload
 from .. import db
 from ..models import Song
@@ -156,3 +157,18 @@ def view_sheet(song_id):
         is_favorite=song_id in favorite_ids_for(user),
         raw_text=raw_text,
     )
+
+
+@main_bp.route('/healthz')
+def healthz():
+    """Uptime check: no auth, no secrets, never cached."""
+    try:
+        db.session.execute(text('SELECT 1'))
+        body, status = {'status': 'ok', 'db': 'ok'}, 200
+    except Exception:  # any database failure means unhealthy
+        db.session.rollback()
+        body, status = {'status': 'error', 'db': 'error'}, 503
+    response = jsonify(body)
+    response.status_code = status
+    response.headers['Cache-Control'] = 'no-store'
+    return response

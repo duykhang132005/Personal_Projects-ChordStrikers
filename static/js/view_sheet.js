@@ -120,9 +120,9 @@ window.addEventListener('load', updateColumnCount);
 window.addEventListener('resize', updateColumnCount);
 window.addEventListener('orientationchange', updateColumnCount);
 if (document.fonts && document.fonts.ready) {
+  // One more fit once fonts settle. The chord font is preloaded, so it is
+  // usually ready before the first fit and this changes nothing.
   document.fonts.ready.then(updateColumnCount);
-  // Roboto Mono loads after first paint, so fit again when it arrives.
-  if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', updateColumnCount);
 }
 
 // --- Transposition + preference ---
@@ -257,18 +257,10 @@ document.getElementById('toggle-vertical').addEventListener('click', () => {
     }
   }
 
-  const downBtn = document.createElement('button');
-  downBtn.textContent = '−';
-  downBtn.type = 'button';
-  downBtn.classList.add('control-btn');
-  const upBtn = document.createElement('button');
-  upBtn.textContent = '+';
-  upBtn.type = 'button';
-  upBtn.classList.add('control-btn');
-
-
-  btn.parentNode.insertBefore(downBtn, btn);
-  btn.parentNode.insertBefore(upBtn, btn.nextSibling);
+  // The - and + buttons are in the page markup so the toolbar does not
+  // change size (layout shift) when this script runs.
+  const downBtn = document.getElementById('scroll-slower');
+  const upBtn = document.getElementById('scroll-faster');
 
   function updateDisplay() {
     btn.textContent = `Scroll Speed ${displaySpeed.toFixed(0)}x`;

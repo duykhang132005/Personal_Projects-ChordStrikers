@@ -1,6 +1,7 @@
 import os
 import warnings
 from flask import Flask, render_template
+from flask_compress import Compress
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
@@ -8,6 +9,7 @@ from .config import Config
 from .assets import compute_static_version
 
 db = SQLAlchemy()
+compress = Compress()
 
 # Placeholder values that must not be trusted as real secrets.
 _PLACEHOLDER_KEYS = {'your_random_secret_key_here', 'fallback-dev-key'}
@@ -73,6 +75,11 @@ def create_app(test_config=None):
 
     # Initialize Extensions
     db.init_app(app)
+    # gzip text responses (HTML, CSS, JS, JSON) when the browser asks for it.
+    # gzip only keeps behaviour predictable for the service worker and old clients.
+    app.config.setdefault('COMPRESS_ALGORITHM', ['gzip'])
+    app.config.setdefault('COMPRESS_MIN_SIZE', 500)
+    compress.init_app(app)
 
     # Import and register blueprints
     from .routes.main import main_bp

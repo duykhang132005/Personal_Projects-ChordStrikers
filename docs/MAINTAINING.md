@@ -63,6 +63,25 @@ The live site runs from `~/Personal_Projects-ChordStrikers`. A normal update is:
 
 New tables and columns are created on startup, so there is no migration step.
 
+### After this update: install Flask-Compress
+
+`requirements.txt` now includes `Flask-Compress==1.25` (gzip for HTML and JSON). The app will not start without it, so install it before pressing Reload:
+
+1. Bash console: `cd ~/Personal_Projects-ChordStrikers && git pull`
+2. `workon <your-virtualenv>` (or `source <virtualenv path>/bin/activate`; the path is on the Web tab), then `pip install -r requirements.txt`
+3. Press **Reload** on the Web tab.
+4. Check `https://duykhang132005.pythonanywhere.com/healthz` shows `{"db": "ok", "status": "ok"}`.
+
+Static files are served by Flask (Flask-Compress skips them) unless you add a **Static files** mapping on the Web tab (URL `/static/`, directory `/home/YOUR_PA_USERNAME/Personal_Projects-ChordStrikers/static`), in which case PythonAnywhere's own web server serves them, which may compress them. Unconfirmed whether PythonAnywhere gzips app responses by itself; with Flask-Compress it does not matter.
+
+### Health check
+
+`GET /healthz` returns `{"status": "ok", "db": "ok"}` with 200 when a trivial `SELECT 1` works, or `{"status": "error", "db": "error"}` with 503 when it does not. No login, no version or error details, `Cache-Control: no-store`, and the service worker never touches it. Point an uptime monitor at `https://duykhang132005.pythonanywhere.com/healthz`.
+
+### Chord font
+
+Roboto Mono (Apache License 2.0) is self-hosted in `static/fonts/` (latin and Vietnamese subsets of the variable font, weights 400 to 700) and preloaded in `templates/index.html`, so sheets render with it on first paint and offline. If you replace the files, keep the `@font-face` URLs in `static/styles.css` and the preload links in sync.
+
 ### SECRET_KEY is required
 
 The app will not start without a `SECRET_KEY`, because a public default would let anyone forge login cookies. Set it in the host environment or in `.env`:
