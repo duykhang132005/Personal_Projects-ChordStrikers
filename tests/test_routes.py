@@ -314,3 +314,17 @@ def test_500_error_page(app):
     assert 'error-home-btn' in html
     assert 'href="/"' in html
     assert 'Traceback' not in html
+
+
+def test_creator_form_posts_to_create_not_get_only_creator(client):
+    """Regression: /creator rendered action="" and submitting gave 405."""
+    html = client.get('/creator').get_data(as_text=True)
+    assert 'action="/create"' in html
+    assert client.post('/creator', data={'title': 'x'}).status_code == 405
+    assert client.get('/create').status_code in (302, 401)  # login gate
+
+
+def test_menu_create_link_targets_create(client):
+    html = client.get('/').get_data(as_text=True)
+    nav = html.split('<nav class="site-nav"', 1)[1].split('</nav>', 1)[0]
+    assert 'href="/create"' in nav and 'href="/creator"' not in nav

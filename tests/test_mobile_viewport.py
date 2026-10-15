@@ -375,3 +375,28 @@ def test_ipad_landscape_nav_does_not_cover_home_title(ipad_webkit, live_server, 
     }""")
     context.close()
     assert not overlap
+
+
+@pytest.mark.parametrize('engine', ['chromium', 'webkit'])
+def test_menu_create_then_submit_saves_song(browser, live_server, admin_state, engine):
+    """Regression: menu Create -> submit returned 405 (form posted to /creator)."""
+    if engine == 'webkit':
+        try:
+            launched = _PW['playwright'].webkit.launch()
+        except Exception as exc:  # pragma: no cover - WebKit not installed
+            pytest.skip(f'WebKit is not installed for Playwright: {exc}')
+    else:
+        launched = browser
+    context = launched.new_context(viewport={'width': 1366, 'height': 900}, storage_state=admin_state)
+    page = context.new_page()
+    page.goto(live_server['base'] + '/explore', wait_until='load')
+    page.click('.site-nav-list a:has-text("Create")')
+    page.fill('[name=title]', 'Menu create ' + engine)
+    with page.expect_navigation() as nav:
+        page.evaluate("document.querySelector('form[method=POST]').requestSubmit()")
+    status = nav.value.status if nav.value else None
+    url = page.url
+    context.close()
+    if engine == 'webkit':
+        launched.close()
+    assert status == 200 and '/creator' not in url and '/create' not in url

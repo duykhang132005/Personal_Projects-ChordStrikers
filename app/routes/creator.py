@@ -21,8 +21,10 @@ def _assert_song_editable(song):
 @creator_bp.route('/creator')
 def creator():
     """Display list of all songs."""
+    # The form must post to /create: this URL is GET only, so an empty
+    # action here used to submit back to /creator and fail with 405.
     songs = Song.query.all()
-    return render_template("creator.html", songs=songs)
+    return render_template("creator.html", songs=songs, form_action_url=url_for('creator.create'))
 
 
 @creator_bp.route('/create', methods=['GET', 'POST'])

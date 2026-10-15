@@ -141,7 +141,7 @@ def test_site_nav_links_on_every_page(client):
         assert nav.count('<li><a ') == 3
         for label in ('Home', 'Explore', 'Create'):
             assert label in nav
-        assert 'href="/creator"' in nav and 'href="/explore"' in nav and 'href="/"' in nav
+        assert 'href="/create"' in nav and 'href="/explore"' in nav and 'href="/"' in nav
         if current:
             assert ('aria-current="page"><i class="bi') in nav
             marked = nav.split('aria-current="page">', 1)[1].split('</a>', 1)[0]

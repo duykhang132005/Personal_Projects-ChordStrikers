@@ -12,7 +12,7 @@
   </p>
 
   <div>
-    <form method="POST" action="{{ form_action_url }}"
+    <form method="POST" action="{{ form_action_url or url_for('creator.create') }}"
           enctype="multipart/form-data" id="edit-form">
 
       <!-- Title -->
