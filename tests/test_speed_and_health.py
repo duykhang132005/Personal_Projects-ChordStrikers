@@ -77,3 +77,15 @@ def test_healthz_reports_missing_songs_table(client, app):
     assert response.get_json() == {'status': 'error', 'db': 'error'}
     assert response.headers['Cache-Control'] == 'no-store'
     assert 'songs' not in response.get_data(as_text=True)
+
+
+def test_view_transitions_css_and_reduced_motion(client):
+    css = client.get('/static/styles.css').get_data(as_text=True)
+    assert '@view-transition' in css and 'navigation: auto' in css
+    assert '::view-transition-old(root)' in css
+    assert 'prefers-reduced-motion: reduce' in css
+    assert 'navigation: none' in css
+    assert 'view-transition-name: site-nav' in css
+    # Chord sheet must never be a shared element (would animate sheet open).
+    assert 'view-transition-name: song' not in css
+    assert 'view-transition-name: sheet' not in css

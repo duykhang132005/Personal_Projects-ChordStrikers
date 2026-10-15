@@ -1914,3 +1914,52 @@ body.performance-mode .site-nav {
     overflow: visible;
     text-align: center;
 }
+
+
+/* Cross-document View Transitions (Chromium). Other browsers ignore these
+   and navigate normally. Reduced motion turns them off entirely. Never name
+   the chord sheet: that would animate sheet content on every sheet open. */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: ease;
+}
+
+::view-transition-old(root) {
+    animation-name: cs-vt-fade-out;
+}
+
+::view-transition-new(root) {
+    animation-name: cs-vt-fade-in;
+}
+
+@keyframes cs-vt-fade-out {
+    to { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes cs-vt-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+}
+
+.site-nav {
+    view-transition-name: site-nav;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+
+    .site-nav {
+        view-transition-name: none;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}

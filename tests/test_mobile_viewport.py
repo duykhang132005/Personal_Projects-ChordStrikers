@@ -400,3 +400,23 @@ def test_menu_create_then_submit_saves_song(browser, live_server, admin_state, e
     if engine == 'webkit':
         launched.close()
     assert status == 200 and '/creator' not in url and '/create' not in url
+
+
+def test_chromium_nav_with_view_transitions(browser, live_server, admin_state):
+    """Cross-document View Transitions must not break Chromium navigations."""
+    context = browser.new_context(viewport={'width': 390, 'height': 780}, storage_state=admin_state)
+    page = context.new_page()
+    page.goto(live_server['base'] + '/', wait_until='load')
+    page.click('.site-nav-toggle')
+    page.click('.site-nav-list a:has-text("Explore")')
+    page.wait_for_url('**/explore**')
+    page.click('.site-nav-toggle')
+    page.click('.site-nav-list a:has-text("Create")')
+    page.wait_for_url('**/create**')
+    page.goto(f"{live_server['base']}/view_sheet/{live_server['song_id']}", wait_until='load')
+    page.click('#btn-perform')
+    start = page.evaluate('scrollY')
+    page.wait_for_timeout(1500)
+    assert page.evaluate('scrollY') - start >= 5
+    page.click('#perform-exit')
+    context.close()
