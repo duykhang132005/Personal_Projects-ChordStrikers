@@ -22,6 +22,13 @@
 /* ────────────────────────────────────────────────────────────────
    Base Layout & Typography
 ──────────────────────────────────────────────────────────────── */
+/* Always reserve the scrollbar's space so pages and Explore tabs do not
+   jump sideways when a short list (no scrollbar) swaps for a long one.
+   No effect where scrollbars overlay content (phones, tablets, macOS). */
+html {
+    scrollbar-gutter: stable;
+}
+
 body {
     margin: 0;
     background: #f8f9fa;

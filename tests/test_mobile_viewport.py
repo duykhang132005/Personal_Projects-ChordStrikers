@@ -490,3 +490,29 @@ def test_flash_close_button_is_clickable_and_dismisses(browser, live_server, wid
     page.click('.alert .btn-close')  # a real click, not forced
     page.wait_for_selector('.alert', state='detached')
     context.close()
+
+
+def test_explore_tabs_line_up_with_classic_scrollbars(browser, live_server, admin_state):
+    """Regression: short tabs (no scrollbar) shifted the page sideways on desktop."""
+    real_scrollbars = _PW['playwright'].chromium.launch(ignore_default_args=['--hide-scrollbars'])
+    context = real_scrollbars.new_context(viewport={'width': 1366, 'height': 900}, storage_state=admin_state)
+    page = context.new_page()
+    # Make the library long enough to scroll so its scrollbar appears.
+    page.goto(live_server['base'] + '/explore?tab=library', wait_until='load')
+    page.add_style_tag(content='#explore-panel-library { min-height: 3000px; }')
+    page.evaluate("""() => { window.__cls = 0; new PerformanceObserver((list) => {
+        for (const e of list.getEntries()) if (!e.hadRecentInput) window.__cls += e.value;
+    }).observe({type: 'layout-shift'}); }""")
+    spots = {}
+    for tab in ('mine', 'favorites', 'library'):
+        page.click(f'#explore-tab-{tab}')
+        page.wait_for_timeout(200)
+        spots[tab] = page.evaluate("""() => ['h1', '.input-group', '.explore-tabs'].map((s) => {
+            const r = document.querySelector(s).getBoundingClientRect();
+            return [Math.round(r.left), Math.round(r.top), Math.round(r.width)];
+        })""")
+    cls = page.evaluate('window.__cls')
+    context.close()
+    real_scrollbars.close()
+    assert spots['mine'] == spots['favorites'] == spots['library']
+    assert cls < 0.01
