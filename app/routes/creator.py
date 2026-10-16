@@ -36,6 +36,8 @@ def create():
         title = request.form.get('title', '').strip()
         artist = request.form.get('artist', '').strip()
         song_key = request.form.get('song_key', '').strip()
+        album = request.form.get('album', '').strip()[:200] or None
+        hidden = request.form.get('hidden') == '1'
         custom_image_url = request.form.get('image_url', '').strip()
         content = normalise_spacing(request.form.get('sheet_content', ''))
         
@@ -44,13 +46,16 @@ def create():
             flash("Title is required.", "error")
             # Create a simple object to preserve form values for error display
             class TempSong:
-                def __init__(self, title, artist, song_key, image_url):
+                def __init__(self, title, artist, song_key, image_url, album, hidden):
                     self.title = title
                     self.artist = artist
                     self.song_key = song_key
                     self.image_url = image_url
+                    self.album = album
+                    self.hidden = hidden
             
-            temp_song = TempSong(title, artist if artist else None, song_key, custom_image_url if custom_image_url else None)
+            temp_song = TempSong(title, artist if artist else None, song_key,
+                                 custom_image_url if custom_image_url else None, album, hidden)
             return render_template(
                 "creator.html",
                 form_action_url=url_for('creator.create'),
@@ -63,6 +68,8 @@ def create():
             title=title, 
             artist=artist if artist else None, 
             song_key=song_key,
+            album=album,
+            hidden=hidden,
             user_id=session['user_id'],
         )
         
@@ -83,7 +90,7 @@ def create():
             if sanitized_custom:
                 new_song.image_url = sanitized_custom
             else:
-                image_url = get_song_image_url(title, artist if artist else None)
+                image_url = get_song_image_url(title, artist if artist else None, album)
                 if image_url:
                     new_song.image_url = image_url
 
@@ -111,12 +118,16 @@ def edit_song(song_id):
         original_title = song.title
         original_artist = song.artist
         original_image_url = song.image_url
+        original_album = song.album
         
         # Update song metadata
         song.title = request.form.get('title', '').strip()
         new_artist = request.form.get('artist', '').strip()
         song.artist = new_artist if new_artist else None
         song.song_key = request.form.get('song_key', '').strip()
+        song.album = request.form.get('album', '').strip()[:200] or None
+        # Only reachable by the owner or an admin (_assert_song_editable above).
+        song.hidden = request.form.get('hidden') == '1'
         custom_image_url = request.form.get('image_url', '').strip()
         content = normalise_spacing(request.form.get('sheet_content', ''))
         
@@ -140,10 +151,12 @@ def edit_song(song_id):
             # Auto-search iTunes if title/artist changed or no image exists
             title_changed = song.title != original_title
             artist_changed = song.artist != original_artist
-            if title_changed or artist_changed or not original_image_url:
+            album_changed = song.album != original_album
+            if title_changed or artist_changed or album_changed or not original_image_url:
                 song.image_url = get_song_image_url(
                     song.title,
-                    song.artist if song.artist else None
+                    song.artist if song.artist else None,
+                    song.album,
                 )
         
         # Validate required fields (artist is now optional)

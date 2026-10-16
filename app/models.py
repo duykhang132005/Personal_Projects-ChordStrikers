@@ -26,6 +26,10 @@ class Song(db.Model):
     song_key = db.Column(db.String(100), nullable=False)
     image_url = db.Column(db.String(512), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    album = db.Column(db.String(200), nullable=True)
+    # Owner choice: keep out of other people's Entire library and search.
+    # Direct links, Your scores and favorites still work.
+    hidden = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
 
     # Deleting a song (owner delete or orphan purge) also drops its favorites.
     favorites = db.relationship(

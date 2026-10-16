@@ -828,6 +828,26 @@ a.control-btn-primary:hover {
     margin-bottom: 0.5rem;
 }
 
+/* Long album names stay on one line on cards. */
+.song-card-album {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Owner-only marker for songs hidden from Entire library. */
+.badge-hidden {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: #ffcc80;
+    color: #1a120c;
+    font-size: 0.75rem;
+    font-weight: 700;
+    vertical-align: middle;
+    text-shadow: none;
+}
+
 /* Text shadows only when image is present */
 .song-card-body.with-image .song-card-title,
 .song-card-clickable.has-image .song-card-title {

@@ -516,3 +516,32 @@ def test_explore_tabs_line_up_with_classic_scrollbars(browser, live_server, admi
     real_scrollbars.close()
     assert spots['mine'] == spots['favorites'] == spots['library']
     assert cls < 0.01
+
+
+@pytest.mark.parametrize('width', [360, 1366])
+def test_album_and_hidden_badge_fit_on_cards(browser, live_server, admin_state, width):
+    app = live_server['app']
+    with app.app_context():
+        song = db.session.get(Song, live_server['song_id'])
+        song.album = 'A Very Long Album Title That Would Otherwise Wrap Across Several Lines'
+        song.hidden = True
+        db.session.commit()
+    try:
+        context = browser.new_context(viewport={'width': width, 'height': 800}, storage_state=admin_state)
+        page = context.new_page()
+        page.goto(live_server['base'] + '/explore?tab=library', wait_until='load')
+        card = page.locator(f"[data-song-id='{live_server['song_id']}'] .song-card")
+        assert card.locator('.badge-hidden').is_visible()
+        info = page.evaluate("""(id) => {
+            const card = document.querySelector(`[data-song-id='${id}'] .song-card`);
+            const album = card.querySelector('.song-card-album');
+            return {overflow: document.documentElement.scrollWidth - innerWidth,
+                    albumLines: Math.round(album.getBoundingClientRect().height / parseFloat(getComputedStyle(album).lineHeight))};
+        }""", live_server['song_id'])
+        context.close()
+        assert info['overflow'] <= 0 and info['albumLines'] == 1
+    finally:
+        with app.app_context():
+            song = db.session.get(Song, live_server['song_id'])
+            song.album, song.hidden = None, False
+            db.session.commit()

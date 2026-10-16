@@ -48,11 +48,8 @@ def song_matches_filters(song, query_normalized, key_normalized, author_normaliz
             return False
 
     if query_normalized:
-        title_norm = normalize_text(song.title)
-        if song.artist:
-            artist_norm = normalize_text(song.artist)
-            return query_normalized in title_norm or query_normalized in artist_norm
-        return query_normalized in title_norm
+        fields = (song.title, song.artist, song.album)
+        return any(query_normalized in normalize_text(f) for f in fields if f)
 
     return True
 
@@ -94,6 +91,11 @@ def explore():
 
     user = get_current_user()
     favorite_ids = set(favorite_ids_for(user))
+    # Entire library: hidden songs only for their owner (with a badge) and admins.
+    library_songs = [
+        song for song in songs
+        if not song.hidden or (user is not None and (user.is_admin or song.user_id == user.id))
+    ]
     if user is not None:
         my_songs = [song for song in songs if song.user_id == user.id]
         favorite_songs = [song for song in songs if song.id in favorite_ids]
@@ -111,7 +113,7 @@ def explore():
 
     return render_template(
         'explore.html',
-        songs=songs,
+        songs=library_songs,
         my_songs=my_songs,
         favorite_songs=favorite_songs,
         favorite_ids=favorite_ids,

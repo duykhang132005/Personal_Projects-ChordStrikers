@@ -106,6 +106,7 @@ def create_app(test_config=None):
         db.create_all()
         _ensure_songs_user_id_column()
         _ensure_users_is_admin_column()
+        _ensure_songs_album_and_hidden_columns()
         _ensure_admin_user()
         purge_unsynced_songs_and_sheets()
 
@@ -141,6 +142,26 @@ def _ensure_users_is_admin_column():
             return
         with db.engine.begin() as conn:
             conn.execute(text('ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0'))
+    except Exception:
+        pass
+
+
+def _ensure_songs_album_and_hidden_columns():
+    """Idempotent SQLite migration: add songs.album and songs.hidden if missing.
+
+    Both are additive: album is nullable, hidden defaults to 0 (visible), so
+    existing rows keep working and nothing is backfilled.
+    """
+    try:
+        inspector = inspect(db.engine)
+        if 'songs' not in inspector.get_table_names():
+            return
+        columns = {col['name'] for col in inspector.get_columns('songs')}
+        with db.engine.begin() as conn:
+            if 'album' not in columns:
+                conn.execute(text('ALTER TABLE songs ADD COLUMN album VARCHAR(200)'))
+            if 'hidden' not in columns:
+                conn.execute(text('ALTER TABLE songs ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT 0'))
     except Exception:
         pass
 

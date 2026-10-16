@@ -32,6 +32,15 @@
         <small class="form-hint">Leave blank for traditional songs, folk melodies, or songs without a specific artist.</small>
       </div>
 
+      <!-- Album -->
+      <div class="form-group">
+        <label for="album" class="form-label">Album (optional)</label>
+        <input type="text" class="form-input" id="album" name="album" maxlength="200"
+               value="{% block value_album %}{% if song %}{{ song.album or '' }}{% endif %}{% endblock %}"
+               placeholder="Album the song is from">
+        <small class="form-hint">Also helps find the right cover art.</small>
+      </div>
+
       <!-- Song Key -->
       <div class="form-group">
         <label for="song_key" class="form-label">Song Key</label>
@@ -55,6 +64,15 @@
         <small class="form-hint">
           Enter a direct image URL. If left blank, we'll automatically search iTunes for cover art. Check "Clear image" to explicitly remove the cover photo.
         </small>
+      </div>
+
+      <!-- Visibility -->
+      <div class="form-group">
+        <label style="display: inline-flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="hidden" name="hidden" value="1" style="margin-right: 0.5rem;"{% block value_hidden %}{% if song and song.hidden %} checked{% endif %}{% endblock %}>
+          <span>Hide from Entire library</span>
+        </label>
+        <small class="form-hint">Others will not see it in Explore or search. You still see it (marked Hidden), and anyone with the link can open it.</small>
       </div>
 
       <!-- Direct text content -->

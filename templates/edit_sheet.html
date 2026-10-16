@@ -7,6 +7,8 @@
 {% block value_title %}{{ song.title }}{% endblock %}
 {% block value_artist %}{{ song.artist }}{% endblock %}
 {% block value_key %}{{ song.song_key }}{% endblock %}
+{% block value_album %}{{ song.album or '' }}{% endblock %}
+{% block value_hidden %}{% if song.hidden %} checked{% endif %}{% endblock %}
 {% block value_image_url %}{{ song.image_url }}{% endblock %}
 
 {% block value_content %}

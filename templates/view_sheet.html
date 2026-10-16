@@ -11,6 +11,12 @@
   {% if song.artist %}
   <p class="mb-1"><strong>Artist:</strong> {{ song.artist }}</p>
   {% endif %}
+  {% if song.album %}
+  <p class="mb-1"><strong>Album:</strong> {{ song.album }}</p>
+  {% endif %}
+  {% if song.hidden and can_edit %}
+  <p class="mb-1"><span class="badge-hidden">Hidden from Entire library</span></p>
+  {% endif %}
   <p class="mb-2"><strong>Key:</strong> {% if song.song_key %}{{ song.song_key }}{% else %}not set{% endif %}</p>
   <p id="sheet-banner" class="sheet-banner" hidden></p>
 

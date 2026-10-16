@@ -342,13 +342,23 @@ def get_artist_image_url(artist_name):
         return None
 
 
-def get_song_image_url(song_title, artist_name=None):
+def get_song_image_url(song_title, artist_name=None, album_name=None):
     """
     Search iTunes for a song and return album/track artwork.
 
-    Tries title+artist, then title-only, then artist album artwork.
+    With an album name, tries that album (plus artist) first: one request,
+    and the most exact cover. Then title+artist, title-only, artist albums.
     Returns a sanitized https image URL, or None if not found or an error occurs.
     """
+    if album_name:
+        try:
+            term = f'{album_name} {artist_name}' if artist_name else album_name
+            by_album = _artwork_url_from_itunes_results(_itunes_search(term, entity='album'))
+            if by_album:
+                return by_album
+        except Exception as exc:
+            _log_cover_fetch_error(f"Error fetching iTunes image for album {album_name!r}: {exc}")
+
     if not song_title:
         if artist_name:
             return get_artist_image_url(artist_name)
