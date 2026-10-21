@@ -1,6 +1,6 @@
 import os
 import warnings
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_compress import Compress
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -87,12 +87,15 @@ def create_app(test_config=None):
     from .routes.auth import auth_bp
     from .routes.pwa import pwa_bp
     from .routes.favorites import favorites_bp
+    from .routes.seo import seo_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(creator_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(pwa_bp)
     app.register_blueprint(favorites_bp)
+    app.register_blueprint(seo_bp)
+    _register_static_cache_headers(app)
     _register_error_handlers(app)
     _register_context_processors(app)
 
@@ -248,6 +251,36 @@ def _register_context_processors(app):
             'current_user': get_current_user(),
             'static_v': version,
         }
+
+
+# One year: safe because the URL changes (?v=) whenever the file changes.
+_IMMUTABLE = 'public, max-age=31536000, immutable'
+
+
+def _register_static_cache_headers(app):
+    """Cache-Control for /static only. /sw.js, HTML, /healthz and the API
+    set their own headers and are not touched here.
+
+    - ?v=<version> URLs and the self-hosted fonts (stable names, never
+      edited in place): cached for a year, immutable.
+    - Sheet text under /static/data/: no-cache, edits must show at once.
+    - Anything else under /static (unversioned): one hour.
+    """
+    static_prefix = (app.static_url_path or '/static').rstrip('/') + '/'
+
+    @app.after_request
+    def static_cache_control(response):
+        path = request.path
+        if not path.startswith(static_prefix) or response.status_code not in (200, 304):
+            return response
+        rel = path[len(static_prefix):]
+        if rel.startswith('data/'):
+            response.headers['Cache-Control'] = 'no-cache'
+        elif request.args.get('v') or (rel.startswith('fonts/') and rel.endswith('.woff2')):
+            response.headers['Cache-Control'] = _IMMUTABLE
+        else:
+            response.headers['Cache-Control'] = 'public, max-age=3600'
+        return response
 
 
 def _register_error_handlers(app):
