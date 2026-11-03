@@ -174,3 +174,9 @@
   area.addEventListener('input', function () { if (!mount.hidden) render(); });
   setMode(wantedMode());
 })();
+
+/* Confirm before destructive submits (e.g. Delete Song). No inline handlers. */
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest && e.target.closest('button[data-confirm]');
+  if (btn && !window.confirm(btn.dataset.confirm)) e.preventDefault();
+});

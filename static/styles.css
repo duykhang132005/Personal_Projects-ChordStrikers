@@ -788,6 +788,26 @@ a.control-btn-primary:hover {
     box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
 }
 
+/* Destructive action, same sizing as .btn-secondary; fixed red in every theme */
+.btn-secondary.btn-danger,
+.btn-danger {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-secondary.btn-danger:hover,
+.btn-secondary.btn-danger:focus-visible,
+.btn-danger:hover,
+.btn-danger:focus-visible {
+    background: #b02a37;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
 /* ────────────────────────────────────────────────────────────────
    Song Cards (Explore & Song List Pages)
 ──────────────────────────────────────────────────────────────── */
