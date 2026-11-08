@@ -32,7 +32,11 @@ def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if session.get('user_id') is None:
-            flash('Please log in to continue.', 'error')
+            # An abandoned redirect can leave this prompt queued. Keep one
+            # copy without consuming or deduplicating unrelated messages.
+            message = 'Please log in to continue.'
+            if ('error', message) not in session.get('_flashes', []):
+                flash(message, 'error')
             return redirect(url_for('main.home', signin=1))
         return view(*args, **kwargs)
     return wrapped

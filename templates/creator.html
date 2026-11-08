@@ -55,9 +55,9 @@
         <input type="url" class="form-input" id="image_url" name="image_url"
                value="{% block value_image_url %}{% if song %}{{ song.image_url or '' }}{% endif %}{% endblock %}"
                placeholder="https://example.com/image.jpg">
-        <div style="margin-top: 0.5rem;">
-          <label style="display: inline-flex; align-items: center; cursor: pointer;">
-            <input type="checkbox" id="clear_image" name="clear_image" value="1" style="margin-right: 0.5rem;">
+        <div class="check-row-wrap">
+          <label class="check-row">
+            <input type="checkbox" id="clear_image" name="clear_image" value="1">
             <span>Clear image (no cover photo)</span>
           </label>
         </div>
@@ -68,8 +68,8 @@
 
       <!-- Visibility -->
       <div class="form-group">
-        <label style="display: inline-flex; align-items: center; cursor: pointer;">
-          <input type="checkbox" id="hidden" name="hidden" value="1" style="margin-right: 0.5rem;"{% block value_hidden %}{% if song and song.hidden %} checked{% endif %}{% endblock %}>
+        <label class="check-row">
+          <input type="checkbox" id="hidden" name="hidden" value="1"{% block value_hidden %}{% if song and song.hidden %} checked{% endif %}{% endblock %}>
           <span>Hide from Entire library</span>
         </label>
         <small class="form-hint">Others will not see it in Explore or search. You still see it (marked Hidden), and anyone with the link can open it.</small>

@@ -109,7 +109,7 @@ def test_speculation_rules_only_safe_pages(client):
     html = client.get('/').get_data(as_text=True)
     rules = json.loads(html.split('<script type="speculationrules">', 1)[1].split('</script>', 1)[0])
     patterns = [r['href_matches'] for r in rules['prerender'][0]['where']['or']]
-    assert patterns == ['/', '/explore', '/create', '/view_sheet/*']
+    assert patterns == ['/', '/explore', '/view_sheet/*']
     assert rules['prerender'][0]['eagerness'] == 'moderate'
-    for unsafe in ('logout', 'edit', 'delete', 'api', 'favorites'):
+    for unsafe in ('create', 'logout', 'edit', 'delete', 'api', 'favorites'):
         assert not any(unsafe in p for p in patterns)

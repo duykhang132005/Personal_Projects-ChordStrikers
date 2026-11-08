@@ -2026,3 +2026,23 @@ body.performance-mode .site-nav {
     .sheet-cover { width: 44px; height: 44px; }
 }
 body.performance-mode .sheet-cover { display: none; }
+
+/* Shared home info boxes (was inline background on each box) */
+div.info-box {
+  background: #e9ecef;
+}
+
+/* Creator checkbox rows (was inline label/input styles) */
+.check-row-wrap {
+  margin-top: 0.5rem;
+}
+
+label.check-row {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+label.check-row input[type="checkbox"] {
+  margin-right: 0.5rem;
+}

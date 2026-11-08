@@ -76,7 +76,7 @@
         <div class="card-body">
             <h2 class="text-center"><i class="bi bi-person-circle"></i> About the Creator</h2>
             <h3 id="about-name" class="card-title mt-4"><i class="bi bi-person"></i> Who am I?</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     Hey y'all, my name is <span class="highlight text-orange">Khang</span>. I'm currently a senior studying 
                     <span class="highlight text-warning">Computer Science</span> and 
@@ -84,7 +84,7 @@
                 </p>
             </div>
             <h3 id="about-background" class="card-title mt-4"><i class="bi bi-music-note-list"></i> Background</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     In my free time, I love to be involved with all kinds of performing arts, particularly with music.
                     I play <span class="fw-bold text-primary">piano</span>, <span class="fw-bold text-success">ukulele</span>, 
@@ -92,7 +92,7 @@
                 </p>
             </div>
             <h3 id="about-journey" class="card-title mt-4"><i class="bi bi-people"></i> Musical Journey</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     I mostly participated in <span class="fw-bold text-info">choirs</span> growing up, and fell in love with the storytelling and community building aspect of art.
                     Especially after the initial outbreak of <span class="fw-bold text-danger">COVID-19</span> in 2020, I found it increasingly important for people to be able to connect with one another and inspire regardless of distance and immediate contact.
@@ -106,13 +106,13 @@
         <div class="card-body">
             <h2 class="text-center"><i class="bi bi-envelope"></i> Contact</h2>
             <h3 id="contact-email" class="mt-4"><i class="bi bi-envelope-at"></i> Email</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     You can reach me at <span class="fw-bold text-orange">khangnd01@gmail.com</span> for any suggestions and questions regarding the software.
                 </p>
             </div>
             <h3 id="contact-social" class="mt-4"><i class="bi bi-instagram"></i> Social Media <i class="bi bi-facebook"></i></h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     Find me on Instagram under <span class="fw-bold text-danger">khangnd01</span> and Facebook as <span class="fw-bold text-primary">Nguyễn Duy Khang</span>.
                 </p>
@@ -125,14 +125,14 @@
         <div class="card-body">
             <h2 class="text-center"><i class="bi bi-info-circle"></i> Project Info</h2>
             <h3 id="project-inspiration" class="mt-4"><i class="bi bi-lightbulb"></i> Inspiration</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     ChordStrikers started as a homemade tool for transcribing songs and reading chord sheets for quick self-accompaniment without paywalls or ad clutter.
                     It takes cues from apps like <span class="fw-bold text-success">Ultimate Guitar</span>, <span class="fw-bold text-warning">Chordify</span>, and sites like <span class="fw-bold text-danger">Hợp Âm Chuẩn</span>, then focuses on a cleaner practice loop: browse or create a sheet, transpose in place, and see guitar fingerings as real fret diagrams when you hover a chord.
                 </p>
             </div>
             <h3 id="project-tech" class="mt-4"><i class="bi bi-cpu"></i> Technologies Used</h3>
-                <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+                <div class="p-3 mb-3 rounded info-box">
                     <p class="card-text">
                         Front end built with <span class="fw-bold text-primary">JavaScript</span>, <span class="fw-bold text-warning">HTML</span>, and <span class="fw-bold text-info">CSS</span> for sheet layout, toolbar controls, auto-scroll, and interactive <span class="fw-bold text-dark">SVG</span> guitar fret diagrams.
                         Backend is <span class="fw-bold text-danger">Python</span> with <span class="fw-bold text-success">Flask</span> and <span class="fw-bold text-secondary">SQLAlchemy</span> (SQLite) for routing, song storage, and bracketed-chord parsing.
@@ -141,7 +141,7 @@
                     </p>
                 </div>
             <h3 id="project-future" class="mt-4"><i class="bi bi-rocket"></i> Future Plans</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     Keep polishing practice UX (alternate voicings, mobile/touch fingerings, print/export tweaks) and grow the shared library.
                     It serves as a personal tool; the goal is still to stay free and useful for anyone who wants chord sheets they can actually play from instead of having to pay for simple tools like scrolling through the page or transposing the chords.
@@ -155,7 +155,7 @@
         <div class="card-body">
             <h2 class="text-center"><i class="bi bi-book"></i> Library</h2>
             <h3 id="library-create" class="mt-4"><i class="fas fa-book"></i> Creator Hub</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     This is where you can access or create your chord sheets. See what kind of accompaniment you can contribute using our tools.
                     You can create your own chord sheets using the Creator interface, or view existing ones in the Library below.<br>
@@ -163,7 +163,7 @@
                 <a href="{{ url_for('creator.create') }}" class="btn btn-primary mx-2">Create</a>
             </div>
             <h3 id="library-explore" class="mt-4"><i class="fas fa-search"></i> Explore</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text">
                     This is where you can explore other chord sheets and projects created by the community.
                     You can search for specific songs, genres, or artists to find chord sheets that interest you. <br>
@@ -185,7 +185,7 @@
             {% endif %}
 
             <h3 id="signin-login" class="mt-4"><i class="bi bi-box-arrow-in-right"></i> Log In</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <form method="post" action="{{ url_for('auth.login') }}" class="text-start">
                     {% if request.args.get('next') %}
                     <input type="hidden" name="next" value="{{ request.args.get('next') }}">
@@ -203,7 +203,7 @@
             </div>
 
             <h3 id="signin-register" class="mt-4"><i class="bi bi-person-plus"></i> Register</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <form method="post" action="{{ url_for('auth.register') }}" class="text-start">
                     <div class="mb-3">
                         <label for="register-username" class="form-label">Username</label>
@@ -235,7 +235,7 @@
                 {% endfor %}
             </div>
             {% endif %}
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <p class="card-text mb-3">
                     Signed in as
                     <span class="fw-bold text-orange">{% if current_user %}{{ current_user.username }}{% else %}User{% endif %}</span>.
@@ -246,7 +246,7 @@
             </div>
 
             <h3 class="mt-4"><i class="bi bi-palette"></i> Colors</h3>
-            <div class="p-3 mb-3 rounded text-start" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded text-start info-box">
                 <div id="theme-picker" role="radiogroup" aria-label="Color theme">
                     <label class="theme-option"><input type="radio" name="color-theme" value=""> Default</label>
                     <label class="theme-option"><input type="radio" name="color-theme" value="wooden"> Wooden</label>
@@ -256,7 +256,7 @@
             </div>
 
             <h3 class="mt-4"><i class="bi bi-key"></i> Change Password</h3>
-            <div class="p-3 mb-3 rounded" style="background: #e9ecef;">
+            <div class="p-3 mb-3 rounded info-box">
                 <form method="post" action="{{ url_for('auth.change_password') }}" class="text-start">
                     <div class="mb-3">
                         <label for="current-password" class="form-label">Current password</label>

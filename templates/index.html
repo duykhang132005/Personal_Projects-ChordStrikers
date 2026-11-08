@@ -36,12 +36,11 @@
         html[data-theme="wooden"] body { background-color: #3a2412; }
         html[data-theme="limelight"] body { background-color: #0e2418; }
     </style>
-    <!-- Only safe GET pages: never logout, edit, delete or API URLs. -->
+    <!-- Only safe GET pages: Create can queue auth flashes, so never prerender it. -->
     <script type="speculationrules">
         {"prerender": [{"where": {"or": [
             {"href_matches": "/"},
             {"href_matches": "/explore"},
-            {"href_matches": "/create"},
             {"href_matches": "/view_sheet/*"}
         ]}, "eagerness": "moderate"}]}
     </script>
