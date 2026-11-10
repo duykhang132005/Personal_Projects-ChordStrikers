@@ -190,9 +190,25 @@
 
             circleCards.forEach(function (card) { card.classList.add('d-none'); });
 
+            // Screen readers hear whether each menu button's card is open.
+            function syncExpanded() {
+                menuItems.forEach(function (i) {
+                    i.setAttribute('aria-expanded', i.classList.contains('active') ? 'true' : 'false');
+                });
+            }
+
 
 
             menuItems.forEach(function (item) {
+
+                // Keyboard: Enter or Space works like a click (role="button" items).
+                item.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                        e.preventDefault();
+                        item.click();
+                    }
+                });
+
 
                 item.addEventListener('click', function () {
 
@@ -226,6 +242,8 @@
 
                     }
 
+                    syncExpanded();
+
                 });
 
 
@@ -237,6 +255,8 @@
                     circleMenu.classList.remove('docked');
 
                     circleCards.forEach(function (c) { c.classList.add('d-none'); });
+
+                    syncExpanded();
 
                 });
 
@@ -255,6 +275,8 @@
                     circleMenu.classList.remove('docked');
 
                     circleCards.forEach(function (c) { c.classList.add('d-none'); });
+
+                    syncExpanded();
 
                 });
 
@@ -313,6 +335,8 @@
                 });
 
                 card.classList.remove('d-none');
+
+                syncExpanded();
 
                 var focusEl = focusId ? document.getElementById(focusId) : null;
 

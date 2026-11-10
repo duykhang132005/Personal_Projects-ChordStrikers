@@ -4,9 +4,9 @@
 
 {% block content %}
 <!-- Welcome Section -->
-<div class="text-center p-4 rounded fade-in" style="color: white;">
+<div class="text-center p-4 rounded fade-in hero-text">
     <h1>Welcome to <span class="highlight text-orange">ChordStrikers</span>!</h1>
-    <p class="fs-5" style="color: white;">
+    <p class="fs-5 hero-text">
         Your one-stop solution for learning and mastering musical chords. <br>
         Explore our resources, tutorials, and personal projects to your own desire.
     </p>
@@ -14,54 +14,54 @@
 
 <!-- Circle Menu -->
 <div id="circle-menu" class="d-flex justify-content-center align-items-center my-5">
-    <div class="circle-menu-item mx-3" data-target="about-card">
-        <i class="bi bi-person-circle"></i>
+    <div class="circle-menu-item mx-3" role="button" tabindex="0" aria-expanded="false" aria-controls="about-card" aria-label="About" data-target="about-card">
+        <i class="bi bi-person-circle" aria-hidden="true"></i>
         <span class="circle-label">About</span>
-        <div class="circle-categories">
+        <div class="circle-categories" aria-hidden="true">
             <div>Who am I?</div>
             <div>Background</div>
             <div>Musical Journey</div>
         </div>
     </div>
-    <div class="circle-menu-item mx-3" data-target="contact-card">
-        <i class="bi bi-envelope"></i>
+    <div class="circle-menu-item mx-3" role="button" tabindex="0" aria-expanded="false" aria-controls="contact-card" aria-label="Contact" data-target="contact-card">
+        <i class="bi bi-envelope" aria-hidden="true"></i>
         <span class="circle-label">Contact</span>
-        <div class="circle-categories">
+        <div class="circle-categories" aria-hidden="true">
             <div>Email</div>
             <div>Social Media</div>
         </div>
     </div>
-    <div class="circle-menu-item mx-3" data-target="project-card">
-        <i class="bi bi-info-circle"></i>
+    <div class="circle-menu-item mx-3" role="button" tabindex="0" aria-expanded="false" aria-controls="project-card" aria-label="Project" data-target="project-card">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
         <span class="circle-label">Project</span>
-        <div class="circle-categories">
+        <div class="circle-categories" aria-hidden="true">
             <div>Inspiration</div>
             <div>Technologies Used</div>
             <div>Future Plans</div>
         </div>
     </div>
-    <div class="circle-menu-item mx-3" data-target="library-card">
-        <i class="bi bi-book"></i>
+    <div class="circle-menu-item mx-3" role="button" tabindex="0" aria-expanded="false" aria-controls="library-card" aria-label="Library" data-target="library-card">
+        <i class="bi bi-book" aria-hidden="true"></i>
         <span class="circle-label">Library</span>
-        <div class="circle-categories">
+        <div class="circle-categories" aria-hidden="true">
             <div>Your Items</div>
             <div>Explore</div>
         </div>
     </div>
     {% if session.get('user_id') %}
-    <div class="circle-menu-item mx-3" data-target="account-card">
-        <i class="bi bi-person-check"></i>
+    <div class="circle-menu-item mx-3" role="button" tabindex="0" aria-expanded="false" aria-controls="account-card" aria-label="Account" data-target="account-card">
+        <i class="bi bi-person-check" aria-hidden="true"></i>
         <span class="circle-label">Account</span>
-        <div class="circle-categories">
+        <div class="circle-categories" aria-hidden="true">
             <div>Profile</div>
             <div>Logout</div>
         </div>
     </div>
     {% else %}
-    <div class="circle-menu-item mx-3" data-target="signin-card" id="signin-circle">
-        <i class="bi bi-box-arrow-in-right"></i>
+    <div class="circle-menu-item mx-3" role="button" tabindex="0" aria-expanded="false" aria-controls="signin-card" aria-label="Sign In" data-target="signin-card" id="signin-circle">
+        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
         <span class="circle-label">Sign In</span>
-        <div class="circle-categories">
+        <div class="circle-categories" aria-hidden="true">
             <div>Log In</div>
             <div>Register</div>
         </div>

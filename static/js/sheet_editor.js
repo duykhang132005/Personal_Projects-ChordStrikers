@@ -9,6 +9,7 @@
   const QUALITIES = ['', 'm', '7', 'm7', 'maj7', 'sus4', 'sus2', 'add9'];
   const MODE_KEY = 'cs-editor-mode';
   let picking = null;
+  let pickerReturn = null;
 
   function wantedMode() {
     try {
@@ -92,6 +93,7 @@
     const box = document.createElement('div');
     box.className = 'chord-picker';
     box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
     box.setAttribute('aria-label', 'Choose a chord');
     const input = document.createElement('input');
     input.type = 'text';
@@ -135,26 +137,69 @@
       } else {
         next = (line ? line + ' ' : '') + '[' + name + ']';
       }
-      closePicker();
+      closePicker(false);
       replaceLine(lineIndex, next);
+      refocus(returnIndex);
     });
     if (existing) {
       addAction('Remove', function () {
         const line = area.value.split('\n')[lineIndex] || '';
-        closePicker();
+        closePicker(false);
         replaceLine(lineIndex, line.replace('[' + existing + ']', ''));
+        refocus(returnIndex);
       });
     }
-    addAction('Cancel', closePicker);
+    addAction('Cancel', function () { closePicker(true); });
     box.appendChild(actions);
+    // Keep Tab inside the picker while it is open; Escape closes it.
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        e.preventDefault();
+        e.stopPropagation();
+        closePicker(true);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = Array.prototype.filter.call(
+        box.querySelectorAll('button, input'),
+        function (el) { return !el.disabled; }
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (!box.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+    // Place and Remove re-render the line, so remember the trigger by position.
+    const returnIndex = Array.prototype.indexOf.call(mount.querySelectorAll('.touch-chord, .touch-word'), anchor);
     anchor.insertAdjacentElement('afterend', box);
     picking = box;
+    pickerReturn = anchor;
     input.focus();
   }
 
-  function closePicker() {
+  // Close the picker. With returnFocus, focus goes back to the word or chord that opened it.
+  function closePicker(returnFocus) {
+    const back = pickerReturn;
     if (picking) picking.remove();
     picking = null;
+    pickerReturn = null;
+    if (returnFocus && back && back.isConnected) back.focus();
+  }
+
+  // After a re-render, focus the button that now sits where the trigger was.
+  function refocus(index) {
+    const buttons = mount.querySelectorAll('.touch-chord, .touch-word');
+    if (!buttons.length || index < 0) return;
+    buttons[Math.min(index, buttons.length - 1)].focus();
   }
 
   function setMode(mode) {

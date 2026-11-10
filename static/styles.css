@@ -218,8 +218,7 @@ footer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: width 0.35s ease, height 0.35s ease, font-size 0.35s ease,
-        background-color 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
+    transition: background-color 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
     cursor: pointer;
     position: relative;
     font-size: 2rem;
@@ -250,18 +249,27 @@ footer {
     white-space: nowrap;
 }
 
+/* Grow with transform (same 140px look as before) so nothing reflows. */
 .circle-menu-item:hover,
+.circle-menu-item:focus-visible,
 .circle-menu-item.active {
-    width: 140px;
-    height: 140px;
-    font-size: 2.5rem;
+    transform: scale(1.4);
     background: #f8fafc;
     z-index: 3;
 }
 
+.circle-menu-item:focus-visible {
+    outline: 3px solid #ff9800;
+    outline-offset: 3px;
+}
+
 .circle-menu-item:hover .circle-categories,
+.circle-menu-item:focus-visible .circle-categories,
 .circle-menu-item.active .circle-categories {
     display: block;
+    /* Undo the circle's scale so the list keeps its 1rem text. */
+    transform: translateX(-50%) scale(0.715);
+    transform-origin: top center;
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -319,15 +327,16 @@ footer {
     position: relative;
     left: auto;
     top: auto;
-    transform: scale(0.7);
+    transform: scale(0.98);
     opacity: 1;
     z-index: 30;
 }
 
-#circle-menu.docked .circle-menu-item.docked:hover {
+#circle-menu.docked .circle-menu-item.docked:hover,
+#circle-menu.docked .circle-menu-item.docked:focus-visible {
     background: #f1f5fa;
     opacity: 1;
-    transform: scale(0.8);
+    transform: scale(1.12);
     z-index: 2;
 }
 
@@ -379,9 +388,13 @@ footer {
 
 .chord-input:focus,
 .lyric-input:focus {
-    outline: none;
     border-color: #0d6efd;
-    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+}
+
+.chord-input:focus-visible,
+.lyric-input:focus-visible {
+    outline: 2px solid #0d6efd;
+    outline-offset: 1px;
 }
 
 .sheet-buttons {
@@ -582,15 +595,47 @@ a.control-btn-primary:hover {
     color: #c45c00;
 }
 
+/* Phones and touch screens: toolbar controls are at least 44px to tap. */
+@media (max-width: 768px), (pointer: coarse) {
+    .control-btn,
+    .prefer-toggle label {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    a.control-btn,
+    .prefer-toggle label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25em;
+    }
+}
+
 /* Use for larger buttons like "Single Column View" */
 .control-btn.wide {
     min-width: 130px;
     text-align: center;
 }
 
-/* Accidentals toggle */
+/* Accidentals toggle. The radios stay in the tab order (hidden visually,
+   not display: none) so the keyboard can reach A / sharp / flat. */
+.prefer-toggle {
+    position: relative;
+}
+
 .prefer-toggle input[type="radio"] {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.prefer-toggle input[type="radio"]:focus-visible+label {
+    outline: 2px solid #ff9800;
+    outline-offset: -2px;
 }
 
 .prefer-toggle label {
@@ -721,9 +766,13 @@ a.control-btn-primary:hover {
 
 .form-input:focus,
 .form-textarea:focus {
-    outline: none;
     border-color: #FF8800;
-    box-shadow: 0 0 0 3px rgba(255, 136, 0, 0.1);
+}
+
+.form-input:focus-visible,
+.form-textarea:focus-visible {
+    outline: 2px solid #FF8800;
+    outline-offset: 2px;
 }
 
 .form-textarea {
@@ -760,7 +809,7 @@ a.control-btn-primary:hover {
     border: none;
     cursor: pointer;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     text-align: center;
 }
 
@@ -1166,10 +1215,9 @@ a.control-btn-primary:hover {
     }
 
     #circle-menu .circle-menu-item:hover,
+    #circle-menu .circle-menu-item:focus-visible,
     #circle-menu .circle-menu-item.active {
-        width: 92px;
-        height: 92px;
-        font-size: 1.8rem;
+        transform: scale(1.1);
     }
 
     /* Hover dropdowns spill off narrow screens; the cards show the same info. */
@@ -1192,6 +1240,12 @@ a.control-btn-primary:hover {
     #circle-menu.docked .circle-menu-item.active {
         margin: 0 !important;
         transform: scale(0.8);
+    }
+
+    #circle-menu.docked .circle-menu-item.active,
+    #circle-menu.docked .circle-menu-item.docked:hover,
+    #circle-menu.docked .circle-menu-item.docked:focus-visible {
+        transform: scale(0.88);
     }
 
     #circle-cards {
@@ -2001,6 +2055,17 @@ body.performance-mode .site-nav {
     ::view-transition-new(root) {
         animation: none !important;
     }
+
+    /* Site-wide: no fades, slides, or growing circles. Animations still
+       land on their end state (fadeIn ends fully visible). */
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 /* View Sheet cover art thumbnail next to the title */
@@ -2045,4 +2110,9 @@ label.check-row {
 
 label.check-row input[type="checkbox"] {
   margin-right: 0.5rem;
+}
+
+/* Home hero welcome text (was inline color: white) */
+.hero-text {
+  color: white;
 }
