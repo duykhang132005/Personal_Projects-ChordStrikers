@@ -18,11 +18,11 @@ scripts/
   build_vendor_css.js   Rebuilds static/vendor/vendor.min.css
 static/                 styles.css, js/, vendor/, icons, sw.js, data/ (sheets)
 templates/              Jinja2 templates
-tests/                  Pytest suite (test_mobile_viewport.py needs Playwright)
+tests/                  Pytest suite (browser tests need Playwright, JS tests need Node)
 run.py                  Development entry point
 requirements.txt        Runtime dependencies
 requirements-dev.txt    Adds pytest and coverage
-requirements-browser.txt  Adds Playwright for the optional browser checks
+requirements-browser.txt  Adds Playwright for the required browser tests
 ```
 
 ## Data and startup
@@ -73,6 +73,17 @@ New tables and columns are created on startup, so there is no migration step.
 4. Check `https://duykhang132005.pythonanywhere.com/healthz` shows `{"db": "ok", "status": "ok"}`.
 
 Static files are served by Flask (Flask-Compress skips them) unless you add a **Static files** mapping on the Web tab (URL `/static/`, directory `/home/YOUR_PA_USERNAME/Personal_Projects-ChordStrikers/static`), in which case PythonAnywhere's own web server serves them, which may compress them. Unconfirmed whether PythonAnywhere gzips app responses by itself; with Flask-Compress it does not matter.
+
+### After this update: install Flask-WTF (CSRF protection)
+
+`requirements.txt` now includes `Flask-WTF`. Every form and the favorites API now need a CSRF token, and the app will not start without the package:
+
+1. Bash console: `cd ~/Personal_Projects-ChordStrikers && git pull`
+2. `workon <your-virtualenv>`, then `pip install -r requirements.txt`
+3. Press **Reload** on the Web tab.
+4. Sign in, star a sheet, then log out to confirm the forms work. A "Form expired" page means the tab was opened before the update; reload it and try again.
+
+Tokens are signed with `SECRET_KEY` and tied to the login session, so changing `SECRET_KEY` signs everyone out and invalidates open forms. Logout is a POST button only now; `GET /logout` returns 405.
 
 ### Health check
 
@@ -138,16 +149,22 @@ npm install --no-save purgecss@6 clean-css@5
 node scripts/build_vendor_css.js
 ```
 
-## Optional browser tests
+## Browser and Node tests (required)
 
-Real-browser checks (phone and iPad layouts, Perform autoscroll, menu Create then submit) use Playwright with Chromium and WebKit (the Safari engine) and are skipped when Playwright or a browser is not installed. Playwright is a dev-only dependency: never add it to `requirements.txt`, and PythonAnywhere does not need it.
+Every test must run; none are optional. Real-browser checks (phone and iPad layouts, Perform autoscroll, menu Create then submit, keyboard use, focus rings, motion and tap sizes) use Playwright with Chromium and WebKit (the Safari engine). The transposer tests in `tests/test_sheet_tools.py` run `static/js/chord_tools.js` in Node.js (version 18 or newer, on PATH).
+
+If Playwright, Chromium, WebKit or Node is missing, the suite **fails** with a message saying what to install. It does not skip. `tests/conftest.py` also turns any other skip into a failure, so a green run always means 0 skipped.
+
+Playwright and Node are dev-only: never add Playwright to `requirements.txt`, and PythonAnywhere does not need either.
+
+Install Node.js from https://nodejs.org (check with `node --version`), then:
 
 Windows (PowerShell, from the project folder):
 
 ```powershell
 .\venv\Scripts\python.exe -m pip install -r requirements-browser.txt
 .\venv\Scripts\python.exe -m playwright install chromium webkit
-.\venv\Scripts\python.exe -m pytest -q
+.\venv\Scripts\python.exe -m pytest -q -rs
 ```
 
 macOS / Linux:
@@ -155,7 +172,7 @@ macOS / Linux:
 ```bash
 pip install -r requirements-browser.txt
 python -m playwright install chromium webkit
-python -m pytest -q
+python -m pytest -q -rs
 ```
 
-On Linux, WebKit may also need system libraries: `sudo python -m playwright install-deps webkit`. WebKit emulates iPad Safari layout but is not a real iPad.
+On Linux, WebKit may also need system libraries: `sudo python -m playwright install-deps webkit` (or install with `python -m playwright install --with-deps chromium webkit`, as CI does). WebKit emulates iPad Safari layout but is not a real iPad.

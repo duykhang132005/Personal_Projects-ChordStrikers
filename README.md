@@ -91,10 +91,15 @@ Open http://127.0.0.1:5000. The SQLite database (`instance/songs.db`) and its ta
 
 ### Run the tests
 
+The suite includes real-browser tests (Playwright) and JavaScript tests (Node.js 18 or newer). They are required: if Playwright, its browsers or Node are missing, the tests fail instead of skipping.
+
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements-browser.txt
+python -m playwright install chromium webkit
 python -m pytest -q
 ```
+
+See [docs/MAINTAINING.md](docs/MAINTAINING.md#browser-and-node-tests-required) for details.
 
 ---
 

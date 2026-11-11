@@ -3,113 +3,24 @@
 Checks that the page never scrolls sideways (portrait and landscape) and
 that the toolbar buttons stay centered on portrait phones.
 
-Needs Playwright plus a Chromium build:
+Needs Playwright plus Chromium and WebKit builds:
     pip install -r requirements-browser.txt
-    python -m playwright install chromium
-Without them these tests are skipped, so the normal suite stays green.
+    python -m playwright install chromium webkit
+These tests are required: without them the suite fails, it never skips.
 """
-import os
-import shutil
-import tempfile
-import threading
-
 import pytest
 
-sync_api = pytest.importorskip('playwright.sync_api')
-
-from werkzeug.serving import make_server  # noqa: E402
-
-from app import create_app, db  # noqa: E402
-from app.models import Song, User  # noqa: E402
-from app.storage import save_song_content  # noqa: E402
+from app import db  # noqa: E402
+from app.models import Song  # noqa: E402
+# Shared real-browser fixtures (a live server, Chromium, an admin login).
+from browser_fixtures import (  # noqa: E402,F401
+    _PW, admin_state, browser, launch_webkit, live_server, register_in_browser,
+)
 
 pytestmark = pytest.mark.browser
 
 PORTRAIT = [(360, 780), (390, 844), (430, 932)]
 LANDSCAPE = [(844, 390), (740, 360)]
-
-LONG_SHEET = '\n'.join(
-    ['[Verse 1]']
-    + [
-        '[C]Một dòng rất dài để thử màn hình [G]điện thoại hẹp khi xoay '
-        'ngang hoặc dọc, [Am]không được tràn sang [F]bên phải nhé'
-    ] * 12
-    + ['[Chorus]', '[F]Short [G]line [C]here'] * 6
-)
-
-
-@pytest.fixture(scope='module')
-def live_server():
-    db_fd, db_path = tempfile.mkstemp(suffix='.db')
-    os.close(db_fd)
-    song_dir = tempfile.mkdtemp()
-    app = create_app({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///' + db_path.replace('\\', '/'),
-        'SECRET_KEY': 'test-secret-key',
-        'SONG_DATA_DIR': song_dir,
-    })
-    with app.app_context():
-        db.create_all()
-        song = Song(title='Bài hát rất dài', artist='Test Artist', song_key='C')
-        db.session.add(song)
-        db.session.commit()
-        save_song_content(song.id, LONG_SHEET)
-        song_id = song.id
-
-    server = make_server('127.0.0.1', 0, app, threaded=True)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    base = f'http://127.0.0.1:{server.server_port}'
-    try:
-        yield {'app': app, 'base': base, 'song_id': song_id}
-    finally:
-        server.shutdown()
-        with app.app_context():
-            db.session.remove()
-            db.engine.dispose()
-        try:
-            os.unlink(db_path)
-        except OSError:
-            pass
-        shutil.rmtree(song_dir, ignore_errors=True)
-
-
-_PW = {}
-
-
-@pytest.fixture(scope='module')
-def browser():
-    try:
-        playwright = sync_api.sync_playwright().start()
-    except Exception as exc:  # pragma: no cover - depends on the machine
-        pytest.skip(f'Playwright could not start: {exc}')
-    try:
-        chromium = playwright.chromium.launch()
-    except Exception as exc:  # pragma: no cover - browsers not installed
-        playwright.stop()
-        pytest.skip(f'Chromium is not installed for Playwright: {exc}')
-    _PW['playwright'] = playwright
-    yield chromium
-    chromium.close()
-    playwright.stop()
-
-
-@pytest.fixture(scope='module')
-def admin_state(live_server, browser, tmp_path_factory):
-    """Sign in once as an admin so the toolbar shows Edit and Return."""
-    context = browser.new_context()
-    context.request.post(live_server['base'] + '/register', form={
-        'username': 'mobileadmin', 'password': 'testpass1', 'confirmation': 'testpass1',
-    })
-    with live_server['app'].app_context():
-        user = User.query.filter_by(username='mobileadmin').first()
-        user.is_admin = True
-        db.session.commit()
-    path = str(tmp_path_factory.mktemp('state') / 'state.json')
-    context.storage_state(path=path)
-    context.close()
-    return path
 
 
 def _open_sheet(browser, live_server, admin_state, width, height):
@@ -326,10 +237,7 @@ def test_explore_search_desktop_is_unchanged(browser, live_server):
 def ipad_webkit(browser):
     """WebKit (Safari engine) with iPad landscape descriptors, if installed."""
     playwright = _PW['playwright']
-    try:
-        webkit = playwright.webkit.launch()
-    except Exception as exc:  # pragma: no cover - WebKit not installed
-        pytest.skip(f'WebKit is not installed for Playwright: {exc}')
+    webkit = launch_webkit()
     yield webkit, playwright.devices
     webkit.close()
 
@@ -381,10 +289,7 @@ def test_ipad_landscape_nav_does_not_cover_home_title(ipad_webkit, live_server, 
 def test_menu_create_then_submit_saves_song(browser, live_server, admin_state, engine):
     """Regression: menu Create -> submit returned 405 (form posted to /creator)."""
     if engine == 'webkit':
-        try:
-            launched = _PW['playwright'].webkit.launch()
-        except Exception as exc:  # pragma: no cover - WebKit not installed
-            pytest.skip(f'WebKit is not installed for Playwright: {exc}')
+        launched = launch_webkit()
     else:
         launched = browser
     context = launched.new_context(viewport={'width': 1366, 'height': 900}, storage_state=admin_state)
@@ -427,10 +332,7 @@ def test_chromium_nav_with_view_transitions(browser, live_server, admin_state):
 def test_page_canvas_is_never_white(browser, live_server, engine, theme, expected):
     """Before styles.css and the background image load, html is already dark."""
     if engine == 'webkit':
-        try:
-            launched = _PW['playwright'].webkit.launch()
-        except Exception as exc:  # pragma: no cover - WebKit not installed
-            pytest.skip(f'WebKit is not installed for Playwright: {exc}')
+        launched = launch_webkit()
     else:
         launched = browser
     context = launched.new_context(viewport={'width': 390, 'height': 780})
@@ -476,8 +378,7 @@ def test_flash_close_button_is_clickable_and_dismisses(browser, live_server, wid
     import uuid
     user = 'flash' + uuid.uuid4().hex[:6]
     context = browser.new_context(viewport={'width': width, 'height': height})
-    context.request.post(live_server['base'] + '/register', max_redirects=0,
-                         form={'username': user, 'password': 'pw', 'confirmation': 'pw'})
+    register_in_browser(context, live_server['base'], user, 'pw', max_redirects=0)
     page = context.new_page()
     page.goto(live_server['base'] + '/explore', wait_until='load')  # shows the welcome flash
     assert page.locator('.alert').count() == 1

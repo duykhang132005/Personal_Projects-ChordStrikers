@@ -56,6 +56,28 @@ def test_split_chord_lyric_line_section_header():
     assert chord_layer == "Chorus:"
     assert lyric_layer == ""
 
+@pytest.mark.parametrize('line', [
+    '[Chorus]', '[Verse 1]', '[Bridge]:', '[Pre-chorus]', 'Pre Chorus:',
+    '[Intro] [C] [G]',
+])
+def test_split_chord_lyric_line_bracketed_section_headers(line):
+    chord_layer, lyric_layer = split_chord_lyric_line(line)
+    assert chord_layer == line
+    assert lyric_layer == ''
+
+
+@pytest.mark.parametrize('line, chords, lyric', [
+    ('[C]Hello [G]world', ['[C]', '[G]'], 'Hello world'),
+    ('[Am7]Sing along', ['[Am7]'], 'Sing along'),
+    ('[Bb]Chorus line here', ['[Bb]'], 'Chorus line here'),
+])
+def test_split_chord_lyric_line_real_chords_are_not_headers(line, chords, lyric):
+    chord_layer, lyric_layer = split_chord_lyric_line(line)
+    for chord in chords:
+        assert chord in chord_layer
+    assert lyric_layer == lyric
+
+
 def test_get_key_preference():
     assert get_key_preference("G major") == "sharp"
     assert get_key_preference("F major") == "flat"

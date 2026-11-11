@@ -27,10 +27,5 @@ def test_edit_page_delete_button_has_no_inline_handlers(auth_client, app):
     assert 'js/sheet_editor.js' in html
 
 
-def test_confirm_listener_and_class_exist():
-    with open('static/js/sheet_editor.js', encoding='utf-8') as f:
-        js = f.read()
-    assert 'data-confirm' in js and 'preventDefault' in js
-    with open('static/styles.css', encoding='utf-8') as f:
-        css = f.read()
-    assert '.btn-danger' in css and '#dc3545' in css
+# The confirm dialog itself (cancel keeps the song, OK deletes it) is checked
+# in a real browser: test_shared_styles.py::test_delete_song_asks_before_deleting.

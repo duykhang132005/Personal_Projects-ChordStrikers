@@ -79,29 +79,10 @@ def test_healthz_reports_missing_songs_table(client, app):
     assert 'songs' not in response.get_data(as_text=True)
 
 
-def test_view_transitions_css_and_reduced_motion(client):
-    css = client.get('/static/styles.css').get_data(as_text=True)
-    assert '@view-transition' in css and 'navigation: auto' in css
-    assert '::view-transition-old(root)' in css
-    assert 'prefers-reduced-motion: reduce' in css
-    assert 'navigation: none' in css
-    assert 'view-transition-name: site-nav' in css
-    # Chord sheet must never be a shared element (would animate sheet open).
-    assert 'view-transition-name: song' not in css
-    assert 'view-transition-name: sheet' not in css
-
-
-def test_no_white_flash_head_order(client):
-    """Theme and a dark canvas are set inline before any stylesheet loads."""
-    html = client.get('/').get_data(as_text=True)
-    head = html.split('</head>', 1)[0]
-    first_css = head.index('rel="stylesheet"')
-    assert head.index("setAttribute('data-theme'") < first_css
-    assert head.index('body.music-bg { background-color: #3a2f63; }') < first_css
-    assert 'html[data-theme="wooden"] body { background-color: #3a2412; }' in head
-    assert 'html[data-theme="limelight"] body { background-color: #0e2418; }' in head
-    assert 'html { background' not in head  # would stop the body background filling the window
-    assert head.index('name="theme-color"') < head.index('<script>')
+# View transitions and reduced motion are checked in a real browser
+# (test_shared_styles.py: the @view-transition rule the browser applies, and
+# every transition and animation duration). The dark first paint before CSS
+# loads is checked by test_mobile_viewport.py::test_page_canvas_is_never_white.
 
 
 def test_speculation_rules_only_safe_pages(client):

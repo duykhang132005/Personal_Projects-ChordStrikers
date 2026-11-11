@@ -33,10 +33,12 @@ Thank you for your interest in contributing to **ChordStrikers**! We welcome all
 
 ## 🧪 Running Tests
 
-Before submitting a Pull Request, verify that all tests pass:
+Before submitting a Pull Request, verify that all tests pass with 0 skipped. Browser tests (Playwright) and JavaScript tests (Node.js 18 or newer) are required; the suite fails if they cannot run:
 
 ```bash
-pytest
+pip install -r requirements-browser.txt
+python -m playwright install chromium webkit
+python -m pytest -q -rs
 ```
 
 ---

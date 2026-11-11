@@ -75,6 +75,11 @@ def highlight_chords(text: str, add_data_attr: bool = False) -> Markup:
     return Markup('').join(pieces)
 
 
+def _section_label(token: str) -> str:
+    """Lowercase a header token without brackets or a trailing ':'."""
+    return token.rstrip(':').strip('[]').rstrip(':').strip().lower()
+
+
 def split_chord_lyric_line(line: str) -> tuple[str, str]:
     """
     Splits a line into chord and lyric layers, preserving alignment.
@@ -84,10 +89,14 @@ def split_chord_lyric_line(line: str) -> tuple[str, str]:
     stripped_line = line.strip()
     words = stripped_line.split()
     
-    # Check if line is a section header
+    # Check if line is a section header: "Chorus:", "[Chorus]", "[Verse 1]",
+    # "[Bridge]:" or "Pre Chorus:". Brackets and a trailing ':' are stripped
+    # before the keyword lookup; real chords like [C] or [Am7] never match.
     if words:
-        first_word = words[0].rstrip(':')
-        if first_word.lower() in _SECTION_KEYWORDS_LOWER:
+        if _section_label(words[0]) in _SECTION_KEYWORDS_LOWER or (
+            len(words) > 1
+            and _section_label(' '.join(words[:2])) in _SECTION_KEYWORDS_LOWER
+        ):
             return line.rstrip(), ''
     
     chord_parts = []

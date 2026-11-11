@@ -1,4 +1,5 @@
 """Sort, transpose, simplify, and the color theme picker."""
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -72,16 +73,113 @@ def test_view_sheet_has_performance_and_no_capo(client):
     assert 'id="sheet-raw"' in html
     assert "No preview available. The file could not be read." in html or "Hello world" in html
 
-def test_js_chord_tools_match_python():
+# ---- The transposer the browser really runs (static/js/chord_tools.js) ----
+
+JS_TOOLS = Path(__file__).resolve().parents[1] / "static" / "js" / "chord_tools.js"
+
+# (chord, steps, prefer, expected)
+TRANSPOSE_CASES = [
+    # Flat preference keeps flat spellings.
+    ("Bb", 0, "flat", "Bb"),
+    ("Bb", 12, "flat", "Bb"),
+    ("A", 1, "flat", "Bb"),
+    ("C", 1, "flat", "Db"),
+    ("Bbm7", 2, "flat", "Cm7"),
+    ("D#", 0, "flat", "Eb"),
+    ("F/A", 5, "flat", "Bb/D"),
+    # Sharp preference.
+    ("A", 1, "sharp", "A#"),
+    ("C", 1, "sharp", "C#"),
+    ("Db", 0, "sharp", "C#"),
+    ("F#m7", 2, "sharp", "G#m7"),
+    ("Esus4", 2, "sharp", "F#sus4"),
+    # Slash chords move the bass too.
+    ("G/B", 2, "sharp", "A/C#"),
+    ("D/F#", -2, "flat", "C/E"),
+    ("C/E", 3, "flat", "Eb/G"),
+    ("Am7/G", 2, "sharp", "Bm7/A"),
+    # Wraparound past B and below C, and whole octaves.
+    ("B", 1, "sharp", "C"),
+    ("C", -1, "sharp", "B"),
+    ("A", 14, "sharp", "B"),
+    ("C", -13, "flat", "B"),
+    ("Ab", -12, "flat", "Ab"),
+    ("G#", 5, "sharp", "C#"),
+    ("Db", -2, "flat", "B"),
+    # Not a chord: left alone.
+    ("N.C.", 3, "sharp", "N.C."),
+]
+
+# (text, options, expected)
+TRANSFORM_CASES = [
+    ("[Bb]Hello [F/A]world", {"steps": 2, "prefer": "flat"}, "[C]Hello [G/B]world"),
+    ("[Bb]la [Eb]la", {"steps": 0, "prefer": "flat"}, "[Bb]la [Eb]la"),
+    ("[B]line [F#m7]here", {"steps": -4, "simplify": True}, "[G]line [Dm]here"),
+    ("[Am7]x [E7/G#]y", {"steps": 3, "prefer": "flat", "simplify": True}, "[Cm]x [G/B]y"),
+    ("[C]a [G]b", {"steps": 12}, "[C]a [G]b"),
+    ("no chords here", {"steps": 5}, "no chords here"),
+]
+
+
+@pytest.fixture(scope="module")
+def js_results():
+    """Run every case through chord_tools.js in one node process."""
     node = shutil.which("node")
     if not node:
-        pytest.skip("node is not installed")
-    root = Path(__file__).resolve().parents[1]
-    result = subprocess.run(
-        [node, "tests/chord_tools_check.js"],
-        cwd=str(root), capture_output=True, text=True,
+        pytest.fail(
+            "node is not installed or not on PATH. The chord_tools.js tests are "
+            "required and are never skipped: install Node.js 18 or newer "
+            "(https://nodejs.org) and reopen the terminal. "
+            "See docs/MAINTAINING.md, \"Browser and Node tests (required)\".",
+            pytrace=False,
+        )
+    calls = (
+        [["transposeChord", c, s, p] for c, s, p, _ in TRANSPOSE_CASES]
+        + [["transformText", t, o] for t, o, _ in TRANSFORM_CASES]
+        + [["simplifyChord", raw] for raw, _ in SIMPLIFY_CASES]
     )
-    assert result.returncode == 0, result.stderr or result.stdout
+    script = (
+        "const t = require(process.argv[1]); let s = '';"
+        "process.stdin.on('data', (d) => { s += d; });"
+        "process.stdin.on('end', () => {"
+        "  const out = JSON.parse(s).map(([fn, ...args]) => t[fn](...args));"
+        "  process.stdout.write(JSON.stringify(out));"
+        "});"
+    )
+    result = subprocess.run(
+        [node, "-e", script, str(JS_TOOLS)],
+        input=json.dumps(calls), capture_output=True, text=True, timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
+    out = json.loads(result.stdout)
+    n, m = len(TRANSPOSE_CASES), len(TRANSFORM_CASES)
+    return {
+        "transpose": out[:n],
+        "transform": out[n:n + m],
+        "simplify": out[n + m:],
+    }
+
+
+@pytest.mark.parametrize("index", range(len(TRANSPOSE_CASES)),
+                         ids=[f"{c}{s:+d}{p}" for c, s, p, _ in TRANSPOSE_CASES])
+def test_js_transpose_chord(js_results, index):
+    chord, steps, prefer, expected = TRANSPOSE_CASES[index]
+    assert js_results["transpose"][index] == expected
+
+
+@pytest.mark.parametrize("index", range(len(TRANSFORM_CASES)))
+def test_js_transform_text(js_results, index):
+    text, options, expected = TRANSFORM_CASES[index]
+    assert js_results["transform"][index] == expected
+
+
+def test_js_simplify_matches_cases(js_results):
+    assert js_results["simplify"] == [expected for _, expected in SIMPLIFY_CASES]
+
+
+@pytest.mark.parametrize("chord,steps,prefer,expected", TRANSPOSE_CASES)
+def test_python_mirror_transposes_the_same(chord, steps, prefer, expected):
+    assert transpose_chord(chord, steps, prefer) == expected
 
 def test_account_theme_picker(auth_client):
     html = auth_client.get('/').get_data(as_text=True)

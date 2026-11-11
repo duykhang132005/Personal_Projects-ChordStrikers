@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from flask import (
     Blueprint, render_template, request, redirect, url_for, flash, session,
 )
@@ -11,13 +13,23 @@ auth_bp = Blueprint('auth', __name__)
 
 
 def _safe_next_url(candidate):
-    """Allow only relative same-site paths (no protocol-relative //...)."""
-    if not candidate:
+    r"""Allow only same-site paths such as /explore?tab=mine.
+
+    Rejects absolute URLs (https://...), scheme-relative //host, any
+    backslash (browsers read /\host as //host) and control characters
+    (browsers drop tabs and newlines, so /\t/host also becomes //host).
+    """
+    if not candidate or not isinstance(candidate, str):
         return None
     candidate = candidate.strip()
-    if candidate.startswith('/') and not candidate.startswith('//'):
-        return candidate
-    return None
+    if not candidate.startswith('/') or candidate.startswith('//'):
+        return None
+    if '\\' in candidate or any(ord(ch) < 32 or ord(ch) == 127 for ch in candidate):
+        return None
+    parts = urlsplit(candidate)
+    if parts.scheme or parts.netloc:
+        return None
+    return candidate
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -84,7 +96,7 @@ def login():
     return redirect(url_for('main.home'))
 
 
-@auth_bp.route('/logout', methods=['GET', 'POST'])
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     flash('You have been logged out.', 'success')

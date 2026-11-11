@@ -5,7 +5,7 @@ from ..models import Song
 from ..utils import normalise_spacing, process_song_text, get_song_image_url, sanitize_image_url
 from ..storage import save_song_content, load_song_content, delete_song_file
 from ..auth_helpers import login_required
-from .. import db
+from .. import csrf, db
 
 creator_bp = Blueprint('creator', __name__)
 
@@ -19,11 +19,13 @@ def _assert_song_editable(song):
 
 
 @creator_bp.route('/creator', methods=['GET', 'POST'])
+@csrf.exempt
 def creator():
     """Old address of the create page; send everything to /create.
 
     308 keeps the method and body, so a stale cached form that still posts
-    here is saved by /create instead of failing with 405.
+    here is saved by /create instead of failing with 405. No CSRF check
+    here: this view changes nothing, and /create checks the re-sent token.
     """
     return redirect(url_for('creator.create'), code=308)
 

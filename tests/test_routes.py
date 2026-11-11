@@ -67,7 +67,6 @@ def test_routes_ok_on_stamped_empty_sqlite(tmp_path):
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
         'SECRET_KEY': 'test-secret-key',
-        'WTF_CSRF_ENABLED': False,
         'SONG_DATA_DIR': str(tmp_path / 'sheets'),
     })
     try:
@@ -126,7 +125,6 @@ def test_create_app_reconciles_orphan_files_and_song_rows(tmp_path):
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
         'SECRET_KEY': 'test-secret-key',
-        'WTF_CSRF_ENABLED': False,
         'SONG_DATA_DIR': str(sheets),
     })
     try:
@@ -326,7 +324,9 @@ def test_creator_form_posts_to_create_not_get_only_creator(client):
 
 def test_stale_post_to_creator_saves_song(auth_client, app):
     from app.models import Song
-    response = auth_client.post('/creator', data={'title': 'Stale form song', 'sheet_content': '[C]la'},
+    # The 308 re-sends the form body; /create checks the form's csrf_token field.
+    response = auth_client.post('/creator', data={'title': 'Stale form song', 'sheet_content': '[C]la',
+                                                  'csrf_token': auth_client.csrf_token()},
                                 follow_redirects=True)
     assert response.status_code == 200
     with app.app_context():
@@ -337,3 +337,36 @@ def test_menu_create_link_targets_create(client):
     html = client.get('/').get_data(as_text=True)
     nav = html.split('<nav class="site-nav"', 1)[1].split('</nav>', 1)[0]
     assert 'href="/create"' in nav and 'href="/creator"' not in nav
+
+
+def test_view_sheet_renders_bracketed_headers_and_real_chords(client, app):
+    """[Chorus], [Verse 1] and [Bridge]: get header styling; [C] and [Am7] stay chords."""
+    from app import db
+    from app.models import Song
+    from app.storage import save_song_content
+
+    with app.app_context():
+        song = Song(title='Headers', artist='Tester', song_key='C')
+        db.session.add(song)
+        db.session.commit()
+        save_song_content(song.id, '\n'.join([
+            '[Verse 1]',
+            '[C]Hello [G]world',
+            '[Chorus]',
+            '[Am7]Sing along',
+            '[Bridge]:',
+            '[F]Last line',
+        ]))
+        song_id = song.id
+
+    html = client.get(f'/view_sheet/{song_id}').get_data(as_text=True)
+    for header in ('[Verse 1]', '[Chorus]', '[Bridge]:'):
+        assert f'<div class="section-header">{header}</div>' in html
+    # Headers are not chords: no transposable span is made for them.
+    for word in ('Verse', 'Chorus', 'Bridge'):
+        assert f'data-chord="[{word}' not in html
+    # Real bracketed chords stay in a chord row above their lyrics.
+    for chord, lyric in (('[C]', 'Hello world'), ('[Am7]', 'Sing along'), ('[F]', 'Last line')):
+        assert f'<span class="chord" data-chord="{chord}">{chord}</span>' in html
+        assert f'<div class="lyric-line">{lyric}</div>' in html
+    assert '<div class="lyric-line">:</div>' not in html

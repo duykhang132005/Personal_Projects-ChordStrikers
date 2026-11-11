@@ -1,7 +1,8 @@
 import os
 import warnings
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 from flask_compress import Compress
+from flask_wtf.csrf import CSRFError, CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
@@ -10,6 +11,10 @@ from .assets import compute_static_version
 
 db = SQLAlchemy()
 compress = Compress()
+# Every POST, PUT, PATCH and DELETE needs a token: forms send the hidden
+# csrf_token field, fetch() calls send the X-CSRFToken header read from
+# <meta name="csrf-token">.
+csrf = CSRFProtect()
 
 # Placeholder values that must not be trusted as real secrets.
 _PLACEHOLDER_KEYS = {'your_random_secret_key_here', 'fallback-dev-key'}
@@ -80,6 +85,7 @@ def create_app(test_config=None):
     app.config.setdefault('COMPRESS_ALGORITHM', ['gzip'])
     app.config.setdefault('COMPRESS_MIN_SIZE', 500)
     compress.init_app(app)
+    csrf.init_app(app)
 
     # Import and register blueprints
     from .routes.main import main_bp
@@ -284,6 +290,22 @@ def _register_static_cache_headers(app):
 
 
 def _register_error_handlers(app):
+    @app.errorhandler(CSRFError)
+    def csrf_failed(_error):
+        if request.path.startswith('/api/'):
+            response = jsonify({'error': 'Security token missing or expired. Reload the page and try again.'})
+            response.headers['Cache-Control'] = 'no-store'
+            return response, 400
+        return render_template(
+            'errors/error.html',
+            code=400,
+            title='Form expired',
+            message=(
+                'This form expired or is missing its security token. '
+                'Go back, reload the page, and try again.'
+            ),
+        ), 400
+
     @app.errorhandler(404)
     def not_found(_error):
         return render_template(

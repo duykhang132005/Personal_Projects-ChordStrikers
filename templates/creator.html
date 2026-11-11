@@ -14,6 +14,7 @@
   <div>
     <form method="POST" action="{{ form_action_url or url_for('creator.create') }}"
           enctype="multipart/form-data" id="edit-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
       <!-- Title -->
       <div class="form-group">

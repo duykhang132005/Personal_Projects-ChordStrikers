@@ -1,4 +1,5 @@
-# Optional: real-browser checks (tests/test_mobile_viewport.py).
+# Required for the test suite: real-browser checks (tests/test_mobile_viewport.py,
+# tests/test_shared_styles.py). Without them the suite fails. Dev only, not for PythonAnywhere.
 # pip install -r requirements-browser.txt
 # python -m playwright install chromium webkit
 -r requirements-dev.txt

@@ -927,6 +927,12 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     if (status) status.textContent = text;
   }
 
+  // The server rejects writes without the page's CSRF token (see index.html).
+  function csrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+  }
+
   function render(favorited) {
     btn.classList.toggle('is-favorite', favorited);
     btn.setAttribute('aria-pressed', favorited ? 'true' : 'false');
@@ -958,7 +964,7 @@ document.getElementById('btn-download-txt')?.addEventListener('click', () => {
     fetch(`/api/favorites/${songId}`, {
       method: wasFavorite ? 'DELETE' : 'POST',
       credentials: 'same-origin',
-      headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' }
+      headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json', 'X-CSRFToken': csrfToken() }
     })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);

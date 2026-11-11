@@ -21,13 +21,25 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    # tests/test_sheet_tools.py runs static/js/chord_tools.js in Node.
+    - name: Set up Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: "20"
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+        pip install -r requirements-browser.txt
+
+    # Real-browser tests (tests/test_mobile_viewport.py, tests/test_shared_styles.py)
+    # are required: the suite fails without Chromium and WebKit, so install them.
+    - name: Install Playwright browsers
+      run: python -m playwright install --with-deps chromium webkit
 
     - name: Add project root to PYTHONPATH
       run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
     - name: Run Pytest Test Suite
-      run: pytest -vv
+      # tests/conftest.py turns any skip into a failure, so this enforces 0 skipped.
+      run: pytest -vv -rs
