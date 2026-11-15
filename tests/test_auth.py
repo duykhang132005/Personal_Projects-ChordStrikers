@@ -94,7 +94,7 @@ def test_create_requires_login(client):
 
 
 def test_logged_in_create_sets_user_id(client, app):
-    register(client, username='bob', password='pw12345')
+    register(client, username='bob', password='pw123456')
     with app.app_context():
         user = User.query.filter_by(username='bob').one()
         user_id = user.id
@@ -114,7 +114,7 @@ def test_logged_in_create_sets_user_id(client, app):
 
 
 def test_edit_delete_forbidden_for_other_owner(client, app):
-    register(client, username='owner', password='pw12345')
+    register(client, username='owner', password='pw123456')
     client.post('/create', data={
         'title': 'Private',
         'artist': 'O',
@@ -125,7 +125,7 @@ def test_edit_delete_forbidden_for_other_owner(client, app):
         song_id = Song.query.filter_by(title='Private').one().id
 
     client.post('/logout')
-    register(client, username='intruder', password='pw12345')
+    register(client, username='intruder', password='pw123456')
 
     response = client.get(f'/edit_song/{song_id}')
     assert response.status_code == 403
@@ -144,13 +144,13 @@ def test_legacy_song_without_owner_not_editable_by_regular_user(client, app):
         assert song.user_id is None
         song_id = song.id
 
-    register(client, username='editor', password='pw12345')
+    register(client, username='editor', password='pw123456')
     response = client.get(f'/edit_song/{song_id}')
     assert response.status_code == 403
 
 
 def test_explore_author_filter_and_view_hides_edit(client, app):
-    register(client, username='author1', password='pw12345')
+    register(client, username='author1', password='pw123456')
     client.post('/create', data={
         'title': 'AuthorFilterSong',
         'artist': 'Band',
@@ -158,7 +158,7 @@ def test_explore_author_filter_and_view_hides_edit(client, app):
         'sheet_content': '[C]Hi',
     })
     client.post('/logout')
-    register(client, username='viewer1', password='pw12345')
+    register(client, username='viewer1', password='pw123456')
 
     explore = client.get('/explore?author=author1')
     assert explore.status_code == 200
@@ -176,7 +176,7 @@ def test_explore_author_filter_and_view_hides_edit(client, app):
 
 
 def test_admin_can_edit_other_owner(client, app):
-    register(client, username='owner2', password='pw12345')
+    register(client, username='owner2', password='pw123456')
     client.post('/create', data={
         'title': 'OwnedByOther',
         'artist': 'O',
@@ -245,6 +245,7 @@ def test_change_password(auth_client, app):
     ('', 'secret123', 'secret123', 'Username is required.'),
     ('   ', 'secret123', 'secret123', 'Username is required.'),
     ('carol', '', '', 'Password is required.'),
+    ('carol', 'short7x', 'short7x', 'Password must be at least 8 characters.'),
     ('carol', 'secret123', 'different1', 'Passwords do not match.'),
 ])
 def test_register_rejects_bad_input(client, app, username, password, confirmation, message):
@@ -261,6 +262,28 @@ def test_register_rejects_bad_input(client, app, username, password, confirmatio
         assert User.query.count() == users_before
     html = client.get('/?signin=1').get_data(as_text=True)
     assert html.count(message) == 1
+
+
+def test_register_accepts_8_character_password(client, app):
+    response = register(client, username='minpass', password='12345678')
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith('/')
+    with app.app_context():
+        user = User.query.filter_by(username='minpass').one()
+        assert check_password_hash(user.password_hash, '12345678')
+    with client.session_transaction() as sess:
+        assert sess.get('user_id') is not None
+
+
+def test_register_form_asks_for_8_characters(client):
+    html = client.get('/?signin=1').get_data(as_text=True)
+    assert 'id="register-password"' in html and 'minlength="8"' in html
+    assert 'id="register-confirmation"' in html
+    # Both sign-up fields carry the same minimum as change-password.
+    assert html.count('id="register-password"') == 1
+    pwd = html.split('id="register-password"', 1)[1].split('>', 1)[0]
+    confirm = html.split('id="register-confirmation"', 1)[1].split('>', 1)[0]
+    assert 'minlength="8"' in pwd and 'minlength="8"' in confirm
 
 
 # ---- Logout is POST only ------------------------------------------------

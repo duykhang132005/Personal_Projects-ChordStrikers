@@ -12,6 +12,7 @@ import pytest
 
 from app import db  # noqa: E402
 from app.models import Song  # noqa: E402
+from app.storage import save_song_content  # noqa: E402
 # Shared real-browser fixtures (a live server, Chromium, an admin login).
 from browser_fixtures import (  # noqa: E402,F401
     _PW, admin_state, browser, launch_webkit, live_server, register_in_browser,
@@ -361,15 +362,21 @@ def test_home_background_fills_window_no_bottom_band(browser, live_server, theme
     info = page.evaluate("""() => {
         const h = getComputedStyle(document.documentElement);
         const el = document.elementFromPoint(innerWidth / 2, innerHeight - 2);
+        let node = el;
+        let fixed = false;
+        while (node && node !== document.documentElement) {
+            if (getComputedStyle(node).position === 'fixed') { fixed = true; break; }
+            node = node.parentElement;
+        }
         return {htmlBg: h.backgroundColor, htmlImg: h.backgroundImage,
                 bodyImg: getComputedStyle(document.body).backgroundImage,
-                bottom: el ? el.tagName : null};
+                bottomFixed: fixed};
     }""")
     context.close()
     # html unpainted, so the body background is drawn over the whole canvas.
     assert info['htmlBg'] == 'rgba(0, 0, 0, 0)' and info['htmlImg'] == 'none'
     assert info['bodyImg'] != 'none'
-    assert info['bottom'] in ('HTML', 'BODY')  # nothing fixed covering the bottom
+    assert not info['bottomFixed']  # nothing fixed covering the bottom
 
 
 @pytest.mark.parametrize('width,height', [(360, 740), (390, 780), (1024, 768), (1366, 900)])
@@ -378,7 +385,7 @@ def test_flash_close_button_is_clickable_and_dismisses(browser, live_server, wid
     import uuid
     user = 'flash' + uuid.uuid4().hex[:6]
     context = browser.new_context(viewport={'width': width, 'height': height})
-    register_in_browser(context, live_server['base'], user, 'pw', max_redirects=0)
+    register_in_browser(context, live_server['base'], user, 'testpass1', max_redirects=0)
     page = context.new_page()
     page.goto(live_server['base'] + '/explore', wait_until='load')  # shows the welcome flash
     assert page.locator('.alert').count() == 1
@@ -445,4 +452,100 @@ def test_album_and_hidden_badge_fit_on_cards(browser, live_server, admin_state, 
         with app.app_context():
             song = db.session.get(Song, live_server['song_id'])
             song.album, song.hidden = None, False
+            db.session.commit()
+
+
+def test_home_daily_picks_row_scrolls_without_page_overflow(browser, live_server):
+    """At 375px the page does not scroll sideways; the row arrows move the row."""
+    app = live_server['app']
+    created = []
+    with app.app_context():
+        for i in range(6):
+            song = Song(title=f'Daily Song {i}', artist=f'Daily Artist {i}', song_key='G')
+            db.session.add(song)
+            db.session.commit()
+            save_song_content(song.id, '[C]Hi')
+            created.append(song.id)
+    context = None
+    try:
+        context = browser.new_context(
+            viewport={'width': 375, 'height': 812},
+            is_mobile=True,
+            has_touch=True,
+            service_workers='block',
+        )
+        page = context.new_page()
+        page.goto(live_server['base'] + '/', wait_until='load')
+        assert page.locator('.daily-picks').count() == 1
+        assert page.locator('.daily-featured-card').count() == 1
+        assert page.locator('.daily-picks-card').count() == 3
+        sizes = page.evaluate(OVERFLOW_JS)
+        assert sizes['sw'] <= sizes['iw'] + 1, f'page is {sizes["sw"]}px wide at 375px'
+
+        prev = page.locator('.daily-picks-prev')
+        nxt = page.locator('.daily-picks-next')
+        assert prev.is_visible() and nxt.is_visible()
+        assert prev.is_disabled()
+        assert nxt.is_enabled()
+        before = page.evaluate("() => document.querySelector('.daily-picks-row').scrollLeft")
+        nxt.click()
+        page.wait_for_function("document.querySelector('.daily-picks-row').scrollLeft > 0")
+        after = page.evaluate("() => document.querySelector('.daily-picks-row').scrollLeft")
+        assert after > before
+        assert prev.is_enabled()
+        sizes_after = page.evaluate(OVERFLOW_JS)
+        assert sizes_after['sw'] <= sizes_after['iw'] + 1
+        # Jump to the end (avoids a race with smooth-scroll disabling Next mid-click).
+        page.evaluate("""() => {
+            const row = document.querySelector('.daily-picks-row');
+            row.scrollLeft = row.scrollWidth;
+        }""")
+        page.wait_for_function("document.querySelector('.daily-picks-next').disabled")
+        assert nxt.is_disabled()
+        end_sizes = page.evaluate(OVERFLOW_JS)
+        assert end_sizes['sw'] <= end_sizes['iw'] + 1
+    finally:
+        if context is not None:
+            context.close()
+        with app.app_context():
+            for song_id in created:
+                song = db.session.get(Song, song_id)
+                if song is not None:
+                    db.session.delete(song)
+            db.session.commit()
+
+def test_home_daily_picks_hides_arrows_when_row_fits(browser, live_server):
+    """Three runner-up cards fit at 1280px, so prev/next stay hidden."""
+    app = live_server['app']
+    created = []
+    with app.app_context():
+        for i in range(6):
+            song = Song(title=f'Daily Song {i}', artist=f'Daily Artist {i}', song_key='G')
+            db.session.add(song)
+            db.session.commit()
+            save_song_content(song.id, '[C]Hi')
+            created.append(song.id)
+    context = None
+    try:
+        context = browser.new_context(
+            viewport={'width': 1280, 'height': 800},
+            service_workers='block',
+        )
+        page = context.new_page()
+        page.goto(live_server['base'] + '/', wait_until='load')
+        assert page.locator('.daily-picks-card').count() == 3
+        prev = page.locator('.daily-picks-prev')
+        nxt = page.locator('.daily-picks-next')
+        assert prev.is_hidden()
+        assert nxt.is_hidden()
+        sizes = page.evaluate(OVERFLOW_JS)
+        assert sizes['sw'] <= sizes['iw'] + 1
+    finally:
+        if context is not None:
+            context.close()
+        with app.app_context():
+            for song_id in created:
+                song = db.session.get(Song, song_id)
+                if song is not None:
+                    db.session.delete(song)
             db.session.commit()

@@ -15,7 +15,7 @@ NO_ART = mock.patch('app.routes.creator.get_song_image_url', return_value=None)
 
 
 def _register(client, name):
-    client.post('/register', data={'username': name, 'password': 'pw', 'confirmation': 'pw'})
+    client.post('/register', data={'username': name, 'password': 'testpass1', 'confirmation': 'testpass1'})
 
 
 def _logout(client):

@@ -6,7 +6,7 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
-from .config import Config
+from .config import Config, session_cookie_secure
 from .assets import compute_static_version
 
 db = SQLAlchemy()
@@ -70,6 +70,7 @@ def create_app(test_config=None):
 
     # Load additional config
     app.config.from_object(Config)
+    app.config['SESSION_COOKIE_SECURE'] = session_cookie_secure()
     if test_config is not None:
         app.config.update(test_config)
 
@@ -329,3 +330,16 @@ def _register_error_handlers(app):
                 "error. Sorry about that."
             ),
         ), 500
+
+    @app.errorhandler(413)
+    def too_large(_error):
+        return render_template(
+            'errors/error.html',
+            code=413,
+            title='Request too large',
+            message=(
+                'That submission is larger than 1 MB, which is more than '
+                'this app accepts. Try a shorter chord sheet, or go back '
+                'and try again.'
+            ),
+        ), 413

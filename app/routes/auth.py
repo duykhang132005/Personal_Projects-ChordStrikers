@@ -50,6 +50,9 @@ def register():
     if not password:
         flash('Password is required.', 'error')
         return redirect(url_for('main.home', signin=1))
+    if len(password) < 8:
+        flash('Password must be at least 8 characters.', 'error')
+        return redirect(url_for('main.home', signin=1))
     if password != confirmation:
         flash('Passwords do not match.', 'error')
         return redirect(url_for('main.home', signin=1))

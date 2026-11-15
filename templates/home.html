@@ -213,11 +213,11 @@
                     </div>
                     <div class="mb-3">
                         <label for="register-password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="register-password" name="password" required autocomplete="new-password">
+                        <input type="password" class="form-control" id="register-password" name="password" required minlength="8" autocomplete="new-password">
                     </div>
                     <div class="mb-3">
                         <label for="register-confirmation" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="register-confirmation" name="confirmation" required autocomplete="new-password">
+                        <input type="password" class="form-control" id="register-confirmation" name="confirmation" required minlength="8" autocomplete="new-password">
                     </div>
                     <button type="submit" class="btn btn-secondary">Register</button>
                 </form>
@@ -280,8 +280,82 @@
         </div>
     </div>
 </div>
+
+{% macro daily_picks_art(song, sizes, width, height, lazy=False) %}
+<div class="ratio ratio-1x1">
+    {% if song.image_url %}
+    {% set cover_srcset = song.image_url|artwork_srcset %}
+    <img src="{{ song.image_url }}"{% if cover_srcset %} srcset="{{ cover_srcset }}" sizes="{{ sizes }}"{% endif %} width="{{ width }}" height="{{ height }}" alt="{% if song.artist %}{{ song.artist }}{% else %}{{ song.title }}{% endif %}" class="object-fit-cover"{% if lazy %} loading="lazy"{% endif %} decoding="async">
+    {% else %}
+    <div class="d-flex align-items-center justify-content-center object-fit-contain daily-picks-art-fallback" aria-hidden="true">
+        <i class="bi bi-music-note-beamed fs-1" aria-hidden="true"></i>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% if song_of_the_day %}
+<section class="daily-picks mx-auto w-100 px-3 pb-4 mt-4" aria-labelledby="daily-picks-heading">
+    <h2 id="daily-picks-heading" class="daily-picks-heading mb-3">Song of the day</h2>
+    <article class="card bg-dark text-white shadow-sm border-0 overflow-hidden daily-featured-card w-100">
+        <div class="row g-0">
+            <div class="col-12 col-sm-4">
+                {{ daily_picks_art(song_of_the_day, '(min-width: 576px) 16rem, 100vw', 240, 240) }}
+            </div>
+            <div class="col-12 col-sm-8 daily-featured-copy position-relative overflow-hidden">
+                {% if song_of_the_day.image_url %}
+                <div class="daily-featured-backdrop" aria-hidden="true">
+                    {% set copy_srcset = song_of_the_day.image_url|artwork_srcset %}
+                    <img src="{{ song_of_the_day.image_url }}"{% if copy_srcset %} srcset="{{ copy_srcset }}" sizes="(min-width: 576px) 32rem, 100vw"{% endif %} alt="" decoding="async">
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column h-100 position-relative daily-featured-body">
+                    <h3 class="card-title text-break">{{ song_of_the_day.title }}</h3>
+                    {% if song_of_the_day.artist %}
+                    <p class="card-text"><strong>Artist:</strong> {{ song_of_the_day.artist }}</p>
+                    {% endif %}
+                    <p class="card-text"><strong>Key:</strong> {{ song_of_the_day.song_key or '-' }}</p>
+                    <a href="{{ url_for('main.view_sheet', song_id=song_of_the_day.id) }}" class="btn btn-outline-light mt-auto align-self-start daily-picks-link">View Sheet</a>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    {% if more_to_play %}
+    <div class="daily-picks-more mt-4">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <h3 id="more-to-play-heading" class="daily-picks-subheading mb-0">More to play</h3>
+            <div class="d-flex gap-2">
+                <button type="button" class="daily-picks-prev" aria-label="Previous songs" hidden disabled>
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="daily-picks-next" aria-label="Next songs" hidden>
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+        <div class="daily-picks-row d-flex align-items-stretch gap-3" role="list" aria-labelledby="more-to-play-heading">
+            {% for song in more_to_play %}
+            <article class="card bg-dark text-white shadow-sm border-0 overflow-hidden daily-picks-card position-relative" role="listitem">
+                {{ daily_picks_art(song, '240px', 240, 240, lazy=True) }}
+                {% if song.artist %}
+                {% set sheet_label = 'View sheet: ' ~ song.title ~ ' by ' ~ song.artist %}
+                {% else %}
+                {% set sheet_label = 'View sheet: ' ~ song.title %}
+                {% endif %}
+                <a href="{{ url_for('main.view_sheet', song_id=song.id) }}" class="btn daily-picks-link position-absolute start-50 translate-middle-x" aria-label="{{ sheet_label }}">View Sheet</a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+{% if song_of_the_day and more_to_play %}
+<script src="{{ url_for('static', filename='js/daily_picks.js', v=static_v) }}" defer></script>
+{% endif %}
 {% endblock %}

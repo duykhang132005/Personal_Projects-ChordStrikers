@@ -58,17 +58,35 @@ Copy `.env.example` to `.env`, set `BOOTSTRAP_ADMINS` for a fresh local DB only.
 The live site runs from `~/Personal_Projects-ChordStrikers`. A normal update is:
 
 1. Open a Bash console, `cd ~/Personal_Projects-ChordStrikers`, then `git pull`.
-2. If `requirements.txt` changed, run `pip install -r requirements.txt` inside the site's virtualenv.
+2. If `requirements.txt` changed, or if the error log says a module is missing, install packages with the project virtualenv (see below) and confirm the imports.
 3. Press **Reload** on the Web tab.
 
 New tables and columns are created on startup, so there is no migration step.
+
+### Installing Python packages
+
+The web app uses the virtualenv shown on the Web tab (usually `~/Personal_Projects-ChordStrikers/venv`). Install with that Python, then check that the packages import:
+
+```bash
+~/Personal_Projects-ChordStrikers/venv/bin/python -m pip install -r requirements.txt
+~/Personal_Projects-ChordStrikers/venv/bin/python -c "import flask, flask_wtf, flask_compress; print('ok')"
+```
+
+If the Web tab's Virtualenv field is empty, install for the same Python version the web app uses. Change `3.13` to the version shown on the Web tab:
+
+```bash
+python3.13 -m pip install --user -r requirements.txt
+python3.13 -c "import flask, flask_wtf, flask_compress; print('ok')"
+```
+
+`--user` installs go into your account's user site (`~/.local`) and are ignored when a virtualenv is set. A November 2026 outage happened because packages were installed with `--user` (or a different Python) while the web app was using the project virtualenv, so imports still failed. Always use the same Python the Web tab lists, then press Reload.
 
 ### After this update: install Flask-Compress
 
 `requirements.txt` now includes `Flask-Compress==1.25` (gzip for HTML and JSON). The app will not start without it, so install it before pressing Reload:
 
 1. Bash console: `cd ~/Personal_Projects-ChordStrikers && git pull`
-2. `workon <your-virtualenv>` (or `source <virtualenv path>/bin/activate`; the path is on the Web tab), then `pip install -r requirements.txt`
+2. Install and confirm imports as in [Installing Python packages](#installing-python-packages).
 3. Press **Reload** on the Web tab.
 4. Check `https://duykhang132005.pythonanywhere.com/healthz` shows `{"db": "ok", "status": "ok"}`.
 
@@ -79,7 +97,7 @@ Static files are served by Flask (Flask-Compress skips them) unless you add a **
 `requirements.txt` now includes `Flask-WTF`. Every form and the favorites API now need a CSRF token, and the app will not start without the package:
 
 1. Bash console: `cd ~/Personal_Projects-ChordStrikers && git pull`
-2. `workon <your-virtualenv>`, then `pip install -r requirements.txt`
+2. Install and confirm imports as in [Installing Python packages](#installing-python-packages).
 3. Press **Reload** on the Web tab.
 4. Sign in, star a sheet, then log out to confirm the forms work. A "Form expired" page means the tab was opened before the update; reload it and try again.
 
@@ -104,6 +122,16 @@ python -c "import secrets; print(secrets.token_hex(32))"
 For local development only, you can instead set `ALLOW_INSECURE_DEV_KEY=1` (or run with `FLASK_DEBUG=1`) to use a throwaway key. Tests supply their own key.
 
 On PythonAnywhere, add `SECRET_KEY` to the `.env` file in the project folder (or the WSGI file), then press Reload.
+
+### Session cookies
+
+Session cookies use `SameSite=Lax`. On PythonAnywhere (HTTPS), also add this line to the `.env` file in the project folder, then press Reload:
+
+```
+SESSION_COOKIE_SECURE=1
+```
+
+That marks the login cookie as HTTPS-only. Leave it unset (or set it to `0`) for local `http://` development so the cookie still works. The app loads `.env` from the project folder (the directory that contains `app/`), so this works even if the process was started in another directory. The values `1`, `true`, `yes`, and `on` all count as on.
 
 ### Static file versions
 

@@ -8,6 +8,7 @@ from ..models import Song
 from ..utils import prepare_song
 from ..storage import get_song_filepath
 from ..auth_helpers import can_edit_song, get_current_user
+from ..daily_picks import pick_daily_songs
 from .favorites import favorite_ids_for
 
 main_bp = Blueprint('main', __name__)
@@ -56,8 +57,14 @@ def song_matches_filters(song, query_normalized, key_normalized, author_normaliz
 
 @main_bp.route('/')
 def home():
-    """Display the home page."""
-    return render_template("home.html")
+    """Display the home page, plus today's featured public songs."""
+    public_songs = Song.query.filter_by(hidden=False).all()
+    song_of_the_day, more_to_play = pick_daily_songs(public_songs)
+    return render_template(
+        "home.html",
+        song_of_the_day=song_of_the_day,
+        more_to_play=more_to_play,
+    )
 
 
 @main_bp.route('/explore')

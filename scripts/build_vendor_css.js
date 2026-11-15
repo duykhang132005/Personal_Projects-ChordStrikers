@@ -21,7 +21,7 @@ const SOURCES = {
   icons: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css',
   fontawesome: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
 };
-const CONTENT = ['templates/**/*.html', 'static/js/**/*.js', 'app/**/*.py'].map((p) => path.join(ROOT, p));
+const CONTENT = ['templates/**/*.html', 'static/js/**/*.js', 'app/**/*.py'].map((p) => path.join(ROOT, p).replace(/\\/g, '/'));
 // Classes Bootstrap JS adds at runtime, or that are built from template variables.
 const SAFELIST = {
   standard: [/^alert/, 'fade', 'show', 'btn-close', 'visually-hidden', 'visually-hidden-focusable',

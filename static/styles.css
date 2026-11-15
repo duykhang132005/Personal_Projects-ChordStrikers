@@ -2116,3 +2116,173 @@ label.check-row input[type="checkbox"] {
 .hero-text {
   color: white;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   Home: Song of the day and More to play
+   Layout uses Bootstrap 5.3.3 utilities. Custom rules are the
+   theme tokens, blurred featured copy pane, overlay View Sheet
+   button, scroll-snap row, 44px arrow targets, and Perform hide.
+   [R1][R4][R5][R6][R7][R9][R11]
+──────────────────────────────────────────────────────────────── */
+:root {
+    --daily-card-bg: #4a4f55;
+    --daily-card-text: #fff;
+    --daily-heading: #fff;
+    --daily-focus: #ffcc80;
+    --daily-btn-bg: rgba(26, 18, 12, 0.78);
+    --daily-art-fallback: #3a3f44;
+    --daily-copy-bg: #2f343a;
+    --daily-copy-scrim: rgba(18, 18, 20, 0.78);
+    --daily-link-bg: #1a120c;
+}
+
+html[data-theme="wooden"] {
+    --daily-heading: #ffe08a;
+    --daily-focus: #ffe08a;
+    --daily-copy-bg: #3a2412;
+    --daily-copy-scrim: rgba(26, 18, 12, 0.78);
+}
+
+html[data-theme="limelight"] {
+    --daily-heading: #ffe08a;
+    --daily-focus: #c5e1a5;
+    --daily-copy-bg: #0e2418;
+    --daily-copy-scrim: rgba(6, 18, 12, 0.78);
+}
+
+.daily-picks {
+    max-width: 52rem;
+    box-sizing: border-box;
+}
+
+.daily-picks-heading,
+.daily-picks-subheading {
+    color: var(--daily-heading);
+    font-weight: 600;
+    text-transform: none;
+}
+
+.daily-picks-heading {
+    font-size: 1.5rem;
+}
+
+.daily-picks-subheading {
+    font-size: 1.15rem;
+}
+
+.daily-featured-card,
+.daily-picks-card {
+    background-color: var(--daily-card-bg) !important;
+    color: var(--daily-card-text);
+}
+
+.daily-featured-copy {
+    background-color: var(--daily-copy-bg);
+    color: var(--daily-card-text);
+}
+
+.daily-featured-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.daily-featured-backdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(28px);
+    transform: scale(1.15);
+}
+
+.daily-featured-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--daily-copy-scrim);
+}
+
+.daily-featured-body {
+    z-index: 1;
+}
+
+.daily-featured-body .card-title {
+    color: var(--daily-heading);
+}
+
+.daily-picks-art-fallback {
+    background-color: var(--daily-art-fallback);
+    color: var(--daily-card-text);
+}
+
+.daily-picks-link:focus-visible,
+.daily-picks-prev:focus-visible,
+.daily-picks-next:focus-visible {
+    outline: 2px solid var(--daily-focus);
+    outline-offset: 2px;
+}
+
+.daily-picks-card .daily-picks-link {
+    z-index: 1;
+    bottom: 0.75rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--daily-link-bg);
+    color: var(--daily-card-text);
+    border: 2px solid var(--daily-card-text);
+    white-space: nowrap;
+}
+
+.daily-picks-prev,
+.daily-picks-next {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 2px solid var(--daily-card-text);
+    border-radius: 999px;
+    background: var(--daily-btn-bg);
+    color: var(--daily-card-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 1.25rem;
+}
+
+.daily-picks-prev:disabled,
+.daily-picks-next:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.daily-picks-row {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .daily-picks-row {
+        scroll-behavior: smooth;
+    }
+}
+
+.daily-picks-card {
+    flex: 0 0 15rem;
+    width: 15rem;
+    scroll-snap-align: start;
+}
+
+body.performance-mode .daily-picks {
+    display: none !important;
+}
