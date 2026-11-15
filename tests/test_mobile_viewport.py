@@ -640,6 +640,13 @@ def test_home_daily_picks_view_sheet_visible_on_touch(browser, live_server):
             service_workers='block',
         )
         page = context.new_page()
+        session = context.new_cdp_session(page)
+        session.send('Emulation.setEmulatedMedia', {
+            'features': [
+                {'name': 'hover', 'value': 'none'},
+                {'name': 'pointer', 'value': 'coarse'},
+            ],
+        })
         page.goto(live_server['base'] + '/', wait_until='load')
         page.locator('.daily-picks-card').first.wait_for()
         assert _link_opacity(page, 0) == 1
