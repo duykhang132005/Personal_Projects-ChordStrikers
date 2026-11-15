@@ -549,3 +549,101 @@ def test_home_daily_picks_hides_arrows_when_row_fits(browser, live_server):
                 if song is not None:
                     db.session.delete(song)
             db.session.commit()
+
+def _seed_daily_picks(app, count=6):
+    created = []
+    with app.app_context():
+        for i in range(count):
+            song = Song(title=f'Daily Song {i}', artist=f'Daily Artist {i}', song_key='G')
+            db.session.add(song)
+            db.session.commit()
+            save_song_content(song.id, '[C]Hi')
+            created.append(song.id)
+    return created
+
+
+def _cleanup_daily_picks(app, created):
+    with app.app_context():
+        for song_id in created:
+            song = db.session.get(Song, song_id)
+            if song is not None:
+                db.session.delete(song)
+        db.session.commit()
+
+
+def _link_opacity(page, index=0):
+    return page.evaluate(
+        """(index) => {
+            const links = document.querySelectorAll('.daily-picks-card .daily-picks-link');
+            const link = links[index];
+            if (!link) return null;
+            return parseFloat(getComputedStyle(link).opacity);
+        }""",
+        index,
+    )
+
+
+def test_home_daily_picks_view_sheet_hidden_until_hover(browser, live_server):
+    """On a fine pointer, the runner-up View Sheet is hidden until hover or focus."""
+    app = live_server['app']
+    created = _seed_daily_picks(app)
+    context = None
+    try:
+        context = browser.new_context(
+            viewport={'width': 1280, 'height': 800},
+            service_workers='block',
+        )
+        page = context.new_page()
+        page.goto(live_server['base'] + '/', wait_until='load')
+        page.locator('.daily-picks-card').first.wait_for()
+        assert page.locator('.daily-picks-card .daily-picks-link').count() == 3
+        assert _link_opacity(page, 0) == 0
+        page.locator('.daily-picks-card').first.hover()
+        page.wait_for_function(
+            """() => {
+                const link = document.querySelector('.daily-picks-card .daily-picks-link');
+                return link && parseFloat(getComputedStyle(link).opacity) === 1;
+            }"""
+        )
+        assert _link_opacity(page, 0) == 1
+        page.locator('.daily-picks-heading').hover()
+        page.wait_for_function(
+            """() => {
+                const link = document.querySelector('.daily-picks-card .daily-picks-link');
+                return link && parseFloat(getComputedStyle(link).opacity) === 0;
+            }"""
+        )
+        page.locator('.daily-picks-card .daily-picks-link').first.focus()
+        page.wait_for_function(
+            """() => {
+                const link = document.querySelector('.daily-picks-card .daily-picks-link');
+                return link && parseFloat(getComputedStyle(link).opacity) === 1;
+            }"""
+        )
+        assert _link_opacity(page, 0) == 1
+    finally:
+        if context is not None:
+            context.close()
+        _cleanup_daily_picks(app, created)
+
+
+def test_home_daily_picks_view_sheet_visible_on_touch(browser, live_server):
+    """On a 375px touch device (no hover), the runner-up View Sheet stays visible."""
+    app = live_server['app']
+    created = _seed_daily_picks(app)
+    context = None
+    try:
+        context = browser.new_context(
+            viewport={'width': 375, 'height': 812},
+            is_mobile=True,
+            has_touch=True,
+            service_workers='block',
+        )
+        page = context.new_page()
+        page.goto(live_server['base'] + '/', wait_until='load')
+        page.locator('.daily-picks-card').first.wait_for()
+        assert _link_opacity(page, 0) == 1
+    finally:
+        if context is not None:
+            context.close()
+        _cleanup_daily_picks(app, created)

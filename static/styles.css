@@ -2239,6 +2239,33 @@ html[data-theme="limelight"] {
     white-space: nowrap;
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .daily-picks-card .daily-picks-link {
+        opacity: 0;
+    }
+
+    .daily-picks-card:hover .daily-picks-link,
+    .daily-picks-card:focus-within .daily-picks-link,
+    .daily-picks-card .daily-picks-link:focus-visible {
+        opacity: 1;
+    }
+
+    .daily-picks-card:hover .ratio img,
+    .daily-picks-card:hover .daily-picks-art-fallback,
+    .daily-picks-card:focus-within .ratio img,
+    .daily-picks-card:focus-within .daily-picks-art-fallback {
+        opacity: 0.85;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .daily-picks-card .daily-picks-link,
+    .daily-picks-card .ratio img,
+    .daily-picks-card .daily-picks-art-fallback {
+        transition: opacity 0.2s ease;
+    }
+}
+
 .daily-picks-prev,
 .daily-picks-next {
     width: 2.75rem;
