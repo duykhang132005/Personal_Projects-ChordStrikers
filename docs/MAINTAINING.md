@@ -9,7 +9,7 @@ app/                    Flask application package
   routes/               Blueprints: main, creator, auth, pwa, favorites
   chord_logic.py        Transpose and simplify (server side)
   storage.py            Song text file I/O
-  parsing.py            Legacy text parser helpers
+  csp.py                Report-only Content-Security-Policy header and /csp-report
   utils.py              Chord splitting, iTunes cover fetch, artwork sizes
   config.py             App configuration
 docs/                   Chord format guide and this file
@@ -133,6 +133,10 @@ SESSION_COOKIE_SECURE=1
 
 That marks the login cookie as HTTPS-only. Leave it unset (or set it to `0`) for local `http://` development so the cookie still works. The app loads `.env` from the project folder (the directory that contains `app/`), so this works even if the process was started in another directory. The values `1`, `true`, `yes`, and `on` all count as on.
 
+### Content-Security-Policy (report-only)
+
+Every response includes a `Content-Security-Policy-Report-Only` header so the browser reports policy violations without blocking scripts, styles, or images. Reports are posted to `/csp-report` (CSRF-exempt, body capped at 8 KB) and written as one line in the app log. To turn the header off, set `CSP_REPORT_ONLY=0` in `.env` and press Reload. There is no extra package to install.
+
 ### Static file versions
 
 CSS and JS links carry a `?v=` value computed from the newest file modification time under `static/` (song text files in `static/data/` are ignored). There is nothing to bump by hand. Set `STATIC_ASSET_VERSION` in the environment to pin a value.
@@ -141,7 +145,7 @@ CSS and JS links carry a `?v=` value computed from the newest file modification 
 
 ChordStrikers ships a web app manifest, icons and a small service worker (`static/sw.js`), so it can be installed. Installing needs HTTPS, which PythonAnywhere provides.
 
-The service worker caches versioned CSS, JS and icons, plus an offline page. Pages, logins and song sheets come from the server, with one exception: signed-in users can tap **Save offline** (the star) on a sheet. Starred sheets are stored per account in the `favorites` table, listed under **Your favorites** on Explore, and copied to the device together with the styles and fonts they need, so they open with bad or no signal. Unstarring removes the copy, and signing out clears all saved copies.
+The service worker caches versioned CSS, JS and icons, plus an offline page. The offline page loads `/static/js/offline.js` and `/static/css/offline.css` without a `?v=` query string so the precache path matches the request URL; changing those files still bumps `STATIC_ASSET_VERSION` (from file mtimes) and the cache name. Pages, logins and song sheets come from the server, with one exception: signed-in users can tap **Save offline** (the star) on a sheet. Starred sheets are stored per account in the `favorites` table, listed under **Your favorites** on Explore, and copied to the device together with the styles and fonts they need, so they open with bad or no signal. Unstarring removes the copy, and signing out clears all saved copies.
 
 ## Daily database backup
 

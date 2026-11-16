@@ -2,117 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script>
-        (function () {
-            /* cs-theme-v2 is the live choice: "wooden" or "limelight".
-               Limelight is the green background (formerly stored as nature).
-               Old cs-theme "limelight" was the dark spotlight and is dropped,
-               along with "stage". Both become Default. */
-            var allowed = { wooden: 1, limelight: 1 };
-            var theme = '';
-            try {
-                var saved = localStorage.getItem('cs-theme-v2');
-                if (saved === null) {
-                    var old = localStorage.getItem('cs-theme') || '';
-                    if (old === 'nature') theme = 'limelight';
-                    else if (old === 'wooden') theme = 'wooden';
-                    localStorage.setItem('cs-theme-v2', theme);
-                } else if (allowed[saved]) {
-                    theme = saved;
-                }
-            } catch (e) { theme = ''; }
-            if (theme) document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
+    <script src="/static/js/offline.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1a120c">
     <title>Offline | ChordStrikers</title>
-    <style>
-        html[data-theme="wooden"] body {
-            background-color: #3a2412;
-            background-image: repeating-linear-gradient(1deg, #3a2412 0px, #5a3818 5px, #6b4420 9px, #4a2c14 14px, #2e1b0c 19px);
-        }
-        html[data-theme="limelight"] body {
-            background-color: #0e2418;
-            background-image: linear-gradient(165deg, #1d4a32 0%, #0e2418 48%, #163528 100%);
-        }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1a120c;
-            color: #fff;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            text-align: center;
-            padding: 1.5rem;
-        }
-        h1 { color: #e07a1f; margin-bottom: 0.5rem; }
-        p { max-width: 28rem; margin: 0.5rem auto 1.5rem; line-height: 1.5; }
-        .saved { max-width: 28rem; margin: 2rem auto 0; text-align: left; }
-        .saved h2 { font-size: 1.1rem; color: #ffcc80; margin: 0 0 0.5rem; text-align: center; }
-        .saved ul { list-style: none; padding: 0; margin: 0; }
-        .saved a {
-            display: block;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.5rem;
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            text-decoration: none;
-            overflow-wrap: anywhere;
-        }
-        .saved a:hover, .saved a:focus-visible { background: rgba(224, 122, 31, 0.35); }
-        button {
-            background: #e07a1f;
-            color: #1a120c;
-            border: 0;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/offline.css">
 </head>
 <body>
     <main>
         <h1>You are offline</h1>
         <p>ChordStrikers needs a connection to load chord sheets. Check your network and try again.</p>
-        <button type="button" onclick="window.location.reload()">Try again</button>
+        <button type="button" id="offline-retry">Try again</button>
         <section class="saved" id="saved-sheets" hidden>
             <h2>Saved on this device</h2>
             <ul id="saved-list"></ul>
         </section>
     </main>
-    <script>
-        // List starred sheets the service worker saved for offline use.
-        (function () {
-            if (!window.caches) return;
-            caches.open('chordstrikers-favorites')
-                .then(function (cache) { return cache.match('/__cs-offline-favorites.json'); })
-                .then(function (response) { return response ? response.json() : null; })
-                .then(function (manifest) {
-                    var pages = manifest && manifest.pages ? manifest.pages : {};
-                    var ids = Object.keys(pages);
-                    if (!ids.length) return;
-                    ids.sort(function (a, b) {
-                        return String(pages[a].title || '').localeCompare(String(pages[b].title || ''));
-                    });
-                    var list = document.getElementById('saved-list');
-                    ids.forEach(function (id) {
-                        var link = document.createElement('a');
-                        link.href = '/view_sheet/' + id;
-                        link.textContent = pages[id].title || ('Sheet ' + id);
-                        var item = document.createElement('li');
-                        item.appendChild(link);
-                        list.appendChild(item);
-                    });
-                    document.getElementById('saved-sheets').hidden = false;
-                })
-                .catch(function () {});
-        })();
-    </script>
 </body>
 </html>

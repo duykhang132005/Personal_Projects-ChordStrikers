@@ -30,6 +30,11 @@ def session_cookie_secure():
     return env_flag('SESSION_COOKIE_SECURE', default=False)
 
 
+def csp_report_only():
+    """Read CSP_REPORT_ONLY at app-creation time (default on)."""
+    return env_flag('CSP_REPORT_ONLY', default=True)
+
+
 class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///songs.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -55,3 +60,10 @@ class Config:
     # create_app overwrites this from the environment at startup.
     SESSION_COOKIE_SECURE = False
     MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
+
+    # Report-only Content-Security-Policy on every response. Set
+    # CSP_REPORT_ONLY=0 to turn the header off. Reports POST to
+    # /csp-report and are capped at CSP_REPORT_MAX_BYTES.
+    CSP_REPORT_ONLY = True
+    CSP_REPORT_PATH = '/csp-report'
+    CSP_REPORT_MAX_BYTES = 8192

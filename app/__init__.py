@@ -6,7 +6,7 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
-from .config import Config, session_cookie_secure
+from .config import Config, session_cookie_secure, csp_report_only
 from .assets import compute_static_version
 
 db = SQLAlchemy()
@@ -71,6 +71,7 @@ def create_app(test_config=None):
     # Load additional config
     app.config.from_object(Config)
     app.config['SESSION_COOKIE_SECURE'] = session_cookie_secure()
+    app.config['CSP_REPORT_ONLY'] = csp_report_only()
     if test_config is not None:
         app.config.update(test_config)
 
@@ -105,6 +106,9 @@ def create_app(test_config=None):
     _register_static_cache_headers(app)
     _register_error_handlers(app)
     _register_context_processors(app)
+
+    from .csp import register_csp
+    register_csp(app)
 
     # Create missing SQLite tables (including favorites on older databases),
     # ensure songs.user_id, then keep songs.id in

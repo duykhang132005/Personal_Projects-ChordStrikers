@@ -19,7 +19,9 @@ const REFRESH_AFTER_MS = 12 * 60 * 60 * 1000;
 const PRECACHE = [
   OFFLINE_URL,
   '/static/icons/icon-192.png',
-  '/static/icons/icon-512.png'
+  '/static/icons/icon-512.png',
+  '/static/js/offline.js',
+  '/static/css/offline.css'
 ];
 
 self.addEventListener('install', function (event) {

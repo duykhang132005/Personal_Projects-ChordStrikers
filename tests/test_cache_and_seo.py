@@ -50,15 +50,32 @@ def test_other_responses_keep_their_own_headers(client):
     assert 'immutable' not in client.get('/static/missing-file.css?v=1').headers.get('Cache-Control', '')
 
 
+# Offline fallback assets are precached by the service worker at an exact
+# path, so they must be requested without a ?v= query string.
+_OFFLINE_PRECACHE = (
+    '/static/js/offline.js',
+    '/static/css/offline.css',
+)
+
+
 def test_every_template_static_reference_is_versioned(client, app):
-    """Pages served to users only point at ?v= URLs (fonts excepted)."""
+    """Pages served to users only point at ?v= URLs (fonts and offline precache excepted)."""
     pages = ['/', '/explore', '/view_sheet/1', '/offline']
     for page in pages:
         html = client.get(page).get_data(as_text=True)
         for ref in re.findall(r'(?:href|src)="(/static/[^"]+)"', html):
-            if ref.startswith('/static/fonts/') or ref.startswith('/static/data/'):
+            path_only = ref.split('?', 1)[0]
+            if (
+                path_only in _OFFLINE_PRECACHE
+                or ref.startswith('/static/fonts/')
+                or ref.startswith('/static/data/')
+            ):
                 continue
             assert '?v=' in ref, f'{page}: {ref}'
+    offline = client.get('/offline').get_data(as_text=True)
+    for path in _OFFLINE_PRECACHE:
+        assert path in offline
+        assert path + '?v=' not in offline
 
 
 # --- robots.txt --------------------------------------------------------------

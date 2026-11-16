@@ -1,6 +1,7 @@
 """Favorites API, offline-favorites service worker rules and Explore tabs."""
 import re
 import sqlite3
+from pathlib import Path
 
 from app import create_app, db
 from app.models import Favorite, Song, User
@@ -149,10 +150,12 @@ def test_service_worker_keeps_favorites_cache_on_upgrade(client):
     assert "'/static/data/'" in body
 
 
-def test_offline_page_lists_saved_sheets(client):
+def test_offline_page_lists_saved_sheets(client, app):
     html = client.get('/offline').get_data(as_text=True)
-    assert 'chordstrikers-favorites' in html
     assert 'saved-list' in html
+    assert '/static/js/offline.js' in html
+    js = (Path(app.static_folder) / 'js' / 'offline.js').read_text(encoding='utf-8')
+    assert 'chordstrikers-favorites' in js
 
 
 def test_pages_expose_sign_in_state_for_sync(client):
