@@ -19,9 +19,8 @@ def build_csp_policy(report_path='/csp-report'):
     """Build the report-only policy string.
 
     script-src allows the Bootstrap bundle on cdn.jsdelivr.net. font-src also
-    allows jsdelivr and cdnjs.cloudflare.com because vendor.min.css loads
-    Bootstrap Icons and Font Awesome from those CDNs (the preconnect to
-    cdnjs in index.html is therefore in use and is left in place). style-src
+    allows jsdelivr because vendor.min.css loads Bootstrap Icons from that
+    CDN. style-src
     is 'self' only: existing inline <style> blocks and style= attributes
     will show up as reports rather than being allowed. img-src allows
     https: so album covers from Apple and Spotify CDNs still load.
@@ -31,7 +30,7 @@ def build_csp_policy(report_path='/csp-report'):
         "script-src 'self' https://cdn.jsdelivr.net; "
         "style-src 'self'; "
         "img-src 'self' data: https:; "
-        "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://cdn.jsdelivr.net; "
         "connect-src 'self'; "
         "manifest-src 'self'; "
         "worker-src 'self'; "

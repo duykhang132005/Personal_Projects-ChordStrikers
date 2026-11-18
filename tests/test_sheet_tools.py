@@ -118,6 +118,20 @@ TRANSFORM_CASES = [
     ("[Am7]x [E7/G#]y", {"steps": 3, "prefer": "flat", "simplify": True}, "[Cm]x [G/B]y"),
     ("[C]a [G]b", {"steps": 12}, "[C]a [G]b"),
     ("no chords here", {"steps": 5}, "no chords here"),
+    # Section headers stay put; real chords still move.
+    (
+        "[Chorus]\n[Verse 1]\n[Bridge]:\n[C]Hello [G]world",
+        {"steps": 2, "prefer": "sharp"},
+        "[Chorus]\n[Verse 1]\n[Bridge]:\n[D]Hello [A]world",
+    ),
+    ("[Intro] [C] [G]", {"steps": 2, "prefer": "sharp"}, "[Intro] [D] [A]"),
+    (
+        "[Pre-chorus]\n[D] [Bb] [C#m7]",
+        {"steps": 2, "prefer": "sharp"},
+        "[Pre-chorus]\n[E] [C] [D#m7]",
+    ),
+    ("[Chorus] [Am]hi", {"steps": 1, "prefer": "flat"}, "[Chorus] [Bbm]hi"),
+    ("[Pre Chorus]\n[F/A]x", {"steps": 2, "prefer": "sharp"}, "[Pre Chorus]\n[G/B]x"),
 ]
 
 
@@ -180,6 +194,16 @@ def test_js_simplify_matches_cases(js_results):
 @pytest.mark.parametrize("chord,steps,prefer,expected", TRANSPOSE_CASES)
 def test_python_mirror_transposes_the_same(chord, steps, prefer, expected):
     assert transpose_chord(chord, steps, prefer) == expected
+
+
+@pytest.mark.parametrize("text,options,expected", TRANSFORM_CASES)
+def test_python_mirror_transforms_the_same(text, options, expected):
+    assert transform_text(
+        text,
+        steps=options.get("steps", 0),
+        prefer=options.get("prefer", "sharp"),
+        simplify=bool(options.get("simplify")),
+    ) == expected
 
 def test_account_theme_picker(auth_client):
     html = auth_client.get('/').get_data(as_text=True)

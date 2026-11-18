@@ -174,7 +174,7 @@ To restore, stop the web app (or accept a short blip), copy a backup over `insta
 
 ## Trimmed Bootstrap and icon CSS
 
-`static/vendor/vendor.min.css` holds Bootstrap 5.3.3, Bootstrap Icons and Font Awesome, trimmed to the classes the app uses (about 29 KB instead of about 430 KB). If you add a Bootstrap class or icon that is not used anywhere yet, rebuild it on your PC (Node needed only for this):
+`static/vendor/vendor.min.css` holds Bootstrap 5.3.3 and Bootstrap Icons, trimmed to the classes the app uses (about 30 KB instead of about 400 KB). If you add a Bootstrap class or icon that is not used anywhere yet, rebuild it on your PC (Node needed only for this):
 
 ```bash
 npm install --no-save purgecss@6 clean-css@5

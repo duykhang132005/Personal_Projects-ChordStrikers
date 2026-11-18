@@ -654,3 +654,118 @@ def test_home_daily_picks_view_sheet_visible_on_touch(browser, live_server):
         if context is not None:
             context.close()
         _cleanup_daily_picks(app, created)
+
+
+
+def _edge_boxes(page):
+    return page.evaluate(
+        """() => {
+            const featured = document.querySelector('.daily-featured-card');
+            const row = document.querySelector('.daily-picks-row');
+            const cards = Array.from(document.querySelectorAll('.daily-picks-card'));
+            const fr = featured.getBoundingClientRect();
+            const rr = row.getBoundingClientRect();
+            const first = cards[0].getBoundingClientRect();
+            const last = cards[cards.length - 1].getBoundingClientRect();
+            return {
+                featuredLeft: fr.left,
+                featuredRight: fr.right,
+                rowLeft: rr.left,
+                rowRight: rr.right,
+                firstLeft: first.left,
+                lastRight: last.right
+            };
+        }"""
+    )
+
+
+def _assert_edges_align(boxes, width):
+    def close(a, b, label):
+        delta = abs(a - b)
+        assert delta <= 1, (
+            f'{label} at {width}px: {a} vs {b} (delta {delta})'
+        )
+
+    close(boxes['featuredLeft'], boxes['rowLeft'], 'featured/row left')
+    close(boxes['featuredRight'], boxes['rowRight'], 'featured/row right')
+    close(boxes['featuredLeft'], boxes['firstLeft'], 'featured/first-card left')
+    close(boxes['featuredRight'], boxes['lastRight'], 'featured/last-card right')
+
+
+def _bg(page, selector):
+    return page.evaluate(
+        """(selector) => {
+            const el = document.querySelector(selector);
+            return el ? getComputedStyle(el).backgroundColor : null;
+        }""",
+        selector,
+    )
+
+
+def test_home_daily_picks_aligns_and_keeps_button_background(browser, live_server):
+    """Featured and runner-up edges line up at 1280 and 1024; button fill stays."""
+    app = live_server['app']
+    created = _seed_daily_picks(app)
+    context = None
+    try:
+        for width in (1280, 1024):
+            if context is not None:
+                context.close()
+                context = None
+            context = browser.new_context(
+                viewport={'width': width, 'height': 800},
+                service_workers='block',
+            )
+            page = context.new_page()
+            page.goto(live_server['base'] + '/', wait_until='load')
+            page.locator('.daily-featured-card').wait_for()
+            page.locator('.daily-picks-card').first.wait_for()
+            assert page.locator('.daily-picks-card').count() == 3
+            _assert_edges_align(_edge_boxes(page), width)
+            assert page.locator('.daily-picks-prev').is_hidden()
+            assert page.locator('.daily-picks-next').is_hidden()
+
+        # Button fill at 1280: rest, hover, and active stay the same.
+        overlay = '.daily-picks-card .daily-picks-link'
+        featured = '.daily-featured-card .daily-picks-link'
+        rest_overlay = _bg(page, overlay)
+        rest_featured = _bg(page, featured)
+        assert rest_overlay
+        assert rest_featured
+
+        def _hold_without_navigating(selector):
+            page.evaluate(
+                """(selector) => {
+                    const el = document.querySelector(selector);
+                    if (!el) return;
+                    el.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                    }, true);
+                }""",
+                selector,
+            )
+            page.locator(selector).first.hover()
+            page.mouse.down()
+            color = _bg(page, selector)
+            page.mouse.up()
+            return color
+
+        page.locator('.daily-picks-card').first.hover()
+        page.locator(overlay).first.hover()
+        page.wait_for_function(
+            """() => {
+                const link = document.querySelector('.daily-picks-card .daily-picks-link');
+                return link && parseFloat(getComputedStyle(link).opacity) === 1;
+            }"""
+        )
+        assert _bg(page, overlay) == rest_overlay
+        assert _hold_without_navigating(overlay) == rest_overlay
+
+        page.locator('.daily-picks-heading').hover()
+        assert _bg(page, featured) == rest_featured
+        assert _hold_without_navigating(featured) == rest_featured
+    finally:
+        if context is not None:
+            context.close()
+        _cleanup_daily_picks(app, created)

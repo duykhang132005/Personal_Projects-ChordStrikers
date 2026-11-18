@@ -6,6 +6,7 @@
   const metroBtn = document.getElementById('btn-metro');
   const tunerBtn = document.getElementById('btn-tuner');
   const readout = document.getElementById('tuner-readout');
+  const announceEl = document.getElementById('tuner-announce');
   if (!root || !bpmInput) return;
 
   const songId = root.getAttribute('data-song-id');
@@ -19,6 +20,22 @@
     { name: 'B3', freq: 246.94 },
     { name: 'E4', freq: 329.63 }
   ];
+  const ANNOUNCE_MS = 1000;
+  let lastAnnounceAt = 0;
+  let lastAnnounced = '';
+
+  /* Visual text can update every frame. The live region only changes when
+   * the rounded note/cents bucket changes, and at most about once a second. */
+  function setReadout(text, immediate) {
+    if (readout) readout.textContent = text;
+    if (!announceEl) return;
+    if (!immediate && text === lastAnnounced) return;
+    const now = performance.now();
+    if (!immediate && (now - lastAnnounceAt) < ANNOUNCE_MS) return;
+    lastAnnounced = text;
+    lastAnnounceAt = now;
+    announceEl.textContent = text;
+  }
 
   function readPrefs() {
     try { return JSON.parse(localStorage.getItem(prefKey)) || {}; } catch (e) { return {}; }
@@ -157,18 +174,18 @@
     if (!tunerOn || !analyser) return;
     analyser.getFloatTimeDomainData(buffer);
     const freq = pitchFrom(buffer, audio.sampleRate);
-    if (freq) readout.textContent = describe(freq);
+    if (freq) setReadout(describe(freq), false);
     tunerTimer = requestAnimationFrame(listen);
   }
 
   tunerBtn.addEventListener('click', function () {
-    if (tunerOn) { stopTuner(); readout.textContent = 'Mic off'; return; }
+    if (tunerOn) { stopTuner(); setReadout('Mic off', true); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      readout.textContent = 'This browser has no microphone. On iPhone, open the page in Safari.';
+      setReadout('This browser has no microphone. On iPhone, open the page in Safari.', true);
       return;
     }
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) { readout.textContent = 'This browser has no audio.'; return; }
+    if (!AudioCtx) { setReadout('This browser has no audio.', true); return; }
     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } })
       .then(function (got) {
         stream = got;
@@ -181,14 +198,14 @@
         tunerOn = true;
         tunerBtn.textContent = 'Stop tuner';
         tunerBtn.setAttribute('aria-pressed', 'true');
-        readout.textContent = 'Listening... play one string.';
+        setReadout('Listening... play one string.', true);
         listen();
       })
       .catch(function (err) {
         if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
-          readout.textContent = 'Microphone blocked. Allow it in the browser, or on iPhone open this page in Safari (the installed app often cannot use the mic).';
+          setReadout('Microphone blocked. Allow it in the browser, or on iPhone open this page in Safari (the installed app often cannot use the mic).', true);
         } else {
-          readout.textContent = 'Microphone is not available right now.';
+          setReadout('Microphone is not available right now.', true);
         }
       });
   });

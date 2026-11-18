@@ -68,13 +68,11 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/roboto-mono-vietnamese.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-
     <!-- Stylesheets -->
 
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=static_v) }}">
 
-    <!-- Bootstrap, Bootstrap Icons and Font Awesome, trimmed to the classes this app uses (scripts/build_vendor_css.js). -->
+    <!-- Bootstrap and Bootstrap Icons, trimmed to the classes this app uses (scripts/build_vendor_css.js). -->
 
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/vendor.min.css', v=static_v) }}">
 

@@ -10,6 +10,28 @@ FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 _CHORD_RE = re.compile(r'^([A-G][#b]?)(.*?)(?:/([A-G][#b]?))?$')
 _TOKEN_RE = re.compile(r'\[[^\]]+\]')
 
+# Keep in sync with app.utils.SECTION_KEYWORDS and static/js/chord_tools.js.
+# A trailing number (Verse 1) or ':' is ignored; [C] / [Bb] / [C#m7] are not headers.
+_SECTION_KEYWORDS = {
+    'intro', 'verse', 'melody', 'prechorus', 'pre-chorus', 'pre chorus',
+    'chorus', 'interlude', 'outro', 'bridge',
+}
+
+
+def is_section_header_token(name):
+    """True if a bracket token is a section label, not a chord."""
+    label = (name or '').rstrip(':').strip().lower()
+    if not label:
+        return False
+    if label in _SECTION_KEYWORDS:
+        return True
+    words = label.split()
+    if words[0] in _SECTION_KEYWORDS:
+        return True
+    if len(words) > 1 and (words[0] + ' ' + words[1]) in _SECTION_KEYWORDS:
+        return True
+    return False
+
 
 def shift_note(note, steps, prefer='sharp'):
     if note in SHARP:
@@ -75,6 +97,8 @@ def transform_text(text, steps=0, prefer='sharp', simplify=False):
 
     def _one(match):
         name = match.group(0)[1:-1]
+        if is_section_header_token(name):
+            return match.group(0)
         shown = transpose_chord(name, steps, prefer)
         if simplify:
             shown = simplify_chord(shown)

@@ -8,6 +8,22 @@
   var SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   var FLAT = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
   var CHORD_RE = /^([A-G][#b]?)(.*?)(?:\/([A-G][#b]?))?$/;
+  /* Keep in sync with app.utils.SECTION_KEYWORDS and app/chord_logic.py. */
+  var SECTION_KEYWORDS = {
+    'intro': 1, 'verse': 1, 'melody': 1, 'prechorus': 1,
+    'pre-chorus': 1, 'pre chorus': 1, 'chorus': 1,
+    'interlude': 1, 'outro': 1, 'bridge': 1
+  };
+
+  function isSectionHeaderToken(name) {
+    var label = String(name || '').replace(/:+$/, '').replace(/^\s+|\s+$/g, '').toLowerCase();
+    if (!label) return false;
+    if (SECTION_KEYWORDS[label]) return true;
+    var words = label.split(/\s+/);
+    if (SECTION_KEYWORDS[words[0]]) return true;
+    if (words.length > 1 && SECTION_KEYWORDS[words[0] + ' ' + words[1]]) return true;
+    return false;
+  }
 
   function shiftNote(note, steps, prefer) {
     var idx = SHARP.indexOf(note);
@@ -55,13 +71,15 @@
     return root + parts.quality + bass;
   }
 
-  /* Rewrite every [Chord] in a sheet by the given transpose steps. */
+  /* Rewrite every [Chord] in a sheet by the given transpose steps.
+   * Section headers such as [Chorus] or [Verse 1] are left alone. */
   function transformText(text, options) {
     var opts = options || {};
     var steps = opts.steps || 0;
     var prefer = opts.prefer === 'flat' ? 'flat' : 'sharp';
     return String(text || '').replace(/\[[^\]]+\]/g, function (token) {
       var name = token.slice(1, -1);
+      if (isSectionHeaderToken(name)) return token;
       var shown = transposeChord(name, steps, prefer);
       if (opts.simplify) shown = simplifyChord(shown);
       return '[' + shown + ']';
@@ -72,6 +90,7 @@
     shiftNote: shiftNote,
     simplifyChord: simplifyChord,
     transposeChord: transposeChord,
-    transformText: transformText
+    transformText: transformText,
+    isSectionHeaderToken: isSectionHeaderToken
   };
 });

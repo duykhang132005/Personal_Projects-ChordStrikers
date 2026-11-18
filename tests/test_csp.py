@@ -16,7 +16,7 @@ def test_csp_header_on_html_and_worker_routes(client):
         "script-src 'self' https://cdn.jsdelivr.net",
         "style-src 'self'",
         "img-src 'self' data: https:",
-        "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+        "font-src 'self' https://cdn.jsdelivr.net",
         "connect-src 'self'",
         "manifest-src 'self'",
         "worker-src 'self'",
@@ -175,3 +175,21 @@ def test_parsing_py_is_removed():
             assert 'parsing.py' not in text, path
     # Keep the real transpose helpers.
     assert (ROOT / 'app' / 'chord_logic.py').is_file()
+
+
+def test_font_awesome_and_cdnjs_are_gone():
+    vendor = (ROOT / 'static' / 'vendor' / 'vendor.min.css').read_text(encoding='utf-8')
+    assert 'font-awesome' not in vendor.lower()
+    assert 'cdnjs.cloudflare.com' not in vendor
+    assert 'fontawesome' not in (ROOT / 'scripts' / 'build_vendor_css.js').read_text(encoding='utf-8').lower()
+    index = (ROOT / 'templates' / 'index.html').read_text(encoding='utf-8')
+    assert 'cdnjs.cloudflare.com' not in index
+    assert 'Font Awesome' not in index
+    for rel in ('templates/explore.html', 'templates/home.html'):
+        html = (ROOT / rel).read_text(encoding='utf-8')
+        assert 'fas ' not in html
+        assert 'fa-search' not in html
+        assert 'fa-book' not in html
+    sw = (ROOT / 'static' / 'sw.js').read_text(encoding='utf-8')
+    assert 'cdnjs.cloudflare.com' not in sw
+    assert 'font-awesome' not in sw.lower()
