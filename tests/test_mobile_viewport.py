@@ -769,3 +769,92 @@ def test_home_daily_picks_aligns_and_keeps_button_background(browser, live_serve
         if context is not None:
             context.close()
         _cleanup_daily_picks(app, created)
+
+
+def test_daily_picks_hide_when_a_home_panel_is_open(browser, live_server, admin_state):
+    """Song of the Day shows only on the original home view.
+
+    Circle menu items that open a front-screen card: About, Contact,
+    Project, Library, Sign In (signed out), and Account (signed in).
+    Clicking the active item again returns to the home view. Query
+    params ?signin=1 and ?account=1 open those cards on load. The
+    panels do not use browser history.
+    """
+    signed_out = ('About', 'Contact', 'Project', 'Library', 'Sign In')
+    context = None
+    try:
+        context = browser.new_context(
+            viewport={'width': 1280, 'height': 800},
+            service_workers='block',
+        )
+        page = context.new_page()
+        page.goto(live_server['base'] + '/', wait_until='load')
+        picks = page.locator('.daily-picks')
+        assert picks.count() == 1
+        assert picks.is_visible()
+
+        for label in signed_out:
+            item = page.locator('.circle-menu-item[aria-label="%s"]' % label)
+            item.click()
+            page.wait_for_function(
+                "document.querySelector('.daily-picks').hidden === true"
+            )
+            assert not picks.is_visible(), label
+            item.click()
+            page.wait_for_function(
+                "document.querySelector('.daily-picks').hidden === false"
+            )
+            assert picks.is_visible(), label
+
+        page.goto(live_server['base'] + '/?signin=1', wait_until='load')
+        picks = page.locator('.daily-picks')
+        page.wait_for_function(
+            "document.querySelector('.daily-picks').hidden === true"
+        )
+        assert not picks.is_visible()
+        page.locator('.circle-menu-item[aria-label="Sign In"]').click()
+        page.wait_for_function(
+            "document.querySelector('.daily-picks').hidden === false"
+        )
+        assert picks.is_visible()
+    finally:
+        if context is not None:
+            context.close()
+
+    context = None
+    try:
+        context = browser.new_context(
+            storage_state=admin_state,
+            viewport={'width': 1280, 'height': 800},
+            service_workers='block',
+        )
+        page = context.new_page()
+        page.goto(live_server['base'] + '/', wait_until='load')
+        picks = page.locator('.daily-picks')
+        assert picks.is_visible()
+        item = page.locator('.circle-menu-item[aria-label="Account"]')
+        item.click()
+        page.wait_for_function(
+            "document.querySelector('.daily-picks').hidden === true"
+        )
+        assert not picks.is_visible()
+        item.click()
+        page.wait_for_function(
+            "document.querySelector('.daily-picks').hidden === false"
+        )
+        assert picks.is_visible()
+
+        page.goto(live_server['base'] + '/?account=1', wait_until='load')
+        picks = page.locator('.daily-picks')
+        page.wait_for_function(
+            "document.querySelector('.daily-picks').hidden === true"
+        )
+        assert not picks.is_visible()
+        page.locator('.circle-menu-item[aria-label="Account"]').click()
+        page.wait_for_function(
+            "document.querySelector('.daily-picks').hidden === false"
+        )
+        assert picks.is_visible()
+    finally:
+        if context is not None:
+            context.close()

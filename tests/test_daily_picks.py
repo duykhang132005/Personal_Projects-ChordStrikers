@@ -188,7 +188,8 @@ def test_home_hides_daily_picks_when_library_is_empty(client, app):
     html = client.get('/').get_data(as_text=True)
     assert 'Song of the day' not in html
     assert 'More to play' not in html
-    assert 'daily-picks' not in html
+    assert 'class="daily-picks' not in html
+    assert 'id="daily-picks-heading"' not in html
 
 
 def test_home_daily_picks_skip_hidden_songs(client, app):

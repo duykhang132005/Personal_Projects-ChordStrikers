@@ -70,7 +70,7 @@ def test_view_sheet_has_performance_and_no_capo(client):
     assert old_link.status_code == 200
     assert 'id="simplify-chords"' in html
     assert 'id="btn-tuner"' in html
-    assert 'id="sheet-raw"' in html
+    assert 'id="sheet-raw"' not in html
     assert "No preview available. The file could not be read." in html or "Hello world" in html
 
 # ---- The transposer the browser really runs (static/js/chord_tools.js) ----

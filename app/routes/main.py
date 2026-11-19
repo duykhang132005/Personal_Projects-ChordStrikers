@@ -164,7 +164,6 @@ def view_sheet(song_id):
         author_name=author_name,
         can_edit=can_edit_song(song, user) if user is not None else False,
         is_favorite=song_id in favorite_ids_for(user),
-        raw_text=raw_text,
     )
 
 

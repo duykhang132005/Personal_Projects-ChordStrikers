@@ -196,6 +196,13 @@
                 });
             }
 
+            // Song of the Day belongs on the original home view only.
+            function syncHomeView() {
+                syncExpanded();
+                var picks = document.querySelector('.daily-picks');
+                if (picks) picks.hidden = circleMenu.classList.contains('docked');
+            }
+
 
 
             menuItems.forEach(function (item) {
@@ -241,7 +248,7 @@
 
                     }
 
-                    syncExpanded();
+                    syncHomeView();
 
                 });
 
@@ -255,7 +262,7 @@
 
                     circleCards.forEach(function (c) { c.classList.add('d-none'); });
 
-                    syncExpanded();
+                    syncHomeView();
 
                 });
 
@@ -275,7 +282,7 @@
 
                     circleCards.forEach(function (c) { c.classList.add('d-none'); });
 
-                    syncExpanded();
+                    syncHomeView();
 
                 });
 
@@ -335,7 +342,7 @@
 
                 card.classList.remove('d-none');
 
-                syncExpanded();
+                syncHomeView();
 
                 var focusEl = focusId ? document.getElementById(focusId) : null;
 
