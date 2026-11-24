@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_csp_header_on_html_and_worker_routes(client):
     policy_keys = (
         "default-src 'self'",
-        "script-src 'self' https://cdn.jsdelivr.net",
+        "script-src 'self';",
         "style-src 'self'",
         "img-src 'self' data: https:",
         "font-src 'self' https://cdn.jsdelivr.net",
@@ -185,6 +185,7 @@ def test_font_awesome_and_cdnjs_are_gone():
     index = (ROOT / 'templates' / 'index.html').read_text(encoding='utf-8')
     assert 'cdnjs.cloudflare.com' not in index
     assert 'Font Awesome' not in index
+    assert 'bootstrap.bundle' not in index
     for rel in ('templates/explore.html', 'templates/home.html'):
         html = (ROOT / rel).read_text(encoding='utf-8')
         assert 'fas ' not in html

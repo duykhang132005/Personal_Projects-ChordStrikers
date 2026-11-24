@@ -51,13 +51,19 @@ def test_service_worker_leaves_healthz_alone(client):
     assert 'healthz' not in source
 
 
-def test_chord_font_is_self_hosted_and_preloaded(client):
-    html = client.get('/view_sheet/1').get_data(as_text=True)
-    assert 'fonts.googleapis.com' not in html
+def test_chord_font_is_self_hosted_and_preloaded(client, auth_client):
+    for path in ('/view_sheet/1', '/create'):
+        html = auth_client.get(path).get_data(as_text=True)
+        assert 'fonts.googleapis.com' not in html
+        for name in ('roboto-mono-latin.woff2', 'roboto-mono-vietnamese.woff2'):
+            assert f'href="/static/fonts/{name}" as="font" type="font/woff2" crossorigin' in html
     for name in ('roboto-mono-latin.woff2', 'roboto-mono-vietnamese.woff2'):
-        assert f'href="/static/fonts/{name}" as="font" type="font/woff2" crossorigin' in html
         font = client.get(f'/static/fonts/{name}')
         assert font.status_code == 200 and font.data[:4] == b'wOF2'
+    for path in ('/', '/explore'):
+        html = client.get(path).get_data(as_text=True)
+        assert 'roboto-mono-latin.woff2' not in html
+        assert 'roboto-mono-vietnamese.woff2' not in html
     css = client.get('/static/styles.css').get_data(as_text=True)
     assert "url('fonts/roboto-mono-latin.woff2')" in css
 

@@ -1,15 +1,15 @@
 {% extends "creator.html" %}
 
 {% block page_title %}Edit{% endblock %}
+{% block page_heading %}Edit Song{% endblock %}
 {% block page_intro %}Update your chord sheet and transpose chords interactively{% endblock %}
-{% block form_action %}{{ url_for('edit_sheet', sheet_id=song.id) }}{% endblock %}
 
 {% block value_title %}{{ song.title }}{% endblock %}
-{% block value_artist %}{{ song.artist }}{% endblock %}
-{% block value_key %}{{ song.song_key }}{% endblock %}
+{% block value_artist %}{{ song.artist or '' }}{% endblock %}
+{% block value_key %}{{ song.song_key or '' }}{% endblock %}
 {% block value_album %}{{ song.album or '' }}{% endblock %}
 {% block value_hidden %}{% if song.hidden %} checked{% endif %}{% endblock %}
-{% block value_image_url %}{{ song.image_url }}{% endblock %}
+{% block value_image_url %}{{ song.image_url or '' }}{% endblock %}
 
 {% block value_content %}
 {{ content }}

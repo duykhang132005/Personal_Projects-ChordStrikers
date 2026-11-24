@@ -1,9 +1,15 @@
 {% extends "index.html" %}
 {% block title %}{% block page_title %}Creator{% endblock %} | ChordStrikers{% endblock %}
 
+{% block head_extra %}
+<!-- Monospace font with full Vietnamese support for chord sheets -->
+<link rel="preload" href="{{ url_for('static', filename='fonts/roboto-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ url_for('static', filename='fonts/roboto-mono-vietnamese.woff2') }}" as="font" type="font/woff2" crossorigin>
+{% endblock %}
+
 {% block content %}
 <main class="creator-page">
-  <h1 class="page-heading">Create New Song</h1>
+  <h1 class="page-heading">{% block page_heading %}Create New Song{% endblock %}</h1>
   
   <p class="page-intro">
     {% block page_intro %}

@@ -27,5 +27,20 @@ def test_edit_page_delete_button_has_no_inline_handlers(auth_client, app):
     assert 'js/sheet_editor.js' in html
 
 
+def test_edit_page_heading_and_empty_optional_fields(auth_client, app):
+    with mock.patch('app.routes.creator.get_song_image_url', return_value=None):
+        auth_client.post('/create', data={
+            'title': 'Folk Tune', 'artist': '', 'song_key': 'G',
+            'image_url': '', 'sheet_content': '[G]la',
+        })
+    with app.app_context():
+        song_id = Song.query.filter_by(title='Folk Tune').first().id
+    html = auth_client.get(f'/edit_song/{song_id}').get_data(as_text=True)
+    assert '<h1 class="page-heading">Edit Song</h1>' in html
+    assert 'Create New Song' not in html
+    assert 'value="None"' not in html
+    assert 'roboto-mono-latin.woff2' in html
+
+
 # The confirm dialog itself (cancel keeps the song, OK deletes it) is checked
 # in a real browser: test_shared_styles.py::test_delete_song_asks_before_deleting.

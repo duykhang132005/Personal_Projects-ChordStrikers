@@ -63,9 +63,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v=static_v) }}">
 
-    <!-- Monospace font with full Vietnamese support for chord sheets -->
-    <link rel="preload" href="{{ url_for('static', filename='fonts/roboto-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="{{ url_for('static', filename='fonts/roboto-mono-vietnamese.woff2') }}" as="font" type="font/woff2" crossorigin>
+    {% block head_extra %}{% endblock %}
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- Stylesheets -->
@@ -104,6 +102,14 @@
             document.addEventListener('click', function (event) { if (!nav.contains(event.target)) setOpen(false); });
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape' && nav.classList.contains('open')) { setOpen(false); toggle.focus(); }
+            });
+        })();
+        (function () {
+            document.addEventListener('click', function (event) {
+                var btn = event.target.closest('[data-bs-dismiss="alert"]');
+                if (!btn) return;
+                var alert = btn.closest('.alert');
+                if (alert) alert.remove();
             });
         })();
     </script>
@@ -164,8 +170,6 @@
      {% block scripts %}
 
      {% endblock %}
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
     <script>
 

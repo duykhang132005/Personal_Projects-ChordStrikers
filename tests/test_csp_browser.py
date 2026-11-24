@@ -51,7 +51,7 @@ def _open(browser, live_server, admin_state, path):
     console = []
     page.on('console', lambda msg: console.append(f'{msg.type}: {msg.text}'))
     page.goto(f"{live_server['base']}{path}", wait_until='load')
-    # Deferred Bootstrap and page scripts run after load.
+    # Deferred page scripts run after load.
     page.wait_for_timeout(500)
     violations = _collect(page)
     context.close()
@@ -76,9 +76,6 @@ def _script_should_fail(item):
     if 'eval' in blocked or blocked == 'wasm-eval' or blocked == 'wasm-unsafe-eval':
         return True
     if directive.startswith('script-src') and blocked not in _KNOWN_INLINE:
-        # Allow the known Bootstrap bundle; anything else unexpected fails.
-        if blocked.startswith('https://cdn.jsdelivr.net/'):
-            return False
         return True
     return False
 
