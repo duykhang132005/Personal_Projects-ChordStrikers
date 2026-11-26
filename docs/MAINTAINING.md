@@ -181,6 +181,8 @@ npm install --no-save purgecss@6 clean-css@5
 node scripts/build_vendor_css.js
 ```
 
+The script also saves the Bootstrap Icons font to `static/fonts/bootstrap-icons.woff2`, so the icon font is self-hosted and the site loads nothing from a CDN at runtime (the CSP `font-src` is `'self'`). Commit that file together with the rebuilt CSS.
+
 ## Browser and Node tests (required)
 
 Every test must run; none are optional. Real-browser checks (phone and iPad layouts, Perform autoscroll, menu Create then submit, keyboard use, focus rings, motion and tap sizes) use Playwright with Chromium and WebKit (the Safari engine). The transposer tests in `tests/test_sheet_tools.py` run `static/js/chord_tools.js` in Node.js (version 18 or newer, on PATH).

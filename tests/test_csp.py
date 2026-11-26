@@ -16,7 +16,7 @@ def test_csp_header_on_html_and_worker_routes(client):
         "script-src 'self';",
         "style-src 'self'",
         "img-src 'self' data: https:",
-        "font-src 'self' https://cdn.jsdelivr.net",
+        "font-src 'self';",
         "connect-src 'self'",
         "manifest-src 'self'",
         "worker-src 'self'",
@@ -194,3 +194,15 @@ def test_font_awesome_and_cdnjs_are_gone():
     sw = (ROOT / 'static' / 'sw.js').read_text(encoding='utf-8')
     assert 'cdnjs.cloudflare.com' not in sw
     assert 'font-awesome' not in sw.lower()
+
+
+def test_bootstrap_icons_font_is_self_hosted(client):
+    vendor = (ROOT / 'static' / 'vendor' / 'vendor.min.css').read_text(encoding='utf-8')
+    assert 'cdn.jsdelivr.net' not in vendor
+    assert 'url("../fonts/bootstrap-icons.woff2' in vendor
+    assert 'bootstrap-icons.woff"' not in vendor
+    index = (ROOT / 'templates' / 'index.html').read_text(encoding='utf-8')
+    assert 'cdn.jsdelivr.net' not in index
+    response = client.get('/static/fonts/bootstrap-icons.woff2')
+    assert response.status_code == 200
+    assert response.data[:4] == b'wOF2'

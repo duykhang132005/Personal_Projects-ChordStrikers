@@ -18,8 +18,8 @@ _DOCUMENT_KEYS = ('document-uri', 'documentURI', 'document-url', 'documentURL')
 def build_csp_policy(report_path='/csp-report'):
     """Build the report-only policy string.
 
-    script-src is 'self' only (no third-party scripts). font-src still allows
-    jsdelivr because vendor.min.css loads Bootstrap Icons from that CDN.
+    script-src and font-src are 'self' only: no third-party scripts, and the
+    Bootstrap Icons font is self-hosted in static/fonts/.
     style-src is 'self' only: existing inline <style> blocks and style= attributes
     will show up as reports rather than being allowed. img-src allows
     https: so album covers from Apple and Spotify CDNs still load.
@@ -29,7 +29,7 @@ def build_csp_policy(report_path='/csp-report'):
         "script-src 'self'; "
         "style-src 'self'; "
         "img-src 'self' data: https:; "
-        "font-src 'self' https://cdn.jsdelivr.net; "
+        "font-src 'self'; "
         "connect-src 'self'; "
         "manifest-src 'self'; "
         "worker-src 'self'; "
